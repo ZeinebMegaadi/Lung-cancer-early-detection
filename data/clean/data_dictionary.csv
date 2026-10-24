@@ -1,0 +1,24 @@
+column,meaning,built_from
+person_id,Unique ID: survey year + NHIS household number,NHIS HHX + SRVY_YR
+year,Survey year (2019-2023),SRVY_YR
+survey_weight,NHIS sampling weight (use for population estimates),WTFA_A
+age,Age in years (85 = 85 or older),AGEP_A
+sex,Male / Female,SEX_A
+race_ethnicity,Hispanic origin and race,HISPALLP_A
+region,US region,REGION
+education,Highest education level (grouped),EDUC_A
+income_group,"Family income vs poverty line: below (<1), low (1-2), middle (2-4), high (4+)",RATCAT_A
+general_health,Self-rated general health,PHSTAT_A
+bmi_category,Body mass index category,BMICAT_A
+smoking_status,Cigarette smoking: Current / Former / Never,SMKCIGST_A
+ever_ecigarette,Ever used an e-cigarette (1 = yes),ECIGEV_A
+copd,"Ever told COPD, emphysema or chronic bronchitis (1 = yes)",COPDEV_A
+asthma,Ever had asthma (1 = yes),ASEV_A
+hypertension,Ever told high blood pressure (1 = yes),HYPEV_A
+heart_disease,Ever told coronary heart disease (1 = yes),CHDEV_A
+diabetes,Ever told diabetes (1 = yes),DIBEV_A
+age_group,NEW: age band,from age
+ever_smoker,NEW: current or former smoker (1 = yes),from smoking_status
+screening_age_smoker,NEW: age 50-80 and ever smoked (proxy of screening eligibility),from age + smoking
+comorbidity_count,NEW: number of the 5 conditions above,from copd...diabetes
+lung_cancer,TARGET: ever told they had lung cancer (1 = yes),CANEV_A + LUNGCAN_A

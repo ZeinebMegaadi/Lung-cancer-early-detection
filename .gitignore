@@ -1,0 +1,6 @@
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.DS_Store
+# Unzipped NHIS files are too big for GitHub; keep only the .zip files
+data/raw/nhis/*.csv

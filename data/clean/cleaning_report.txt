@@ -1,0 +1,54 @@
+STEP 1 - Load each year and stack the rows
+  2019: 31,997 adults
+  2020: 31,568 adults
+  2021: 29,482 adults
+  2022: 27,651 adults
+  2023: 29,522 adults
+  Stacked: 150,220 rows x 20 columns
+
+STEP 2 - Duplicates
+  Duplicate person IDs (year + household): 0
+  Rows after removing duplicate IDs: 150,220
+
+STEP 3 - Build the target: lung_cancer (1 = ever told they had lung cancer)
+  Unknown target (refused / don't know): 292 rows -> removed (cannot guess the answer)
+  Rows with a known target: 149,928
+  Lung cancer cases: 619 (0.41%)
+  By year: {2019: {'sum': 112, 'size': 31925}, 2020: {'sum': 131, 'size': 31513}, 2021: {'sum': 115, 'size': 29430}, 2022: {'sum': 116, 'size': 27594}, 2023: {'sum': 145, 'size': 29466}}
+
+STEP 4 - Recode NHIS codes into clear values (7/8/9, 97/98/99 = unknown -> missing)
+
+STEP 5 - New columns (feature engineering)
+  Added: age_group, ever_smoker, screening_age_smoker, comorbidity_count
+
+STEP 6 - Checks
+  Final rows: 149,928 | columns: 23
+  Duplicate person IDs: 0
+  Age range: 18.0 - 85.0
+  Missing values (%) per column:
+    screening_age_smoker   2.84%
+    ever_smoker            2.64%
+    smoking_status         2.64%
+    ever_ecigarette        2.57%
+    bmi_category           2.34%
+    education              1.42%
+    age                    0.24%
+    age_group              0.24%
+    heart_disease          0.22%
+    hypertension           0.11%
+    copd                   0.07%
+    diabetes               0.05%
+    general_health         0.04%
+    asthma                 0.04%
+    sex                    0.01%
+
+  Lung cancer rate by smoking status (%):
+{'Current': 0.72, 'Former': 0.98, 'Never': 0.12}
+  Lung cancer rate by COPD (%):
+{0.0: 0.23, 1.0: 3.41}
+
+STEP 7 - Model-ready version (numbers only, no missing values, fixed train/test split)
+  Age median used for filling (from training rows only): 54.0
+  Model-ready shape: (149928, 68) | train 119,942 | test 29,986
+  Lung cancer rate - train: 0.41% | test: 0.41%
+  Note: scale numeric columns inside your model pipeline, fitted on training rows only.
