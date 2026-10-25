@@ -82,7 +82,6 @@ result.
 
 ## Phase 2 progress
 
-G-01, G-02, and G-03 are complete. G-01 and G-02 are committed independently;
-G-03 passes its figure acceptance test and notebook execution check and is ready
-for its own independent commit. Further implementation is paused at G-04 for
-review, as requested by the one-gap-at-a-time workflow.
+G-01, G-02, and G-03 are complete and committed independently. G-03 passes its
+figure acceptance test and notebook execution check. Further implementation is
+paused at G-04 for review, as requested by the one-gap-at-a-time workflow.
