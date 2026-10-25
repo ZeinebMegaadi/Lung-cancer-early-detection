@@ -28,6 +28,11 @@ data/
     regional_context.csv              4 regions x 5 years: pollution, smoking rate, lung cancer rate
     nhis_lung_cancer_clean.csv        FINAL dataset, readable values, one row per adult
     nhis_lung_cancer_model_ready.csv  same, numbers only, no missing values, train/test split
+    nhis_lung_cancer_model_ready_scaled.csv  same, numeric columns standardised (fitted on training rows)
+    final_features.csv                every candidate feature: KEEP or DROP, and why
+    outlier_check.csv                 IQR outlier check and the decision for each numeric column
+    before_after_summary.csv          one table: rows, columns and missing cells after each step
+    scaler_parameters.csv             training means / SDs used for scaling
     data_dictionary.csv               meaning of every column
     cleaning_report.txt               every cleaning step with before/after counts
     regional_report.txt               cleaning steps of the 3 regional datasets
@@ -66,8 +71,12 @@ python run_all.py
 4. **Recode** NHIS number codes into words; codes 7/8/9 (don't know) → missing.
 5. **New columns:** `age_group`, `ever_smoker`, `screening_age_smoker`, `comorbidity_count`.
 6. **Join** the regional table on **region + year** → adds `pm25_mean`, `smoking_rate`, `lung_cancer_incidence`. Check: same number of rows before and after.
-7. **Checks:** row counts, duplicates, ranges, missing values.
-8. **Model-ready file:** fixed 80/20 train/test split (seed 42); missing values filled using **training rows only** + "unknown" flags; categories one-hot encoded.
+7. **Outliers:** IQR rule + box plots on every numeric column; each value is checked for plausibility and the decision is written in `outlier_check.csv` (all real values kept).
+8. **Checks:** row counts, duplicates, ranges, missing values.
+9. **Model-ready file:** fixed 80/20 train/test split (seed 42); missing values filled using **training rows only** + "unknown" flags; categories one-hot encoded.
+10. **Feature selection (training rows only):** drop redundant columns (e.g. age bands when exact age is kept), constant columns, and near-duplicates (|r| > 0.95). Every decision is in `final_features.csv`.
+11. **Scaling:** StandardScaler on the numeric columns, fitted on training rows only → `nhis_lung_cancer_model_ready_scaled.csv`.
+12. **Summary:** `before_after_summary.csv` shows what every step changed.
 
 ## EDA and hypothesis tests (`eda_analysis.py`)
 

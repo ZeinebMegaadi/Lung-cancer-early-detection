@@ -1,0 +1,72 @@
+column,decision,reason
+age,KEEP,risk rises strongly with age
+age_missing,KEEP,'unknown' flag: tells the model the value was missing
+ever_smoker,DROP,redundant: same information as the smoking_status columns (Current/Former/Never)
+ever_smoker_unknown,DROP,redundant: same as smoking_status_Unknown
+screening_age_smoker,KEEP,official high-risk group (age 50-80 and ever smoked)
+screening_age_smoker_unknown,KEEP,'unknown' flag: tells the model the value was missing
+ever_ecigarette,KEEP,health or lifestyle factor linked to lung cancer
+ever_ecigarette_unknown,KEEP,'unknown' flag: tells the model the value was missing
+copd,KEEP,"lung disease, strongly linked to lung cancer"
+copd_unknown,KEEP,'unknown' flag: tells the model the value was missing
+asthma,KEEP,health or lifestyle factor linked to lung cancer
+asthma_unknown,KEEP,'unknown' flag: tells the model the value was missing
+hypertension,KEEP,health or lifestyle factor linked to lung cancer
+hypertension_unknown,KEEP,'unknown' flag: tells the model the value was missing
+heart_disease,KEEP,health or lifestyle factor linked to lung cancer
+heart_disease_unknown,KEEP,'unknown' flag: tells the model the value was missing
+diabetes,KEEP,health or lifestyle factor linked to lung cancer
+diabetes_unknown,KEEP,'unknown' flag: tells the model the value was missing
+comorbidity_count,KEEP,summary of 5 conditions (overall health)
+pm25_mean,KEEP,regional air pollution (joined)
+smoking_rate,KEEP,regional smoking level (joined)
+lung_cancer_incidence,KEEP,regional baseline risk (joined)
+sex_Female,KEEP,category of sex
+sex_Male,DROP,near-duplicate of sex_Female (|r| = 1.00 on training rows)
+sex_Unknown,KEEP,category of sex
+race_ethnicity_AIAN,KEEP,category of race_ethnicity
+race_ethnicity_AIAN and other,KEEP,category of race_ethnicity
+race_ethnicity_Asian,KEEP,category of race_ethnicity
+race_ethnicity_Black,KEEP,category of race_ethnicity
+race_ethnicity_Hispanic,KEEP,category of race_ethnicity
+race_ethnicity_Other or multiple,KEEP,category of race_ethnicity
+race_ethnicity_White,KEEP,category of race_ethnicity
+region_Midwest,KEEP,category of region
+region_Northeast,KEEP,category of region
+region_South,KEEP,category of region
+region_West,DROP,near-duplicate of lung_cancer_incidence (|r| = 0.95 on training rows)
+education_Bachelor,KEEP,category of education
+education_Graduate,KEEP,category of education
+education_High school / GED,KEEP,category of education
+education_Less than high school,KEEP,category of education
+education_Some college,KEEP,category of education
+education_Unknown,KEEP,category of education
+income_group_Below poverty,KEEP,category of income_group
+income_group_High,KEEP,category of income_group
+income_group_Low,KEEP,category of income_group
+income_group_Middle,KEEP,category of income_group
+general_health_Excellent,KEEP,category of general_health
+general_health_Fair,KEEP,category of general_health
+general_health_Good,KEEP,category of general_health
+general_health_Poor,KEEP,category of general_health
+general_health_Unknown,KEEP,category of general_health
+general_health_Very good,KEEP,category of general_health
+bmi_category_Healthy,KEEP,category of bmi_category
+bmi_category_Obese,KEEP,category of bmi_category
+bmi_category_Overweight,KEEP,category of bmi_category
+bmi_category_Underweight,KEEP,category of bmi_category
+bmi_category_Unknown,KEEP,category of bmi_category
+smoking_status_Current,KEEP,category of smoking_status
+smoking_status_Former,KEEP,category of smoking_status
+smoking_status_Never,KEEP,category of smoking_status
+smoking_status_Unknown,DROP,near-duplicate of screening_age_smoker_unknown (|r| = 0.96 on training rows)
+age_group_18-44,DROP,redundant: age bands duplicate the exact age column (kept: age)
+age_group_45-54,DROP,redundant: age bands duplicate the exact age column (kept: age)
+age_group_55-64,DROP,redundant: age bands duplicate the exact age column (kept: age)
+age_group_65-74,DROP,redundant: age bands duplicate the exact age column (kept: age)
+age_group_75+,DROP,redundant: age bands duplicate the exact age column (kept: age)
+age_group_Unknown,DROP,redundant: age bands duplicate the exact age column (kept: age)
+person_id,NOT A FEATURE,"ID only, carries no information"
+split,NOT A FEATURE,"train/test label, not a feature"
+survey_weight,NOT A FEATURE,"kept as a sampling weight for analysis, not used as a feature"
+lung_cancer,NOT A FEATURE,TARGET

@@ -3,10 +3,14 @@ Build a clean lung-cancer prediction dataset from the US National Health Intervi
 Survey (NHIS) adult files, 2019-2023.
 
 Input : data/raw/nhis/adult19csv.zip ... adult23csv.zip  (official CDC files, unchanged)
-Output: data/clean/nhis_lung_cancer_clean.csv        readable, one row per adult
-        data/clean/nhis_lung_cancer_model_ready.csv  numeric, no missing values, with a train/test split column
-        data/clean/data_dictionary.csv               what every column means
-        data/clean/cleaning_report.txt               every cleaning step with before/after counts
+Output: data/clean/nhis_lung_cancer_clean.csv               readable, one row per adult
+        data/clean/nhis_lung_cancer_model_ready.csv         final features, numbers only, no missing values, train/test split
+        data/clean/nhis_lung_cancer_model_ready_scaled.csv  same, numeric columns standardised (fitted on training rows)
+        data/clean/final_features.csv                       every candidate feature: keep or drop, and why
+        data/clean/outlier_check.csv                        IQR outlier check and the decision for each column
+        data/clean/before_after_summary.csv                 one table: what each step changed
+        data/clean/data_dictionary.csv                      what every column means
+        data/clean/cleaning_report.txt                      every cleaning step with before/after counts
 
 Run from the repository root (after download_data.py and build_regional_data.py):
     python scripts/build_clean_dataset.py
@@ -16,7 +20,11 @@ from pathlib import Path
 
 import numpy as np
 import pandas as pd
+import matplotlib
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw" / "nhis"
@@ -30,10 +38,18 @@ RAW_COLS = ["SRVY_YR", "HHX", "WTFA_A", "AGEP_A", "SEX_A", "HISPALLP_A", "REGION
             "RATCAT_A", "PHSTAT_A", "BMICAT_A", "SMKCIGST_A", "ECIGEV_A", "COPDEV_A", "ASEV_A",
             "HYPEV_A", "CHDEV_A", "DIBEV_A", "CANEV_A", "LUNGCAN_A"]
 
+FIG = ROOT / "reports" / "figures"
+FIG.mkdir(parents=True, exist_ok=True)
+
 report = []
 def log(msg=""):
     print(msg)
     report.append(str(msg))
+
+summary = []        # before/after table: one row per step
+def track(step, df, change):
+    summary.append({"step": step, "rows": len(df), "columns": df.shape[1],
+                    "missing_cells": int(df.isna().sum().sum()), "what_changed": change})
 
 
 # ---------------------------------------------------------------- 1. load and stack
@@ -63,6 +79,7 @@ for y in YEARS:
     frames.append(d)
 raw = pd.concat(frames, ignore_index=True)
 log(f"  Stacked: {len(raw):,} rows x {raw.shape[1]} columns")
+track("1. Load + stack 5 years", raw, "5 yearly files stacked; 20 needed columns kept (LUNGCAN_A is blank by design for people who never had cancer)")
 
 # ---------------------------------------------------------------- 2. duplicates
 log("\nSTEP 2 - Duplicates")
@@ -71,6 +88,7 @@ n_dup_id = raw["person_id"].duplicated().sum()
 log(f"  Duplicate person IDs (year + household): {n_dup_id}")
 raw = raw.drop_duplicates(subset="person_id").reset_index(drop=True)
 log(f"  Rows after removing duplicate IDs: {len(raw):,}")
+track("2. Remove duplicates", raw, f"{n_dup_id} duplicate person IDs removed")
 
 # ---------------------------------------------------------------- 3. target
 log("\nSTEP 3 - Build the target: lung_cancer (1 = ever told they had lung cancer)")
@@ -89,6 +107,7 @@ raw["lung_cancer"] = raw["lung_cancer"].astype(int)
 log(f"  Rows with a known target: {len(raw):,}")
 log(f"  Lung cancer cases: {raw.lung_cancer.sum():,} ({100 * raw.lung_cancer.mean():.2f}%)")
 log("  By year: " + str(raw.groupby("SRVY_YR")["lung_cancer"].agg(["sum", "size"]).to_dict("index")))
+track("3. Build target", raw, f"{n_unknown:,} rows with unknown answer removed")
 
 # ---------------------------------------------------------------- 4. recode to readable values
 log("\nSTEP 4 - Recode NHIS codes into clear values (7/8/9, 97/98/99 = unknown -> missing)")
@@ -122,6 +141,9 @@ clean = pd.DataFrame({
     "lung_cancer": raw["lung_cancer"],
 })
 
+n_codes = int(raw[["AGEP_A", "SEX_A", "SMKCIGST_A", "COPDEV_A"]].isin([7, 8, 9, 97, 98, 99]).sum().sum())
+track("4. Recode codes -> values", clean, f"number codes turned into words; e.g. {n_codes:,} 'unknown' codes in 4 key columns -> missing")
+
 # ---------------------------------------------------------------- 5. new columns
 log("\nSTEP 5 - New columns (feature engineering)")
 clean["age_group"] = pd.cut(clean["age"], [17, 44, 54, 64, 74, 85],
@@ -134,6 +156,7 @@ clean["screening_age_smoker"] = np.where(clean["age"].isna() | clean["ever_smoke
 comorb = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
 clean["comorbidity_count"] = clean[comorb].sum(axis=1, min_count=1)
 log("  Added: age_group, ever_smoker, screening_age_smoker, comorbidity_count")
+track("5. New columns", clean, "added age_group, ever_smoker, screening_age_smoker, comorbidity_count")
 
 # ---------------------------------------------------------------- 5b. join regional data
 log("\nSTEP 5b - Join the regional table (EPA air pollution, BRFSS smoking rate, US lung cancer rate)")
@@ -147,6 +170,38 @@ assert len(clean) == n_before, "The join must add columns, never rows"
 log(f"  Rows before / after join: {n_before:,} / {len(clean):,}  (join key: region + year)")
 for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
     log(f"  {c}: {clean[c].isna().sum()} rows without a match (only if region is unknown)")
+track("5b. Join regional table", clean, "3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added")
+
+# ---------------------------------------------------------------- 5c. outliers
+log("\nSTEP 5c - Outlier check (IQR rule: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR)")
+OUTLIER_DECISION = {
+    "age": "KEEP - every age 18-85 is a real adult; 85 means '85 or older' (NHIS top-code), not an error",
+    "comorbidity_count": "KEEP - a count from 0 to 5; high values are real people with several diseases",
+    "pm25_mean": "KEEP - official EPA measurements; only 20 region-year values, none impossible",
+    "smoking_rate": "KEEP - official CDC percentages between 0 and 100",
+    "lung_cancer_incidence": "KEEP - official registry rates; differences between regions are real",
+    "survey_weight": "KEEP - NHIS design weight, used for population estimates only, not as a feature",
+}
+rows = []
+for c, decision in OUTLIER_DECISION.items():
+    x = clean[c].dropna()
+    q1, q3 = x.quantile([0.25, 0.75]); iqr = q3 - q1
+    lo, hi = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+    n_out = int(((x < lo) | (x > hi)).sum())
+    rows.append({"column": c, "min": x.min(), "q1": q1, "median": x.median(), "q3": q3, "max": x.max(),
+                 "lower_bound": lo, "upper_bound": hi, "n_outliers": n_out,
+                 "pct_outliers": round(100 * n_out / len(x), 2), "decision": decision})
+    log(f"  {c:<22} bounds [{lo:.1f}, {hi:.1f}]  outliers: {n_out:,} ({100 * n_out / len(x):.2f}%)  -> {decision}")
+pd.DataFrame(rows).round(3).to_csv(CLEAN / "outlier_check.csv", index=False)
+
+fig, axes = plt.subplots(1, len(OUTLIER_DECISION), figsize=(4 * len(OUTLIER_DECISION), 4.5))
+for ax, c in zip(axes, OUTLIER_DECISION):
+    ax.boxplot(clean[c].dropna(), widths=0.6, flierprops={"markersize": 2, "alpha": 0.3})
+    ax.set_title(c, fontsize=11); ax.set_xticks([])
+fig.suptitle("Outlier check: box plots of the numeric columns (all values kept - see outlier_check.csv)", y=1.02)
+plt.tight_layout(); plt.savefig(FIG / "prep_outliers_boxplots.png", dpi=150, bbox_inches="tight"); plt.close()
+log("  Box plots saved to reports/figures/prep_outliers_boxplots.png")
+track("5c. Outlier check", clean, "IQR check on 6 numeric columns; all values plausible -> kept")
 
 # ---------------------------------------------------------------- 6. checks
 log("\nSTEP 6 - Checks")
@@ -163,6 +218,7 @@ log("  Lung cancer rate by COPD (%):")
 log(str((clean.groupby("copd")["lung_cancer"].mean() * 100).round(2).to_dict()))
 
 clean.to_csv(CLEAN / "nhis_lung_cancer_clean.csv", index=False)
+track("6. Checks + save clean file", clean, "0 duplicate IDs, ages 18-85, missing values listed")
 
 # ---------------------------------------------------------------- 7. model-ready version
 log("\nSTEP 7 - Model-ready version (numbers only, no missing values, fixed train/test split)")
@@ -197,11 +253,96 @@ m = pd.concat([m, dummies], axis=1)
 m["lung_cancer"] = clean["lung_cancer"]
 
 assert m.drop(columns=["survey_weight"]).isna().sum().sum() == 0
-log(f"  Model-ready shape: {m.shape} | train {(split == 'train').sum():,} | test {(split == 'test').sum():,}")
+log(f"  All candidate features: {m.shape[1] - 4} | train {(split == 'train').sum():,} | test {(split == 'test').sum():,}")
 log(f"  Lung cancer rate - train: {100 * m.loc[split == 'train', 'lung_cancer'].mean():.2f}% | "
     f"test: {100 * m.loc[split == 'test', 'lung_cancer'].mean():.2f}%")
-log("  Note: scale numeric columns inside your model pipeline, fitted on training rows only.")
+track("7. Encode + fill gaps (train only)", m, "one-hot encoding, training-median filling, 'unknown' flags -> 0 missing")
+
+# ---------------------------------------------------------------- 8. feature selection
+log("\nSTEP 8 - Final feature selection (decided on TRAINING rows only)")
+NOT_FEATURES = {"person_id": "ID only, carries no information",
+                "split": "train/test label, not a feature",
+                "survey_weight": "kept as a sampling weight for analysis, not used as a feature",
+                "lung_cancer": "TARGET"}
+candidates = [c for c in m.columns if c not in NOT_FEATURES]
+tr = m.loc[split == "train", candidates]
+decisions = {}
+
+# Rule 1 - redundant by design (the same information is already in another column)
+REDUNDANT = {"ever_smoker": "same information as the smoking_status columns (Current/Former/Never)",
+             "ever_smoker_unknown": "same as smoking_status_Unknown"}
+for c in [c for c in candidates if c.startswith("age_group_")]:
+    REDUNDANT[c] = "age bands duplicate the exact age column (kept: age)"
+for c, why in REDUNDANT.items():
+    if c in candidates:
+        decisions[c] = ("DROP", "redundant: " + why)
+
+# Rule 2 - constant in the training rows (no information)
+for c in candidates:
+    if c not in decisions and tr[c].nunique() <= 1:
+        decisions[c] = ("DROP", "constant in training rows: carries no information")
+
+# Rule 3 - near-duplicates: |correlation| > 0.95 with a column already kept
+remaining = [c for c in candidates if c not in decisions]
+corr = tr[remaining].corr().abs()
+for i, a in enumerate(remaining):
+    if a in decisions:
+        continue
+    for b in remaining[i + 1:]:
+        if b not in decisions and corr.loc[a, b] > 0.95:
+            decisions[b] = ("DROP", f"near-duplicate of {a} (|r| = {corr.loc[a, b]:.2f} on training rows)")
+
+KEEP_REASON = {
+    "age": "risk rises strongly with age", "comorbidity_count": "summary of 5 conditions (overall health)",
+    "screening_age_smoker": "official high-risk group (age 50-80 and ever smoked)",
+    "copd": "lung disease, strongly linked to lung cancer", "pm25_mean": "regional air pollution (joined)",
+    "smoking_rate": "regional smoking level (joined)", "lung_cancer_incidence": "regional baseline risk (joined)",
+}
+for c in candidates:
+    if c not in decisions:
+        reason = KEEP_REASON.get(c)
+        if reason is None:
+            reason = ("'unknown' flag: tells the model the value was missing" if c.endswith(("_unknown", "_missing"))
+                      else "category of " + c.rsplit("_", 1)[0] if "_" in c and c.split("_")[0] in
+                      {"sex", "race", "region", "education", "income", "general", "bmi", "smoking"}
+                      else "health or lifestyle factor linked to lung cancer")
+        decisions[c] = ("KEEP", reason)
+
+ff = pd.DataFrame([(c, *decisions[c]) for c in candidates] + [(c, "NOT A FEATURE", r) for c, r in NOT_FEATURES.items()],
+                  columns=["column", "decision", "reason"])
+ff.to_csv(CLEAN / "final_features.csv", index=False)
+final = [c for c in candidates if decisions[c][0] == "KEEP"]
+log(f"  Candidates: {len(candidates)} | kept: {len(final)} | dropped: {len(candidates) - len(final)}")
+for c, (d, r) in decisions.items():
+    if d == "DROP":
+        log(f"    DROP {c:<32} {r}")
+log("  Leakage check: 'ever had any cancer' (CANEV_A) was never a candidate - it reveals the answer.")
+m = m[["person_id", "split", "survey_weight"] + final + ["lung_cancer"]]
 m.to_csv(CLEAN / "nhis_lung_cancer_model_ready.csv", index=False)
+track("8. Feature selection", m, f"{len(candidates) - len(final)} redundant/constant features dropped; {len(final)} kept")
+
+# ---------------------------------------------------------------- 9. scaling
+log("\nSTEP 9 - Scaling (StandardScaler fitted on TRAINING rows only)")
+SCALE = [c for c in ["age", "comorbidity_count", "pm25_mean", "smoking_rate", "lung_cancer_incidence"] if c in final]
+scaler = StandardScaler().fit(m.loc[split == "train", SCALE])
+ms = m.copy()
+ms[SCALE] = scaler.transform(m[SCALE])
+pd.DataFrame({"column": SCALE, "train_mean": scaler.mean_, "train_std": scaler.scale_}).round(4) \
+  .to_csv(CLEAN / "scaler_parameters.csv", index=False)
+chk = pd.DataFrame({"train_mean": ms.loc[split == "train", SCALE].mean(), "train_std": ms.loc[split == "train", SCALE].std(),
+                    "test_mean": ms.loc[split == "test", SCALE].mean()}).round(3)
+log("  Why: these columns use different units (years, µg/m³, %, cases per 100k); scaling puts them on the same scale.")
+log("  Binary 0/1 columns are not scaled (they are already on a 0-1 scale).")
+log(chk.to_string())
+log("  Train means are 0 and SDs 1; test means are not exactly 0 -> the scaler never saw the test rows (no leakage).")
+ms.to_csv(CLEAN / "nhis_lung_cancer_model_ready_scaled.csv", index=False)
+track("9. Scaling (train only)", ms, f"{len(SCALE)} numeric columns standardised")
+
+# ---------------------------------------------------------------- 10. before/after table
+log("\nSUMMARY - What each step changed")
+sm = pd.DataFrame(summary)
+sm.to_csv(CLEAN / "before_after_summary.csv", index=False)
+log(sm.to_string(index=False))
 
 # ---------------------------------------------------------------- 8. data dictionary
 dictionary = pd.DataFrame([

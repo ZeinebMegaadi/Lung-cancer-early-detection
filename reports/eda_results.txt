@@ -97,18 +97,18 @@ Why: running many tests makes chance 'discoveries' likely; Holm correction contr
 9. FEATURE RELEVANCE (training rows only - no leakage)
 ======================================================================
 Top 15 features by mutual information:
-comorbidity_count        0.00702
-age                      0.00292
-copd                     0.00263
-pm25_mean                0.00223
-smoking_rate             0.00175
-lung_cancer_incidence    0.00162
-ever_smoker              0.00160
-screening_age_smoker     0.00158
-smoking_status_Never     0.00158
-age_group_18-44          0.00148
-general_health_Poor      0.00111
-smoking_status_Former    0.00109
-age_group_75+            0.00094
-hypertension             0.00072
-general_health_Fair      0.00071
+comorbidity_count           0.00702
+age                         0.00292
+copd                        0.00263
+pm25_mean                   0.00223
+smoking_rate                0.00175
+lung_cancer_incidence       0.00162
+screening_age_smoker        0.00158
+smoking_status_Never        0.00158
+general_health_Poor         0.00111
+smoking_status_Former       0.00109
+hypertension                0.00072
+general_health_Fair         0.00071
+heart_disease               0.00066
+general_health_Excellent    0.00062
+general_health_Very good    0.00054

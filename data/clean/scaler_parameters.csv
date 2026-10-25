@@ -1,0 +1,6 @@
+column,train_mean,train_std
+age,52.8119,18.3291
+comorbidity_count,0.7301,0.9088
+pm25_mean,7.2893,0.763
+smoking_rate,14.4754,2.0776
+lung_cancer_incidence,67.3075,12.5049
