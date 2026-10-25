@@ -134,6 +134,16 @@ def make_report(data):
             "process. The report's success criteria concern reproducibility and honest limits, "
             "not whether the file appears clinically plausible."
         ),
+        (
+            "Operationally, success means that another reader can verify the input contract, "
+            "recreate each cleaning view, trace every reported estimate to generated results, "
+            "and distinguish nominal tests from effect magnitude and uncertainty. It also "
+            "means that no identifier or row-order signal enters a candidate feature set, "
+            "that unknown provenance and label semantics remain visible, and that the report "
+            "does not imply screening eligibility or individual risk. These checks are "
+            "auditable in code and documentation; they are not claims that the file is "
+            "representative, clinically valid, or suitable for deployment."
+        ),
         "",
         "## 2. Data understanding",
         "",
@@ -155,8 +165,12 @@ def make_report(data):
             "label was generated. Age is treated as a numeric variable in the supplied units; "
             "the unit is presumed to be years based on the values but is not documented. "
             "`patient_id` is a sequential identifier and is excluded from feature construction. "
-            "The raw dictionary is also maintained separately in `docs/data_dictionary.md`."
+            "Table 1 lists the observed column inventory; the raw dictionary is also maintained "
+            "in `docs/data_dictionary.md`."
         ),
+        "",
+        "**Table 1. Data dictionary for the supplied file.** Observed types, coding, ranges, "
+        "and shares; unknown meanings are marked.",
         "",
         source_table(DICTIONARY),
         "",
@@ -177,8 +191,10 @@ def make_report(data):
             "process are unknown. Because the file's share is likely not representative of a "
             "screening population, it cannot be interpreted as population prevalence. The "
             "unknown provenance also prevents identification of sampling design, inclusion "
-            "criteria, consent, or intended use. These are material limitations rather than "
-            "minor documentation gaps."
+            "criteria, consent, or intended use. The package contains only the combined CSV "
+            "and checksum record; no source files or attributable citation identify its "
+            "origin. Row-level lineage therefore remains unverified, and the data card marks "
+            "the author, collection, and licence unknown [5]."
         ),
         "",
         "## 3. Preprocessing and integrity audit",
@@ -192,7 +208,7 @@ def make_report(data):
             f"leading block and {percent(audit['source_shift_smoking_later_yes'])} among later "
             "negative rows. Multiple coded features distinguish those groups. This is "
             "consistent with a source or collection-process shift, but the available metadata "
-            "cannot prove how the groups were assembled."
+            "cannot prove how the groups were assembled. Figure 1 marks the row-order boundary."
         ),
         (
             f"The file contains {number(audit['exact_duplicates'], 0)} exact duplicate rows "
@@ -224,8 +240,16 @@ def make_report(data):
             "the first positive label. The last operation is keyed to the raw index, not a "
             "position in a deduplicated table; this avoids accidentally discarding or retaining "
             "the wrong rows. The views are sensitivity analyses, not claims that any single "
-            "policy repairs unknown data provenance."
+            "policy repairs unknown data provenance. Their sample effects are compared in "
+            "Table 2."
         ),
+        "",
+        "Table 2 compares the views before and after each structural treatment. The row "
+        "counts make the effect of each policy visible, while the recorded-positive shares "
+        "show that the composition also changes. These are policy contrasts, not evidence "
+        "that one view recovers a hidden ground truth.",
+        "",
+        "**Table 2. Sample size and recorded-positive share by cleaning view.**",
         "",
         table(
             ["View", "Rows", "Positive-code share", "Treatment"],
@@ -238,6 +262,38 @@ def make_report(data):
         ),
         "",
         (
+            "The treatments are deliberately separated because they answer different "
+            "integrity questions. Exact deduplication removes repeated complete records "
+            "without deciding how to resolve different labels attached to the same feature "
+            "pattern. View C makes that conflict policy explicit; view D isolates the "
+            "ordered leading block after exact deduplication. Comparing B, C, and D therefore "
+            "shows sensitivity to alternative structural assumptions instead of combining "
+            "all exclusions into one opaque cleaning step. The primary interpretation uses "
+            "B, and the other views are retained as planned sensitivities."
+        ),
+        (
+            "The identifier and row index are leakage risks because they track sequence in "
+            "this file. The audit reports the identifier-only association to quantify that "
+            "risk, but both the identifier and row position are excluded from every feature "
+            "set. The source-shift comparison is descriptive: the leading block has a "
+            "different profile from later negative rows, consistent with a source or "
+            "collection-process shift, but the metadata do not identify a source. The "
+            "referenced original source files were not included in the available raw-data "
+            "directory, so the requested row-match/lineage comparison remains open and no "
+            "match count is asserted here."
+        ),
+        (
+            "Integration is also limited by the checksum discrepancy. The analysis preserves "
+            "the expected contract and records the observed digest separately; the override "
+            "is an explicit decision to examine this supplied snapshot, not verification that "
+            "it is the intended source. Before any downstream use, a responsible owner would "
+            "need to obtain the authoritative file, confirm its licence and collection "
+            "metadata, and repeat the comparison. Until then, cleaning can improve "
+            "reproducibility of calculations on this copy but cannot establish provenance, "
+            "remove all possible source effects, or validate the recorded label."
+        ),
+        "",
+        (
             f"Age outlier flags use the descriptive interquartile-range rule: the fences are "
             f"{number(age['iqr_fence_low'], 1)} and {number(age['iqr_fence_high'], 1)}, yielding "
             f"{number(age['outlier_n'], 0)} flagged observations. No age rows were removed "
@@ -245,7 +301,8 @@ def make_report(data):
             "and there is no source documentation establishing measurement errors. This "
             "preserves a transparent distinction between a statistical flag and a confirmed "
             "invalid record. The four analysis views focus on the observed structural "
-            "artifacts rather than silently trimming tail values."
+            "artifacts rather than silently trimming tail values. Figure 4 displays the age "
+            "profiles by row group and recorded-label code."
         ),
         (
             "The treatment log keeps each decision auditable: preserve a raw baseline; create "
@@ -270,6 +327,11 @@ def make_report(data):
             "compares the leading block with later negative rows as an integrity diagnostic. "
             "P-values are not treated as effect sizes or evidence of causation."
         ),
+        (
+            "Figures 1–7 ask, in order, whether row order is structured, group profiles differ, "
+            "features co-vary, age profiles differ, cleaning changes the sample, feature "
+            "associations persist, and the smoking association changes across views."
+        ),
         "",
         "### Figure 1. Is the file ordered?",
         "",
@@ -279,7 +341,8 @@ def make_report(data):
             f"The rolling label rate is zero through the first {audit['leading_block_n']:,} "
             "rows, then changes after the first positive label. The plot describes order, not "
             "time; there is no documented temporal variable. The boundary is an observed "
-            "sequence feature and supports treating row order as a potential leakage path."
+            "sequence feature and supports treating row order as a potential leakage path. "
+            "It does not identify the process that created that order."
         ),
         "",
         "### Figure 2. Do YES shares differ across the three row groups?",
@@ -290,7 +353,8 @@ def make_report(data):
             "The leading-block negatives have lower YES shares across several flags than "
             "later negatives and positives. The latter two profiles are closer overall. "
             "These are descriptive contrasts in this file; they do not identify a source or "
-            "establish that the label is valid."
+            "establish that the label is valid. The unknown gender-code mapping is excluded "
+            "from a YES-share comparison."
         ),
         "",
         "### Figure 3. Are the later-view features correlated with each other?",
@@ -301,7 +365,8 @@ def make_report(data):
             f"The maximum absolute pairwise correlation is "
             f"{number(audit['independence']['max_abs_pairwise_corr'], 3)}. The clipped scale "
             "makes weak values visible; this descriptive heatmap does not prove mutual "
-            "independence."
+            "independence. The scree comparison is consistent with a nearly flat spectrum, "
+            "so it does not itself justify a lower-dimensional representation."
         ),
         "",
         "### Figure 4. How does AGE vary between the leading block and later rows?",
@@ -313,7 +378,8 @@ def make_report(data):
             "shows AGE by recorded-label code, and summarizes the recorded label by "
             "AGE_BAND. Normal overlays are parameterized separately from each group's "
             "observed mean and standard deviation; they are descriptive references, not "
-            "assumptions about the data source."
+            "assumptions about the data source. They do not demonstrate a normal population "
+            "distribution or establish an age-related causal effect."
         ),
         "",
         "### Figure 5. How do the four cleaning views change the analysis sample?",
@@ -324,7 +390,8 @@ def make_report(data):
             f"The raw view contains {views['A_raw']['n']:,} rows; B, C, and D contain "
             f"{views['B_dedup']['n']:,}, {views['C_dedup_noconflict']['n']:,}, and "
             f"{views['D_dedup_nolead']['n']:,} rows. These are policy-defined sensitivity "
-            "views, not estimates of a uniquely correct dataset size."
+            "views, not estimates of a uniquely correct dataset size. The plotted shares "
+            "are file composition measures, not external prevalence estimates."
         ),
         "",
         "### Figure 6. Do feature associations depend on the cleaning view?",
@@ -340,7 +407,8 @@ def make_report(data):
             f"{int(h4['A_raw']['all_q_below_005']) * data['feature_family_size']} of "
             f"{data['feature_family_size']} tests below that threshold, "
             "underscoring that the apparent associations are sensitive to structural "
-            "artifacts."
+            "artifacts. Cramer's V summarizes association magnitude and does not indicate "
+            "direction or causality."
         ),
         "",
         "### Figure 7. What is the smoking association across views?",
@@ -360,6 +428,11 @@ def make_report(data):
         ),
         "",
         "### Hypothesis results across views",
+        "",
+        "Table 3 reports the H1–H4 effect estimates and uncertainty across the specified "
+        "views; Table 4 presents the separate H5 integrity comparison.",
+        "",
+        "**Table 3. H1–H4 hypothesis results across analysis views.**",
         "",
         (
             "For H1-H3, q-values adjust across the sensitivity views within each hypothesis; "
@@ -407,6 +480,8 @@ def make_report(data):
             "Cramer's V intervals use a row-level multinomial bootstrap, and q-values adjust "
             "the 14 feature tests with Benjamini-Hochberg."
         ),
+        "",
+        "**Table 4. H5 feature-family comparison: leading-block negatives versus later negatives.**",
         "",
         table(
             ["Feature", "Chi-square", "p", "q", f"Cramer's V ({ci_percent}% CI)"],
@@ -470,6 +545,11 @@ def make_report(data):
             "The feature specification is driven by simple, inspectable transformations."
         ),
         "",
+        "Table 5 gives the operational definitions and safeguards for each candidate "
+        "descriptor; it documents feature construction, not evidence of predictive value.",
+        "",
+        "**Table 5. Candidate feature definitions, encodings, and leakage notes.**",
+        "",
         source_table(FEATURE_SPEC),
         "",
         (
@@ -508,6 +588,16 @@ def make_report(data):
             "sensitivity to cleaning, not a universal biological conclusion."
         ),
         (
+            "The H1 estimate illustrates why the integrity audit precedes interpretation: "
+            "the raw-view association does not persist after the leading block and repeated "
+            "rows are treated under the documented policy. H2 and H3 retain small nominal "
+            "findings in B and C, but their effects attenuate in D; that pattern is reported "
+            "rather than replaced with the handbook's broader summary. H4 has no adjusted "
+            "q-value below the selected threshold in D. Together, these findings support a "
+            "conclusion about sensitivity within this file, not a conclusion that the "
+            "underlying features have no association in other data."
+        ),
+        (
             "RQ4 cannot be answered as a population-representativeness question because the "
             "source, sampling frame, and collection process are unknown. The high recorded "
             "positive-code share is not a population prevalence estimate. RQ5 yields a "
@@ -536,6 +626,15 @@ def make_report(data):
             "integrity uncertainty."
         ),
         (
+            "Ethical interpretation is constrained by uncertainty about who or what the "
+            "records represent, how the label was assigned, and whether the file can be "
+            "redistributed. No person-level recommendation should be inferred from these "
+            "summaries, and no record should be treated as a verified clinical outcome. "
+            "The report therefore keeps the unit of interpretation at the supplied file, "
+            "uses neutral language for coded fields, and treats the checksum and source "
+            "questions as unresolved rather than as minor technical details."
+        ),
+        (
             "Reproduction uses the repository environment, raw-file contract, pipeline "
             "runner, result generator, report and slide builders, and tests. From the project "
             "root: create and activate a virtual environment; install `requirements.txt`; "
@@ -554,6 +653,8 @@ def make_report(data):
         f"[{refs[2]['number']}] Kapoor S, Narayanan A. {refs[2]['title']}. Patterns, {refs[2]['year']}; {refs[2]['volume']}({refs[2]['issue']}):{refs[2]['article_number']}. https://doi.org/{refs[2]['doi']}.",
         "",
         f"[{refs[3]['number']}] Benjamini Y, Hochberg Y. {refs[3]['title']}. Journal of the Royal Statistical Society: Series B, {refs[3]['year']}; {refs[3]['volume']}({refs[3]['issue']}):{refs[3]['page_start']}-{refs[3]['page_end']}. https://doi.org/{refs[3]['doi']}.",
+        "",
+        f"[5] Course-provided dataset file, `data/raw/lung_cancer_combined_22457.csv`; original source, author, collection date, and licence unknown. Observed SHA-256 prefix: {ds['sha256_prefix']}; project contract prefix: {ds['expected_sha256_prefix']}.",
         "",
         "## Reproducibility",
         "",

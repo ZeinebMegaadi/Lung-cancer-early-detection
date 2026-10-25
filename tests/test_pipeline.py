@@ -1,4 +1,5 @@
 import os
+import re
 import subprocess
 import sys
 import json
@@ -377,6 +378,52 @@ def test_handbook_figure_mapping_matches_report_and_slides():
     assert "Figure 1: row order, Figure 2: YES-share profiles" in slide_source
     assert "Figure 3: feature correlations, Figure 4: AGE profiles" in slide_source
     assert "Figure 7: smoking odds ratio by view, Figure 6: Cramer's V by feature" in slide_source
+
+
+def test_report_word_budgets_table_captions_and_data_reference():
+    results = json.loads((Path("docs") / "results.json").read_text(encoding="utf-8"))
+    report = make_report(results)
+    sections = list(re.finditer(r"^## ([1-6])\. .+$", report, re.MULTILINE))
+    budgets = {
+        "1": (400, 500),
+        "2": (500, 700),
+        "3": (700, 900),
+        "4": (900, 1200),
+        "5": (400, 600),
+        "6": (400, 600),
+    }
+    for index, heading in enumerate(sections):
+        end = (
+            sections[index + 1].start()
+            if index + 1 < len(sections)
+            else report.index("\n## References", heading.end())
+        )
+        section_text = report[heading.end():end]
+        if heading.group(1) == "4":
+            # Tabular estimates are excluded from the EDA narrative word budget.
+            section_text = re.sub(r"^\|.*$", "", section_text, flags=re.MULTILINE)
+        word_count = len(re.findall(r"\b[\w-]+\b", section_text))
+        minimum, maximum = budgets[heading.group(1)]
+        assert minimum <= word_count <= maximum, (
+            f"Section {heading.group(1)} has {word_count} words; expected {minimum}-{maximum}"
+        )
+
+    table_numbers = re.findall(r"^\*\*Table (\d+)\.", report, re.MULTILINE)
+    assert table_numbers == ["1", "2", "3", "4", "5"]
+    for number in table_numbers:
+        caption = report.index(f"**Table {number}.")
+        next_table = report.find("|", caption)
+        assert next_table > caption
+        assert f"Table {number}" in report[:caption]
+
+    for number in range(1, 8):
+        heading = report.index(f"### Figure {number}.")
+        image = report.index(f"![Figure {number}.", heading)
+        assert heading < image
+    assert "[5]" in report
+    assert re.search(r"(?m)^\[5\] Course-provided dataset file,", report)
+    assert results["dataset"]["sha256_prefix"] in report
+    assert results["dataset"]["expected_sha256_prefix"] in report
 
 
 def test_eda_notebook_is_thin_and_has_reproducible_empty_outputs():

@@ -12,11 +12,14 @@ Lung-cancer screening guidance is intended for a defined population and requires
 The project question is whether the observed associations are robust to integrity-aware treatment, not whether a model can assign clinical risk. The business objective is therefore to characterize the supplied data, document uncertainty, and provide reproducible outputs that a reviewer can inspect. A trivial accuracy benchmark would be misleading: the label is imbalanced, so an always-positive rule has accuracy 82.1% without learning any structure. That number is an arithmetic baseline, not a trained model or meaningful success criterion.
 Five research questions guide the work. RQ1 asks which integrity problems occur and how large they are. RQ2 asks what associations with the recorded label remain after the planned treatments. RQ3 asks how sensitive the results are to cleaning policy. RQ4 asks what is known about representativeness. RQ5 asks which derived descriptors can be justified from the available fields. The work succeeds when the input shape and schema are checked, each treatment is reproducible, estimates include effect sizes and uncertainty, and all claims are traceable to generated tables or figures. It does not set a target for predictive performance.
 The scope follows a data-understanding and data-preparation workflow. It includes descriptive statistics, source-shift diagnostics, sensitivity views, pre-specified tests, and feature specifications. It excludes clinical interpretation of the label, causal claims, external validation, and model training. The dataset's provenance is not established, so there is no defensible sampling frame from which to estimate population representativeness. The positive label share is high, but the project cannot determine whether this reflects sampling, synthetic construction, a particular case-control design, or another process. The report's success criteria concern reproducibility and honest limits, not whether the file appears clinically plausible.
+Operationally, success means that another reader can verify the input contract, recreate each cleaning view, trace every reported estimate to generated results, and distinguish nominal tests from effect magnitude and uncertainty. It also means that no identifier or row-order signal enters a candidate feature set, that unknown provenance and label semantics remain visible, and that the report does not imply screening eligibility or individual risk. These checks are auditable in code and documentation; they are not claims that the file is representative, clinically valid, or suitable for deployment.
 
 ## 2. Data understanding
 
 The input CSV has 22,457 observations and 17 columns. It contains 0 null cells; `patient_id` is unique, and the age values span 21 to 87 (mean 62.08, standard deviation 8.28). The row-level schema checks require the expected column order and shape, no nulls, unique identifiers, binary label codes, symptom flags in the supplied 1/2 coding, and a permissive age range. Observed values are distinguished from undocumented meanings: the file's `GENDER` code is reported as `GENDER_CODE`, and `LUNG_CANCER` is called the recorded label, not a verified diagnosis.
-The complete column-level dictionary below records type, coding, observed range, and coded-value share. The source description identifies symptom/lifestyle code 1 as NO and code 2 as YES, but it does not explain the gender mapping or how the label was generated. Age is treated as a numeric variable in the supplied units; the unit is presumed to be years based on the values but is not documented. `patient_id` is a sequential identifier and is excluded from feature construction. The raw dictionary is also maintained separately in `docs/data_dictionary.md`.
+The complete column-level dictionary below records type, coding, observed range, and coded-value share. The source description identifies symptom/lifestyle code 1 as NO and code 2 as YES, but it does not explain the gender mapping or how the label was generated. Age is treated as a numeric variable in the supplied units; the unit is presumed to be years based on the values but is not documented. `patient_id` is a sequential identifier and is excluded from feature construction. Table 1 lists the observed column inventory; the raw dictionary is also maintained in `docs/data_dictionary.md`.
+
+**Table 1. Data dictionary for the supplied file.** Observed types, coding, ranges, and shares; unknown meanings are marked.
 
 | Column | Type | Coding | Observed range | Share of YES / code share | Notes |
 |---|---|---|---:|---:|---|
@@ -39,14 +42,18 @@ The complete column-level dictionary below records type, coding, observed range,
 | `LUNG_CANCER` | int64 | 0/1; meaning unknown | 0–1 | Recorded label code 1: 82.09% | The meaning and label-generation process are unknown. |
 
 The checksum is a separate integrity contract. The expected prefix is `4ad2333067fcb0a9`; the supplied file's observed prefix is `1e0d557990cd7533`. The mismatch is documented in `data/raw/CHECKSUMS.txt` and the decision log. The user explicitly approved analysis of this current snapshot under an explicit checksum override; the expected checksum has not been silently changed. Normal loading verifies the contract by default, while the analysis runner emits a warning and opts out explicitly. This does not establish that the input is the same file intended by the original project specification.
-The recorded label has 18,434 rows coded 1 and 4,023 coded 0, for a positive-code share of 82.1%. The code meaning and label-generation process are unknown. Because the file's share is likely not representative of a screening population, it cannot be interpreted as population prevalence. The unknown provenance also prevents identification of sampling design, inclusion criteria, consent, or intended use. These are material limitations rather than minor documentation gaps.
+The recorded label has 18,434 rows coded 1 and 4,023 coded 0, for a positive-code share of 82.1%. The code meaning and label-generation process are unknown. Because the file's share is likely not representative of a screening population, it cannot be interpreted as population prevalence. The unknown provenance also prevents identification of sampling design, inclusion criteria, consent, or intended use. The package contains only the combined CSV and checksum record; no source files or attributable citation identify its origin. Row-level lineage therefore remains unverified, and the data card marks the author, collection, and licence unknown [5].
 
 ## 3. Preprocessing and integrity audit
 
-The most visible ordering issue is a leading block: the first 1,455 rows are all coded negative, and the first positive appears at zero-based row index 1455. The rolling label rate stays at zero through that block and rises after the boundary. The smoking YES share is 29.3% in the leading block and 56.0% among later negative rows. Multiple coded features distinguish those groups. This is consistent with a source or collection-process shift, but the available metadata cannot prove how the groups were assembled.
+The most visible ordering issue is a leading block: the first 1,455 rows are all coded negative, and the first positive appears at zero-based row index 1455. The rolling label rate stays at zero through that block and rises after the boundary. The smoking YES share is 29.3% in the leading block and 56.0% among later negative rows. Multiple coded features distinguish those groups. This is consistent with a source or collection-process shift, but the available metadata cannot prove how the groups were assembled. Figure 1 marks the row-order boundary.
 The file contains 2,573 exact duplicate rows and 2,706 repeated feature patterns when the identifier is ignored. There are 133 feature patterns with conflicting labels involving 315 rows; the most repeated pattern occurs 86 times. In the later portion, 1,352 repeated feature rows were observed, compared with a mean of 614.9 in a seeded independent-marginal simulation. The simulation is a rough diagnostic, not a valid generative model for the unknown source. Its purpose is to show that the duplicate burden deserves review, not to establish intent or authenticity.
 The sequential identifier alone has AUC 0.670 for ranking the recorded label. This is an audit statistic demonstrating ordering-related signal, not a model result. Row order, duplicates, and group structure can create misleading train/test separation or cross-validation performance if ignored [3]. Therefore the identifier is excluded from features, and the project does not fit a predictive model. The raw-file-only association is retained as a sensitivity result rather than treated as substantive evidence.
-Four views make preprocessing choices explicit. View A retains all raw rows. View B removes exact duplicates while retaining conflicting labels. View C additionally removes rows belonging to conflicting patterns. View D starts from the deduplicated B view and removes all rows whose original raw index is before the first positive label. The last operation is keyed to the raw index, not a position in a deduplicated table; this avoids accidentally discarding or retaining the wrong rows. The views are sensitivity analyses, not claims that any single policy repairs unknown data provenance.
+Four views make preprocessing choices explicit. View A retains all raw rows. View B removes exact duplicates while retaining conflicting labels. View C additionally removes rows belonging to conflicting patterns. View D starts from the deduplicated B view and removes all rows whose original raw index is before the first positive label. The last operation is keyed to the raw index, not a position in a deduplicated table; this avoids accidentally discarding or retaining the wrong rows. The views are sensitivity analyses, not claims that any single policy repairs unknown data provenance. Their sample effects are compared in Table 2.
+
+Table 2 compares the views before and after each structural treatment. The row counts make the effect of each policy visible, while the recorded-positive shares show that the composition also changes. These are policy contrasts, not evidence that one view recovers a hidden ground truth.
+
+**Table 2. Sample size and recorded-positive share by cleaning view.**
 
 | View | Rows | Positive-code share | Treatment |
 | --- | --- | --- | --- |
@@ -55,48 +62,53 @@ Four views make preprocessing choices explicit. View A retains all raw rows. Vie
 | C - no conflicts | 19,618 | 87.1% | Also drop conflicting patterns |
 | D - no leading block | 19,781 | 87.1% | B, filtered by original index |
 
-Age outlier flags use the descriptive interquartile-range rule: the fences are 40.5 and 84.5, yielding 221 flagged observations. No age rows were removed solely for this flag because the observed values satisfy the broad schema bounds and there is no source documentation establishing measurement errors. This preserves a transparent distinction between a statistical flag and a confirmed invalid record. The four analysis views focus on the observed structural artifacts rather than silently trimming tail values.
+The treatments are deliberately separated because they answer different integrity questions. Exact deduplication removes repeated complete records without deciding how to resolve different labels attached to the same feature pattern. View C makes that conflict policy explicit; view D isolates the ordered leading block after exact deduplication. Comparing B, C, and D therefore shows sensitivity to alternative structural assumptions instead of combining all exclusions into one opaque cleaning step. The primary interpretation uses B, and the other views are retained as planned sensitivities.
+The identifier and row index are leakage risks because they track sequence in this file. The audit reports the identifier-only association to quantify that risk, but both the identifier and row position are excluded from every feature set. The source-shift comparison is descriptive: the leading block has a different profile from later negative rows, consistent with a source or collection-process shift, but the metadata do not identify a source. The referenced original source files were not included in the available raw-data directory, so the requested row-match/lineage comparison remains open and no match count is asserted here.
+Integration is also limited by the checksum discrepancy. The analysis preserves the expected contract and records the observed digest separately; the override is an explicit decision to examine this supplied snapshot, not verification that it is the intended source. Before any downstream use, a responsible owner would need to obtain the authoritative file, confirm its licence and collection metadata, and repeat the comparison. Until then, cleaning can improve reproducibility of calculations on this copy but cannot establish provenance, remove all possible source effects, or validate the recorded label.
+
+Age outlier flags use the descriptive interquartile-range rule: the fences are 40.5 and 84.5, yielding 221 flagged observations. No age rows were removed solely for this flag because the observed values satisfy the broad schema bounds and there is no source documentation establishing measurement errors. This preserves a transparent distinction between a statistical flag and a confirmed invalid record. The four analysis views focus on the observed structural artifacts rather than silently trimming tail values. Figure 4 displays the age profiles by row group and recorded-label code.
 The treatment log keeps each decision auditable: preserve a raw baseline; create an exact-deduplicated view; create a no-conflict sensitivity view; and create a deduplicated, leading-block-removed view. No missing-value imputation is needed because the loaded file has no null cells. Identifier removal is part of feature construction, not raw-data rewriting. Encodings are kept as supplied in the audit tables and recoded only in derived feature outputs. These rules reduce avoidable analysis leakage while leaving the original CSV unchanged.
 
 ## 4. Exploratory analysis and statistics
 
 The analysis pre-specifies five descriptive hypotheses. H1 compares the recorded label by smoking code using an odds ratio, confidence interval, Pearson chi-square, and seeded permutation test. H2 compares age distributions using Mann-Whitney U and the common-language effect size (CLES). H3 relates a four-item respiratory/chest symptom count to the label using Spearman rho. H4 tests the binary feature family in each view and adjusts p-values with Benjamini-Hochberg (BH), which controls the false discovery rate under its assumptions [4]. H5 compares the leading block with later negative rows as an integrity diagnostic. P-values are not treated as effect sizes or evidence of causation.
+Figures 1–7 ask, in order, whether row order is structured, group profiles differ, features co-vary, age profiles differ, cleaning changes the sample, feature associations persist, and the smoking association changes across views.
 
 ### Figure 1. Is the file ordered?
 
 ![Figure 1. Rolling positive-code share and row-order boundary](../reports/figures/f1_order.png)
 
-The rolling label rate is zero through the first 1,455 rows, then changes after the first positive label. The plot describes order, not time; there is no documented temporal variable. The boundary is an observed sequence feature and supports treating row order as a potential leakage path.
+The rolling label rate is zero through the first 1,455 rows, then changes after the first positive label. The plot describes order, not time; there is no documented temporal variable. The boundary is an observed sequence feature and supports treating row order as a potential leakage path. It does not identify the process that created that order.
 
 ### Figure 2. Do YES shares differ across the three row groups?
 
 ![Figure 2. YES-share profiles by row group](../reports/figures/v6_yes_share_by_block.png)
 
-The leading-block negatives have lower YES shares across several flags than later negatives and positives. The latter two profiles are closer overall. These are descriptive contrasts in this file; they do not identify a source or establish that the label is valid.
+The leading-block negatives have lower YES shares across several flags than later negatives and positives. The latter two profiles are closer overall. These are descriptive contrasts in this file; they do not identify a source or establish that the label is valid. The unknown gender-code mapping is excluded from a YES-share comparison.
 
 ### Figure 3. Are the later-view features correlated with each other?
 
 ![Figure 3. Correlation heatmap for view D](../reports/figures/fig3_correlation.png)
 
-The maximum absolute pairwise correlation is 0.022. The clipped scale makes weak values visible; this descriptive heatmap does not prove mutual independence.
+The maximum absolute pairwise correlation is 0.022. The clipped scale makes weak values visible; this descriptive heatmap does not prove mutual independence. The scree comparison is consistent with a nearly flat spectrum, so it does not itself justify a lower-dimensional representation.
 
 ### Figure 4. How does AGE vary between the leading block and later rows?
 
 ![Figure 4. AGE distributions by row group, by recorded label, and by AGE_BAND](../reports/figures/v7_age_profiles.png)
 
-The figure compares the leading block with later negatives and positives, shows AGE by recorded-label code, and summarizes the recorded label by AGE_BAND. Normal overlays are parameterized separately from each group's observed mean and standard deviation; they are descriptive references, not assumptions about the data source.
+The figure compares the leading block with later negatives and positives, shows AGE by recorded-label code, and summarizes the recorded label by AGE_BAND. Normal overlays are parameterized separately from each group's observed mean and standard deviation; they are descriptive references, not assumptions about the data source. They do not demonstrate a normal population distribution or establish an age-related causal effect.
 
 ### Figure 5. How do the four cleaning views change the analysis sample?
 
 ![Figure 5. Row counts and recorded-label-1 rate by cleaning view](../reports/figures/fig5_views.png)
 
-The raw view contains 22,457 rows; B, C, and D contain 19,884, 19,618, and 19,781 rows. These are policy-defined sensitivity views, not estimates of a uniquely correct dataset size.
+The raw view contains 22,457 rows; B, C, and D contain 19,884, 19,618, and 19,781 rows. These are policy-defined sensitivity views, not estimates of a uniquely correct dataset size. The plotted shares are file composition measures, not external prevalence estimates.
 
 ### Figure 6. Do feature associations depend on the cleaning view?
 
 ![Figure 6. Cramer's V per binary feature in views A and D](../reports/figures/fig6_cramers_v.png)
 
-The largest Cramer's V falls from 0.144 in the raw view to 0.015 in view D. In D the smallest raw feature-family p-value is 0.033, but its smallest BH q-value is 0.458. No feature in that adjusted family crosses the conventional threshold. The raw view has 14 of 14 tests below that threshold, underscoring that the apparent associations are sensitive to structural artifacts.
+The largest Cramer's V falls from 0.144 in the raw view to 0.015 in view D. In D the smallest raw feature-family p-value is 0.033, but its smallest BH q-value is 0.458. No feature in that adjusted family crosses the conventional threshold. The raw view has 14 of 14 tests below that threshold, underscoring that the apparent associations are sensitive to structural artifacts. Cramer's V summarizes association magnitude and does not indicate direction or causality.
 
 ### Figure 7. What is the smoking association across views?
 
@@ -105,6 +117,10 @@ The largest Cramer's V falls from 0.144 in the raw view to 0.015 in view D. In D
 In view A, the smoking odds ratio is 1.49 (95% CI 1.39 to 1.59; p=4.45e-30). In view D it is 1.00 (95% CI 0.92 to 1.08; permutation p=0.908). The raw association is not stable to removal of the ordered block and duplicates; this file does not establish whether smoking has or lacks an association in a valid population.
 
 ### Hypothesis results across views
+
+Table 3 reports the H1–H4 effect estimates and uncertainty across the specified views; Table 4 presents the separate H5 integrity comparison.
+
+**Table 3. H1–H4 hypothesis results across analysis views.**
 
 For H1-H3, q-values adjust across the sensitivity views within each hypothesis; H4 q-values adjust the feature family separately in each view; H5 q-values adjust the raw-file integrity feature family. H5 is not repeated across cleaned views because view D removes the leading block being compared.
 
@@ -118,6 +134,8 @@ For H1-H3, q-values adjust across the sensitivity views within each hypothesis; 
 ### H5. Do the leading-block negatives differ from later negatives?
 
 H5 is an integrity comparison in the raw file, not a cleaned-view effect: view D removes the leading block and therefore cannot supply this contrast. The following feature-family results compare the leading-block negatives with later negatives; Cramer's V intervals use a row-level multinomial bootstrap, and q-values adjust the 14 feature tests with Benjamini-Hochberg.
+
+**Table 4. H5 feature-family comparison: leading-block negatives versus later negatives.**
 
 | Feature | Chi-square | p | q | Cramer's V (95% CI) |
 | --- | --- | --- | --- | --- |
@@ -144,6 +162,10 @@ Across tests, a small p-value indicates incompatibility with a specified null mo
 
 Feature construction is descriptive preparation for a possible later study; it is not a fitted model. The exported feature tables remove `patient_id`, keep the recorded label in a separate column, recode symptom/lifestyle fields from 1/2 to 0/1, and rename `GENDER` to `GENDER_CODE` without guessing its meaning. The feature specification is driven by simple, inspectable transformations.
 
+Table 5 gives the operational definitions and safeguards for each candidate descriptor; it documents feature construction, not evidence of predictive value.
+
+**Table 5. Candidate feature definitions, encodings, and leakage notes.**
+
 | Feature | Definition | Type / range | Rationale | Leakage note |
 |---|---|---|---|---|
 | `GENDER_CODE` | Original `GENDER` code, unchanged | Binary 0/1 | Preserve supplied coded variable without guessing its meaning | Not a verified demographic interpretation |
@@ -162,9 +184,11 @@ The three candidate feature sets contain 15 raw features, 19 raw-plus-engineered
 ## 6. Conclusions and next steps
 
 RQ1 is answered by the audit: the first 1,455 rows are all negative-coded; 2,573 exact duplicates and 133 conflicting feature patterns occur; the identifier AUC is 0.67. RQ2 is answered cautiously: after removing the block, the observed feature-label effects are small and the adjusted family results do not cross the chosen threshold. RQ3 is answered by the changing estimates across A-D; in particular the smoking odds ratio changes from the raw view toward the null in D. These results show sensitivity to cleaning, not a universal biological conclusion.
+The H1 estimate illustrates why the integrity audit precedes interpretation: the raw-view association does not persist after the leading block and repeated rows are treated under the documented policy. H2 and H3 retain small nominal findings in B and C, but their effects attenuate in D; that pattern is reported rather than replaced with the handbook's broader summary. H4 has no adjusted q-value below the selected threshold in D. Together, these findings support a conclusion about sensitivity within this file, not a conclusion that the underlying features have no association in other data.
 RQ4 cannot be answered as a population-representativeness question because the source, sampling frame, and collection process are unknown. The high recorded positive-code share is not a population prevalence estimate. RQ5 yields a transparent set of candidate descriptors, but no evidence-based feature-selection claim. The project does not establish causation, diagnostic utility, an individual risk estimate, or the authenticity of the underlying records.
 Material limitations include unknown provenance and licence; undocumented label meaning and generation; unknown `GENDER` mapping; no smoking dose, duration, or quit time; a checksum mismatch; possible source shift, duplicates, and row-order structure; a potentially nonrepresentative label balance; and no external validation. The analysis can characterize the supplied file only. The source license must be established before redistribution. The checksum override is explicit and should be replaced with a verified intended file if one becomes available.
 The next project phase, if authorized, is planned rather than implemented: confirm provenance and label semantics, obtain a documented sampling frame, define an appropriate cohort, then design leakage-safe evaluation with grouped or source-aware splits and clinically meaningful metrics. A later model should be evaluated on independent, representative data with calibration and uncertainty analysis. No such model experiment was run here because the coursework scope excludes model fitting. A model score from the current file would not resolve its integrity uncertainty.
+Ethical interpretation is constrained by uncertainty about who or what the records represent, how the label was assigned, and whether the file can be redistributed. No person-level recommendation should be inferred from these summaries, and no record should be treated as a verified clinical outcome. The report therefore keeps the unit of interpretation at the supplied file, uses neutral language for coded fields, and treats the checksum and source questions as unresolved rather than as minor technical details.
 Reproduction uses the repository environment, raw-file contract, pipeline runner, result generator, report and slide builders, and tests. From the project root: create and activate a virtual environment; install `requirements.txt`; run `python -m src.run_analysis`; run `python -m src.results`; build the report and slides; then run `python -m pytest -q`. Generated results are intended to come from the checked-in code, not manual transcription. A clean-clone run and presentation rehearsal remain external delivery tasks.
 
 ## References
@@ -176,6 +200,8 @@ Reproduction uses the repository environment, raw-file contract, pipeline runner
 [3] Kapoor S, Narayanan A. Leakage and the reproducibility crisis in machine-learning-based science. Patterns, 2023; 4(9):100804. https://doi.org/10.1016/j.patter.2023.100804.
 
 [4] Benjamini Y, Hochberg Y. Controlling the False Discovery Rate: A Practical and Powerful Approach to Multiple Testing. Journal of the Royal Statistical Society: Series B, 1995; 57(1):289-300. https://doi.org/10.1111/j.2517-6161.1995.tb02031.x.
+
+[5] Course-provided dataset file, `data/raw/lung_cancer_combined_22457.csv`; original source, author, collection date, and licence unknown. Observed SHA-256 prefix: 1e0d557990cd7533; project contract prefix: 4ad2333067fcb0a9.
 
 ## Reproducibility
 
