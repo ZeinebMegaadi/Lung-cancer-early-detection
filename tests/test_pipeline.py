@@ -1,10 +1,12 @@
 import os
 import subprocess
 import sys
+import json
 from pathlib import Path
 
 import pandas as pd
 import pytest
+from PIL import Image
 
 from src.audit import (
     auc_of_id,
@@ -20,6 +22,7 @@ from src.clean import make_views, summarize, write_cleaning_outputs
 from src.config import INTERIM, TAB
 from src.data_io import load_raw, validate_schema
 from src.figures import build_guide_figures
+from src.results import write_results
 from src.features import (
     FEATURE_SETS,
     add_features,
@@ -284,26 +287,51 @@ def test_hypothesis_suite_has_complete_effects_intervals_and_adjusted_p_values()
     assert len(saved) == len(result)
 
 
-def test_seven_guide_figures_have_artifacts():
+def test_requested_visualizations_have_registered_200_dpi_artifacts():
     df = load_raw(verify=False)
     views = make_views(df)
     plot_order_audit(df, window=300)
-    figure_tables = build_guide_figures(df, views)
+    hypothesis_table = run_hypothesis_suite(
+        df, views, n_perms=100, bootstrap_reps=50, seed=42
+    )
+    build_feature_outputs(views["B_dedup"])
+    figures = build_guide_figures(df, views, hypothesis_table)
 
-    expected = {
-        "f1_order.png",
-        "fig5_views.png",
-        "fig2_source_shift.png",
-        "fig4_age.png",
-        "fig3_correlation.png",
-        "fig6_cramers_v.png",
-        "fig7_smoking_forest.png",
-    }
-    assert len(figure_tables) == 7
-    assert expected.issubset({path.name for path in FIG.glob("*.png")})
-    for stem in ["fig5_views", "fig2_source_shift", "fig4_age_normal_overlay",
-                 "fig3_correlation", "fig6_cramers_v", "fig7_smoking_forest"]:
-        assert (TAB / f"{stem}.csv").is_file()
+    assert len(figures) == 19
+    captions = json.loads((FIG / "captions.json").read_text(encoding="utf-8"))
+    assert len(captions) == 19
+    schema = pd.read_csv(TAB / "v2_schema_summary.csv").set_index("column")
+    assert schema["missing"].sum() == 0
+    assert all(
+        schema.loc[column, "unique_values"] == "1, 2"
+        for column in df.columns[3:-1]
+    )
+    assert set(captions) == {f"{name}.png" for name in [
+        "f1_order", "fig5_views", "fig2_source_shift", "fig4_age", "fig3_correlation",
+        "fig6_cramers_v", "fig7_smoking_forest", "v1_class_balance",
+        "v2_schema_summary", "v4_duplicate_multiplicity", "v6_yes_share_by_block",
+        "v7_age_profiles", "v8_pca_scree", "s3_h1_permutation_null",
+        "s4_h4_p_q", "s5_view_d_feature_or", "s6_power_curve",
+        "s7_respiratory_count", "s8_age_scaling_feature_sets",
+    ]}
+    for filename, details in captions.items():
+        path = FIG / filename
+        assert path.is_file() and path.stat().st_size > 0
+        assert details["question"].strip()
+        assert details["takeaway"].strip()
+        with Image.open(path) as image:
+            assert image.info["dpi"][0] == pytest.approx(200, abs=1)
+            assert image.info["dpi"][1] == pytest.approx(200, abs=1)
+    notebook = json.loads(
+        (Path("notebooks") / "01_explore.ipynb").read_text(encoding="utf-8")
+    )
+    notebook_source = "\n".join(
+        "".join(cell.get("source", [])) for cell in notebook["cells"]
+    )
+    assert "figure_files" in notebook_source and "display(Image(filename" in notebook_source
+    results = write_results()
+    assert set(results["figure_files"]) == set(captions)
+    assert results["figures"] == captions
 
 
 def test_feature_engineering_scaling_sets_and_outputs():

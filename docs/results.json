@@ -1545,8 +1545,98 @@
     "fig4_age.png",
     "fig3_correlation.png",
     "fig6_cramers_v.png",
-    "fig7_smoking_forest.png"
+    "fig7_smoking_forest.png",
+    "v1_class_balance.png",
+    "v2_schema_summary.png",
+    "v4_duplicate_multiplicity.png",
+    "v6_yes_share_by_block.png",
+    "v7_age_profiles.png",
+    "v8_pca_scree.png",
+    "s3_h1_permutation_null.png",
+    "s4_h4_p_q.png",
+    "s5_view_d_feature_or.png",
+    "s6_power_curve.png",
+    "s7_respiratory_count.png",
+    "s8_age_scaling_feature_sets.png"
   ],
+  "figures": {
+    "f1_order.png": {
+      "question": "Does row order show a leading block with a different recorded-label and feature composition?",
+      "takeaway": "Rolling label and feature shares vary across row index; this file's leading rows are not exchangeable with later rows."
+    },
+    "fig5_views.png": {
+      "question": "How much data remains under each cleaning policy?",
+      "takeaway": "Row count and recorded-label-1 share vary across the four declared views."
+    },
+    "fig2_source_shift.png": {
+      "question": "Do leading-block negatives differ from later negatives?",
+      "takeaway": "Feature distributions vary between the row groups; provenance remains unknown."
+    },
+    "fig4_age.png": {
+      "question": "What is the AGE distribution in the later deduplicated view?",
+      "takeaway": "The observed AGE distribution is compared with a normal overlay parameterized by its sample mean and standard deviation."
+    },
+    "fig3_correlation.png": {
+      "question": "Are later-view features correlated with each other?",
+      "takeaway": "The clipped heatmap displays weak pairwise linear relationships without establishing independence."
+    },
+    "fig6_cramers_v.png": {
+      "question": "Do feature-label effect sizes persist after removing the leading block?",
+      "takeaway": "Cramer's V values generally attenuate between raw view A and cleaned view D."
+    },
+    "fig7_smoking_forest.png": {
+      "question": "How sensitive is the smoking odds ratio to cleaning policy?",
+      "takeaway": "The estimated smoking odds ratio shifts toward one in the cleaned views."
+    },
+    "v1_class_balance.png": {
+      "question": "How imbalanced is the recorded label, and what is the always-positive reference?",
+      "takeaway": "The dashed reference marks the recorded-label-1 share achieved by an always-positive rule."
+    },
+    "v2_schema_summary.png": {
+      "question": "What types, missingness, and observed values appear in each input column?",
+      "takeaway": "The schema table shows zero missingness and the observed value sets, including the binary 1/2 codes."
+    },
+    "v4_duplicate_multiplicity.png": {
+      "question": "How often are feature patterns repeated, and how many have conflicting labels?",
+      "takeaway": "The multiplicity distribution is long-tailed, and some repeated feature patterns occur with both recorded labels."
+    },
+    "v6_yes_share_by_block.png": {
+      "question": "Do YES shares differ across leading negatives, later negatives, and later positives?",
+      "takeaway": "The group profiles vary across several binary features, consistent with row-order structure in this file."
+    },
+    "v7_age_profiles.png": {
+      "question": "How does recorded AGE vary across row groups and labels?",
+      "takeaway": "Group histograms, label-wise boxplots, and AGE_BAND label shares describe distinct views of the recorded ages."
+    },
+    "v8_pca_scree.png": {
+      "question": "Does the standardized binary-feature PCA spectrum depart from a flat reference?",
+      "takeaway": "The scree curve is compared with equal variance per component as a descriptive structure check."
+    },
+    "s3_h1_permutation_null.png": {
+      "question": "Is the observed H1 statistic unusual under label permutation in raw view A?",
+      "takeaway": "The observed chi-square is marked against a fixed-margin permutation reference distribution."
+    },
+    "s4_h4_p_q.png": {
+      "question": "How do nominal and BH-adjusted H4 p-values compare in views A and D?",
+      "takeaway": "The plot contrasts nominal evidence with the feature-family adjustment in both views."
+    },
+    "s5_view_d_feature_or.png": {
+      "question": "What are the feature-level odds ratios and 95% intervals in view D?",
+      "takeaway": "All 14 binary-feature estimates are shown with Wald intervals and the OR=1 reference."
+    },
+    "s6_power_curve.png": {
+      "question": "How does approximate H1 detectability change with sample size?",
+      "takeaway": "The minimum detectable difference curve is compared with the observed risk-difference estimate and interval."
+    },
+    "s7_respiratory_count.png": {
+      "question": "What are the respiratory-count distribution and recorded-label-1 shares by count?",
+      "takeaway": "Counts and Wilson intervals describe the label share at each four-symptom count."
+    },
+    "s8_age_scaling_feature_sets.png": {
+      "question": "How does descriptive AGE scaling change the scale, and how large are F0/F1/F2?",
+      "takeaway": "AGE_Z is standardized on view B for descriptive exports; feature-set sizes are shown without fitting a model."
+    }
+  },
   "external_context": {
     "uspstf": {
       "year": 2021,

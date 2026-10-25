@@ -1,0 +1,18 @@
+column,dtype,missing,unique_values,value_count
+patient_id,int64,0,1-22457 (22457 unique),22457
+GENDER,int64,0,"0, 1",2
+AGE,int64,0,21-87 (63 unique),63
+SMOKING,int64,0,"1, 2",2
+YELLOW_FINGERS,int64,0,"1, 2",2
+ANXIETY,int64,0,"1, 2",2
+PEER_PRESSURE,int64,0,"1, 2",2
+CHRONIC_DISEASE,int64,0,"1, 2",2
+FATIGUE,int64,0,"1, 2",2
+ALLERGY,int64,0,"1, 2",2
+WHEEZING,int64,0,"1, 2",2
+ALCOHOL_CONSUMING,int64,0,"1, 2",2
+COUGHING,int64,0,"1, 2",2
+SHORTNESS_OF_BREATH,int64,0,"1, 2",2
+SWALLOWING_DIFFICULTY,int64,0,"1, 2",2
+CHEST_PAIN,int64,0,"1, 2",2
+LUNG_CANCER,int64,0,"0, 1",2

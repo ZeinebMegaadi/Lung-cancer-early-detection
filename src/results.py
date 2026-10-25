@@ -15,7 +15,7 @@ from .audit import (
     source_shift,
 )
 from .clean import age_iqr_flag, make_views, summarize
-from .config import DOCS, RAW_FILE, TAB
+from .config import DOCS, FIG, RAW_FILE, TAB
 from .data_io import load_raw, sha256
 from .hypotheses import run_hypothesis_suite
 from .stats_utils import min_detectable_difference
@@ -66,6 +66,19 @@ def collect_results():
         views["B_dedup"][feature_smoke].eq(2).sum(axis=1).value_counts().sort_index()
     )
     actual_hash = sha256(RAW_FILE)
+    captions_path = FIG / "captions.json"
+    if not captions_path.is_file():
+        raise FileNotFoundError(
+            f"Figure captions are missing; run `python -m src.run_analysis` first: "
+            f"{captions_path}"
+        )
+    figure_metadata = json.loads(captions_path.read_text(encoding="utf-8"))
+    for filename in figure_metadata:
+        if not (FIG / filename).is_file():
+            raise FileNotFoundError(
+                f"Registered figure is missing; run `python -m src.run_analysis` first: "
+                f"{FIG / filename}"
+            )
 
     results = {
         "dataset": {
@@ -250,15 +263,8 @@ def collect_results():
                 str(key): int(value) for key, value in resp_count.items()
             },
         },
-        "figure_files": [
-            "f1_order.png",
-            "fig5_views.png",
-            "fig2_source_shift.png",
-            "fig4_age.png",
-            "fig3_correlation.png",
-            "fig6_cramers_v.png",
-            "fig7_smoking_forest.png",
-        ],
+        "figure_files": list(figure_metadata),
+        "figures": figure_metadata,
         "external_context": {
             "uspstf": {
                 "year": 2021,

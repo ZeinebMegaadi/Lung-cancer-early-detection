@@ -83,13 +83,13 @@ def run():
     view_summary = summarize(views)
     write_cleaning_outputs(df, views)
     plot_order_audit(df, window=300)
-    figures = build_guide_figures(df, views)
     hypothesis_table = run_hypothesis_suite(
         df, views, n_perms=5000, bootstrap_reps=300, seed=42
     )
     engineered, scaler, feature_tables, screening, count_table = build_feature_outputs(
         views["B_dedup"]
     )
+    figures = build_guide_figures(df, views, hypothesis_table)
 
     print(f"Raw checksum prefix: {actual_prefix} (contract match: {audit_summary['checksum_matches_contract']})")
     print(f"Dataset shape: {df.shape}; nulls: {audit_summary['null_count']}")
