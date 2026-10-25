@@ -68,33 +68,33 @@ The analysis pre-specifies five descriptive hypotheses. H1 compares the recorded
 
 The rolling label rate is zero through the first 1,455 rows, then changes after the first positive label. The plot describes order, not time; there is no documented temporal variable. The boundary is an observed sequence feature and supports treating row order as a potential leakage path.
 
-### Figure 2. How much data survives each cleaning policy?
+### Figure 2. Do YES shares differ across the three row groups?
 
-![Figure 2. Record counts by view](../reports/figures/fig5_views.png)
+![Figure 2. YES-share profiles by row group](../reports/figures/v6_yes_share_by_block.png)
 
-The raw view contains 22,457 rows, whereas the deduplicated view contains 19,884; the no-conflict and leading-block views contain 19,618 and 19,781 rows. The changes are policy-dependent and should be read alongside the sensitivity table rather than as a single estimate of the dataset's true size.
+The leading-block negatives have lower YES shares across several flags than later negatives and positives. The latter two profiles are closer overall. These are descriptive contrasts in this file; they do not identify a source or establish that the label is valid.
 
-### Figure 3. Does the leading block behave differently?
+### Figure 3. Are the later-view features correlated with each other?
 
-![Figure 3. Leading-block versus later-negative feature shifts](../reports/figures/fig2_source_shift.png)
+![Figure 3. Correlation heatmap for view D](../reports/figures/fig3_correlation.png)
 
-Across the tested flags, Cramer's V ranges from 0.176 to 0.539; even the largest source-shift p-value is 4.39e-29. The distinct age minima are 21 in the leading block and 35 among later negatives. Together these observations are consistent with a different source or sampling process. They do not identify that source.
+The maximum absolute pairwise correlation is 0.022. The clipped scale makes weak values visible; this descriptive heatmap does not prove mutual independence.
 
-### Figure 4. What is the shape of age?
+### Figure 4. How does AGE vary between the leading block and later rows?
 
-![Figure 4. Age distribution and normal reference](../reports/figures/fig4_age.png)
+![Figure 4. AGE distributions by row group, by recorded label, and by AGE_BAND](../reports/figures/v7_age_profiles.png)
 
-Age ranges from 21 to 87 with mean 62.1 and skew -0.006 in the deduplicated later-row subset used for the independence audit. The broad shape is not strongly skewed, so a log transform is not justified by this descriptive check. The histogram is a marginal summary and does not establish representativeness or measurement validity.
+The figure compares the leading block with later negatives and positives, shows AGE by recorded-label code, and summarizes the recorded label by AGE_BAND. Normal overlays are parameterized separately from each group's observed mean and standard deviation; they are descriptive references, not assumptions about the data source.
 
-### Figure 5. Are the recorded features strongly related to each other?
+### Figure 5. How do the four cleaning views change the analysis sample?
 
-![Figure 5. Pairwise correlation heatmap](../reports/figures/fig3_correlation.png)
+![Figure 5. Row counts and recorded-label-1 rate by cleaning view](../reports/figures/fig5_views.png)
 
-The maximum absolute pairwise correlation in the later deduplicated subset is 0.022. The heatmap's narrow color scale makes weak pairwise relations visible; the near-blank pattern is itself an observation. This does not prove mutual independence. The VIF range is 1.000 to 1.001, and 4.4% of 91 binary-feature pair tests are nominally significant. These diagnostics depend on the chosen subset and test assumptions.
+The raw view contains 22,457 rows; B, C, and D contain 19,884, 19,618, and 19,781 rows. These are policy-defined sensitivity views, not estimates of a uniquely correct dataset size.
 
 ### Figure 6. Do feature associations depend on the cleaning view?
 
-![Figure 6. Maximum Cramer's V by view](../reports/figures/fig6_cramers_v.png)
+![Figure 6. Cramer's V per binary feature in views A and D](../reports/figures/fig6_cramers_v.png)
 
 The largest Cramer's V falls from 0.144 in the raw view to 0.015 in view D. In D the smallest raw feature-family p-value is 0.033, but its smallest BH q-value is 0.458. No feature in that adjusted family crosses the conventional threshold. The raw view has 14 of 14 tests below that threshold, underscoring that the apparent associations are sensitive to structural artifacts.
 

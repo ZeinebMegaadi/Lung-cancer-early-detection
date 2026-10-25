@@ -289,7 +289,7 @@ def plot_yes_share_by_block(df):
         "Later negatives": later.loc[later["LUNG_CANCER"].eq(0)],
         "Later positives": later.loc[later["LUNG_CANCER"].eq(1)],
     }
-    features = _feature_columns(df)
+    features = list(df.columns[3:-1])
     rows = []
     for group_name, group in groups.items():
         for column in features:
@@ -297,7 +297,7 @@ def plot_yes_share_by_block(df):
                 {
                     "group": group_name,
                     "feature": column,
-                    "yes_share": float(group[column].eq(_yes_value(column)).mean()),
+                    "yes_share": float(group[column].eq(2).mean()),
                     "n": len(group),
                 }
             )
@@ -313,9 +313,9 @@ def plot_yes_share_by_block(df):
         ax.scatter(pivot[group_name], y + offset, label=group_name, color=color, s=35)
     ax.set_yticks(y, pivot.index)
     ax.set(
-        title="YES-share profiles differ across row-order and label groups",
-        xlabel="YES share within group",
-        ylabel="Binary feature",
+        title="YES-share profiles for 13 binary flags across row groups",
+        xlabel="Share coded YES (value 2)",
+        ylabel="Symptom/lifestyle flag",
         xlim=(0, 1),
     )
     ax.legend()
@@ -693,8 +693,8 @@ def build_guide_figures(df, views, hypothesis_table):
             "The multiplicity distribution is long-tailed, and some repeated feature patterns occur with both recorded labels.",
         ),
         "v6_yes_share_by_block.png": (
-            "Do YES shares differ across leading negatives, later negatives, and later positives?",
-            "The group profiles vary across several binary features, consistent with row-order structure in this file.",
+            "Do the 13 symptom/lifestyle YES shares differ across leading negatives, later negatives, and later positives?",
+            "Shares coded YES (2) vary across row groups; the comparison is descriptive and source provenance remains unknown.",
         ),
         "v7_age_profiles.png": (
             "How does recorded AGE vary across row groups and labels?",

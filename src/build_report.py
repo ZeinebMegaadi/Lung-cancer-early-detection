@@ -273,7 +273,7 @@ def make_report(data):
         "",
         "### Figure 1. Is the file ordered?",
         "",
-        f"![Figure 1. Rolling positive-code share and row-order boundary](../reports/figures/{data['figure_files'][0]})",
+        f"![Figure 1. Rolling positive-code share and row-order boundary](../reports/figures/f1_order.png)",
         "",
         (
             f"The rolling label rate is zero through the first {audit['leading_block_n']:,} "
@@ -282,67 +282,54 @@ def make_report(data):
             "sequence feature and supports treating row order as a potential leakage path."
         ),
         "",
-        "### Figure 2. How much data survives each cleaning policy?",
+        "### Figure 2. Do YES shares differ across the three row groups?",
         "",
-        f"![Figure 2. Record counts by view](../reports/figures/{data['figure_files'][1]})",
+        f"![Figure 2. YES-share profiles by row group](../reports/figures/v6_yes_share_by_block.png)",
         "",
         (
-            f"The raw view contains {views['A_raw']['n']:,} rows, whereas the deduplicated "
-            f"view contains {views['B_dedup']['n']:,}; the no-conflict and leading-block "
-            f"views contain {views['C_dedup_noconflict']['n']:,} and "
-            f"{views['D_dedup_nolead']['n']:,} rows. The changes are policy-dependent and "
-            "should be read alongside the sensitivity table rather than as a single estimate "
-            "of the dataset's true size."
+            "The leading-block negatives have lower YES shares across several flags than "
+            "later negatives and positives. The latter two profiles are closer overall. "
+            "These are descriptive contrasts in this file; they do not identify a source or "
+            "establish that the label is valid."
         ),
         "",
-        "### Figure 3. Does the leading block behave differently?",
+        "### Figure 3. Are the later-view features correlated with each other?",
         "",
-        f"![Figure 3. Leading-block versus later-negative feature shifts](../reports/figures/{data['figure_files'][2]})",
+        f"![Figure 3. Correlation heatmap for view D](../reports/figures/fig3_correlation.png)",
         "",
         (
-            f"Across the tested flags, Cramer's V ranges from "
-            f"{number(audit['source_shift_v_min'], 3)} to "
-            f"{number(audit['source_shift_v_max'], 3)}; even the largest source-shift p-value "
-            f"is {p_value(audit['source_shift_p_max'])}. The distinct age minima are "
-            f"{audit['source_shift_age_lead_min']} in the leading block and "
-            f"{audit['source_shift_age_later_negative_min']} among later negatives. Together "
-            "these observations are consistent with a different source or sampling process. "
-            "They do not identify that source."
+            f"The maximum absolute pairwise correlation is "
+            f"{number(audit['independence']['max_abs_pairwise_corr'], 3)}. The clipped scale "
+            "makes weak values visible; this descriptive heatmap does not prove mutual "
+            "independence."
         ),
         "",
-        "### Figure 4. What is the shape of age?",
+        "### Figure 4. How does AGE vary between the leading block and later rows?",
         "",
-        f"![Figure 4. Age distribution and normal reference](../reports/figures/{data['figure_files'][3]})",
+        f"![Figure 4. AGE distributions by row group, by recorded label, and by AGE_BAND](../reports/figures/v7_age_profiles.png)",
         "",
         (
-            f"Age ranges from {age['min']} to {age['max']} with mean "
-            f"{number(age['mean'], 1)} and skew {number(audit['independence']['age_skew'], 3)} "
-            "in the deduplicated later-row subset used for the independence audit. The broad "
-            "shape is not strongly skewed, so a log transform is not justified by this "
-            "descriptive check. The histogram is a marginal summary and does not establish "
-            "representativeness or measurement validity."
+            "The figure compares the leading block with later negatives and positives, "
+            "shows AGE by recorded-label code, and summarizes the recorded label by "
+            "AGE_BAND. Normal overlays are parameterized separately from each group's "
+            "observed mean and standard deviation; they are descriptive references, not "
+            "assumptions about the data source."
         ),
         "",
-        "### Figure 5. Are the recorded features strongly related to each other?",
+        "### Figure 5. How do the four cleaning views change the analysis sample?",
         "",
-        f"![Figure 5. Pairwise correlation heatmap](../reports/figures/{data['figure_files'][4]})",
+        "![Figure 5. Row counts and recorded-label-1 rate by cleaning view](../reports/figures/fig5_views.png)",
         "",
         (
-            f"The maximum absolute pairwise correlation in the later deduplicated subset is "
-            f"{number(audit['independence']['max_abs_pairwise_corr'], 3)}. The heatmap's "
-            "narrow color scale makes weak pairwise relations visible; the near-blank pattern "
-            "is itself an observation. This does not prove mutual independence. The VIF range "
-            f"is {number(audit['independence']['vif_min'], 3)} to "
-            f"{number(audit['independence']['vif_max'], 3)}, and "
-            f"{percent(audit['independence']['share_sig_pairwise_chisq'])} of "
-            f"{audit['independence']['pairwise_chisq_tests']} binary-feature pair tests are "
-            "nominally significant. These diagnostics depend on the chosen subset and test "
-            "assumptions."
+            f"The raw view contains {views['A_raw']['n']:,} rows; B, C, and D contain "
+            f"{views['B_dedup']['n']:,}, {views['C_dedup_noconflict']['n']:,}, and "
+            f"{views['D_dedup_nolead']['n']:,} rows. These are policy-defined sensitivity "
+            "views, not estimates of a uniquely correct dataset size."
         ),
         "",
         "### Figure 6. Do feature associations depend on the cleaning view?",
         "",
-        f"![Figure 6. Maximum Cramer's V by view](../reports/figures/{data['figure_files'][5]})",
+        "![Figure 6. Cramer's V per binary feature in views A and D](../reports/figures/fig6_cramers_v.png)",
         "",
         (
             f"The largest Cramer's V falls from {number(h4['A_raw']['max_v'], 3)} in the raw "
@@ -358,7 +345,7 @@ def make_report(data):
         "",
         "### Figure 7. What is the smoking association across views?",
         "",
-        f"![Figure 7. Smoking odds ratio and {ci_percent}% confidence interval by view](../reports/figures/{data['figure_files'][6]})",
+        f"![Figure 7. Smoking odds ratio and {ci_percent}% confidence interval by view](../reports/figures/fig7_smoking_forest.png)",
         "",
         (
             f"In view A, the smoking odds ratio is {number(h1['A_raw']['odds_ratio'], 2)} "

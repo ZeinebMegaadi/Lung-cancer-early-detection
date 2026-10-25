@@ -20,6 +20,8 @@ from src.audit import (
 from src.config import FIG, TAB
 from src.clean import make_views, summarize, write_cleaning_outputs
 from src.config import INTERIM, TAB
+from src.build_report import make_report
+from src.build_slides import build_deck
 from src.data_io import load_raw, validate_schema
 from src.figures import build_guide_figures
 from src.results import write_results
@@ -306,6 +308,8 @@ def test_requested_visualizations_have_registered_200_dpi_artifacts():
         schema.loc[column, "unique_values"] == "1, 2"
         for column in df.columns[3:-1]
     )
+    yes_shares = pd.read_csv(TAB / "v6_yes_share_by_block.csv")
+    assert set(yes_shares["feature"]) == set(df.columns[3:-1])
     assert set(captions) == {f"{name}.png" for name in [
         "f1_order", "fig5_views", "fig2_source_shift", "fig4_age", "fig3_correlation",
         "fig6_cramers_v", "fig7_smoking_forest", "v1_class_balance",
@@ -332,6 +336,47 @@ def test_requested_visualizations_have_registered_200_dpi_artifacts():
     results = write_results()
     assert set(results["figure_files"]) == set(captions)
     assert results["figures"] == captions
+
+
+def test_handbook_figure_mapping_matches_report_and_slides():
+    results = json.loads((Path("docs") / "results.json").read_text(encoding="utf-8"))
+    report = make_report(results)
+    expected_report_mapping = [
+        ("### Figure 1.", "f1_order.png"),
+        ("### Figure 2.", "v6_yes_share_by_block.png"),
+        ("### Figure 3.", "fig3_correlation.png"),
+        ("### Figure 4.", "v7_age_profiles.png"),
+        ("### Figure 5.", "fig5_views.png"),
+        ("### Figure 6.", "fig6_cramers_v.png"),
+        ("### Figure 7.", "fig7_smoking_forest.png"),
+    ]
+    for index, (heading, filename) in enumerate(expected_report_mapping):
+        section_start = report.index(heading)
+        section_end = (
+            report.index(expected_report_mapping[index + 1][0], section_start + 1)
+            if index + 1 < len(expected_report_mapping)
+            else report.index("### Hypothesis results across views", section_start)
+        )
+        assert f"../reports/figures/{filename}" in report[section_start:section_end]
+
+    slides, _ = build_deck(results)
+    assert [path.name for path in slides[5]["figures"]] == [
+        "f1_order.png",
+        "v6_yes_share_by_block.png",
+    ]
+    assert slides[7]["figure"].name == "fig5_views.png"
+    assert [path.name for path in slides[8]["figures"]] == [
+        "fig3_correlation.png",
+        "v7_age_profiles.png",
+    ]
+    assert [path.name for path in slides[10]["figures"]] == [
+        "fig7_smoking_forest.png",
+        "fig6_cramers_v.png",
+    ]
+    slide_source = (Path("slides") / "slides.md").read_text(encoding="utf-8")
+    assert "Figure 1: row order, Figure 2: YES-share profiles" in slide_source
+    assert "Figure 3: feature correlations, Figure 4: AGE profiles" in slide_source
+    assert "Figure 7: smoking odds ratio by view, Figure 6: Cramer's V by feature" in slide_source
 
 
 def test_feature_engineering_scaling_sets_and_outputs():

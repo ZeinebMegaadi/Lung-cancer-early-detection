@@ -1601,8 +1601,8 @@
       "takeaway": "The multiplicity distribution is long-tailed, and some repeated feature patterns occur with both recorded labels."
     },
     "v6_yes_share_by_block.png": {
-      "question": "Do YES shares differ across leading negatives, later negatives, and later positives?",
-      "takeaway": "The group profiles vary across several binary features, consistent with row-order structure in this file."
+      "question": "Do the 13 symptom/lifestyle YES shares differ across leading negatives, later negatives, and later positives?",
+      "takeaway": "Shares coded YES (2) vary across row groups; the comparison is descriptive and source provenance remains unknown."
     },
     "v7_age_profiles.png": {
       "question": "How does recorded AGE vary across row groups and labels?",
