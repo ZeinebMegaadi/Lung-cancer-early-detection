@@ -408,6 +408,39 @@ def test_eda_notebook_is_thin_and_has_reproducible_empty_outputs():
     )
 
 
+def test_decision_log_covers_handbook_decisions_and_results_discrepancy():
+    decision_log = (Path("docs") / "decision_log.md").read_text(encoding="utf-8")
+    normalized_log = " ".join(decision_log.split())
+    recorded_ids = {
+        line.split("|", 2)[1].strip()
+        for line in decision_log.splitlines()
+        if line.startswith("| D-")
+    }
+    assert recorded_ids == {f"D-{number:02}" for number in range(1, 13)}
+
+    results = json.loads((Path("docs") / "results.json").read_text(encoding="utf-8"))
+    h2_significant = [
+        view
+        for view in ["B_dedup", "C_dedup_noconflict", "D_dedup_nolead"]
+        if results["h2"][view]["p"] < 0.05
+    ]
+    h3_significant = [
+        view
+        for view in ["B_dedup", "C_dedup_noconflict", "D_dedup_nolead"]
+        if results["h3"][view]["p"] < 0.05
+    ]
+    assert h2_significant == ["B_dedup", "C_dedup_noconflict"]
+    assert h3_significant == ["B_dedup", "C_dedup_noconflict"]
+    assert results["h4"]["D_dedup_nolead"]["min_q"] >= 0.05
+    assert "H2 AGE has p-values below 0.05 in B and C but not D" in normalized_log
+    assert "H3 respiratory-count association also has p-values below 0.05 in B and C but not D" in normalized_log
+    assert "no BH-adjusted q-value below 0.05 in D" in normalized_log
+    assert results["dataset"]["sha256_prefix"] in decision_log
+    assert results["dataset"]["expected_sha256_prefix"] in decision_log
+    assert f"{results['age']['outlier_n']} IQR flags" in decision_log
+    assert f"{results['age']['under_40_n']} rows under age 40" in decision_log
+
+
 def test_feature_engineering_scaling_sets_and_outputs():
     df = load_raw(verify=False)
     views = make_views(df)
