@@ -82,7 +82,6 @@ result.
 
 ## Phase 2 progress
 
-G-01 and G-02 are complete. G-01 was committed independently. G-02 passes its
-focused hypothesis tests and generated-result/report checks; it is ready for its
-own independent commit. Further implementation is paused at G-03 for review, as
-requested by the one-gap-at-a-time workflow.
+G-01 and G-02 are complete and committed independently. G-02 passes its focused
+hypothesis tests and generated-result/report checks. Further implementation is
+paused at G-03 for review, as requested by the one-gap-at-a-time workflow.
