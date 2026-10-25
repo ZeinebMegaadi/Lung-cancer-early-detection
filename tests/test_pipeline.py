@@ -379,6 +379,35 @@ def test_handbook_figure_mapping_matches_report_and_slides():
     assert "Figure 7: smoking odds ratio by view, Figure 6: Cramer's V by feature" in slide_source
 
 
+def test_eda_notebook_is_thin_and_has_reproducible_empty_outputs():
+    notebook = json.loads(
+        (Path("notebooks") / "03_eda.ipynb").read_text(encoding="utf-8")
+    )
+    code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
+    notebook_source = "\n".join(
+        "".join(cell.get("source", [])) for cell in notebook["cells"]
+    )
+
+    assert "from src.clean import make_views" in notebook_source
+    assert "from src.config import DOCS, FIG, SEED" in notebook_source
+    assert 'results["hypothesis_results"]' in notebook_source
+    assert "display(Image(filename=str(path)))" in notebook_source
+    assert "run_hypothesis_suite" not in notebook_source
+    assert all(cell["execution_count"] is None and cell["outputs"] == [] for cell in code_cells)
+    assert all(
+        filename in notebook_source
+        for filename in [
+            "f1_order.png",
+            "v6_yes_share_by_block.png",
+            "fig3_correlation.png",
+            "v7_age_profiles.png",
+            "fig5_views.png",
+            "fig6_cramers_v.png",
+            "fig7_smoking_forest.png",
+        ]
+    )
+
+
 def test_feature_engineering_scaling_sets_and_outputs():
     df = load_raw(verify=False)
     views = make_views(df)
