@@ -106,7 +106,8 @@ raw = raw[target.notna()].copy()
 raw["lung_cancer"] = raw["lung_cancer"].astype(int)
 log(f"  Rows with a known target: {len(raw):,}")
 log(f"  Lung cancer cases: {raw.lung_cancer.sum():,} ({100 * raw.lung_cancer.mean():.2f}%)")
-log("  By year: " + str(raw.groupby("SRVY_YR")["lung_cancer"].agg(["sum", "size"]).to_dict("index")))
+by_year = raw.groupby("SRVY_YR")["lung_cancer"].agg(["sum", "size"])
+log("  By year (cases / adults): " + ", ".join(f"{int(y)}: {int(r['sum'])}/{int(r['size']):,}" for y, r in by_year.iterrows()))
 track("3. Build target", raw, f"{n_unknown:,} rows with unknown answer removed")
 
 # ---------------------------------------------------------------- 4. recode to readable values
@@ -126,7 +127,8 @@ clean = pd.DataFrame({
     "education": raw["EDUC_A"].map({0: "Less than high school", 1: "Less than high school",
                                     2: "Less than high school", 3: "High school / GED", 4: "High school / GED",
                                     5: "Some college", 6: "Some college", 7: "Some college",
-                                    8: "Bachelor", 9: "Graduate", 10: "Graduate"}),
+                                    8: "Bachelor", 9: "Graduate", 10: "Graduate",
+                                    11: "Graduate"}),   # 11 = doctoral degree (2019-2020 coding only)
     "income_group": pd.cut(raw["RATCAT_A"].where(raw["RATCAT_A"].between(1, 14)), [0, 3, 7, 11, 14],
                            labels=["Below poverty", "Low", "Middle", "High"]).astype(object),
     "general_health": raw["PHSTAT_A"].map({1: "Excellent", 2: "Very good", 3: "Good", 4: "Fair", 5: "Poor"}),

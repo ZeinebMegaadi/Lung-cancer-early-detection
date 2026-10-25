@@ -14,7 +14,7 @@ STEP 3 - Build the target: lung_cancer (1 = ever told they had lung cancer)
   Unknown target (refused / don't know): 292 rows -> removed (cannot guess the answer)
   Rows with a known target: 149,928
   Lung cancer cases: 619 (0.41%)
-  By year: {2019: {'sum': 112, 'size': 31925}, 2020: {'sum': 131, 'size': 31513}, 2021: {'sum': 115, 'size': 29430}, 2022: {'sum': 116, 'size': 27594}, 2023: {'sum': 145, 'size': 29466}}
+  By year (cases / adults): 2019: 112/31,925, 2020: 131/31,513, 2021: 115/29,430, 2022: 116/27,594, 2023: 145/29,466
 
 STEP 4 - Recode NHIS codes into clear values (7/8/9, 97/98/99 = unknown -> missing)
 
@@ -46,7 +46,7 @@ STEP 6 - Checks
     smoking_status         2.64%
     ever_ecigarette        2.57%
     bmi_category           2.34%
-    education              1.42%
+    education              0.51%
     age                    0.24%
     age_group              0.24%
     heart_disease          0.22%
@@ -98,11 +98,11 @@ SUMMARY - What each step changed
            1. Load + stack 5 years 150220       20         131400 5 yearly files stacked; 20 needed columns kept (LUNGCAN_A is blank by design for people who never had cancer)
               2. Remove duplicates 150220       21         131400                                                                                0 duplicate person IDs removed
                    3. Build target 149928       22         131217                                                                          292 rows with unknown answer removed
-         4. Recode codes -> values 149928       19          14607                        number codes turned into words; e.g. 4,424 'unknown' codes in 4 key columns -> missing
-                    5. New columns 149928       23          23177                                         added age_group, ever_smoker, screening_age_smoker, comorbidity_count
-           5b. Join regional table 149928       26          23177                                3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added
-                 5c. Outlier check 149928       26          23177                                                  IQR check on 6 numeric columns; all values plausible -> kept
-       6. Checks + save clean file 149928       26          23177                                                            0 duplicate IDs, ages 18-85, missing values listed
+         4. Recode codes -> values 149928       19          13235                        number codes turned into words; e.g. 4,424 'unknown' codes in 4 key columns -> missing
+                    5. New columns 149928       23          21805                                         added age_group, ever_smoker, screening_age_smoker, comorbidity_count
+           5b. Join regional table 149928       26          21805                                3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added
+                 5c. Outlier check 149928       26          21805                                                  IQR check on 6 numeric columns; all values plausible -> kept
+       6. Checks + save clean file 149928       26          21805                                                            0 duplicate IDs, ages 18-85, missing values listed
 7. Encode + fill gaps (train only) 149928       71              0                                       one-hot encoding, training-median filling, 'unknown' flags -> 0 missing
               8. Feature selection 149928       60              0                                                               11 redundant/constant features dropped; 56 kept
            9. Scaling (train only) 149928       60              0                                                                                5 numeric columns standardised

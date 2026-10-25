@@ -73,7 +73,7 @@ tests = []          # every hypothesis test, corrected together at the end
 say("=" * 70)
 say("1. DATASET OVERVIEW")
 say("=" * 70)
-say(f"Adults: {len(df):,} | columns: {df.shape[1]} | years: {sorted(df.year.unique())}")
+say(f"Adults: {len(df):,} | columns: {df.shape[1]} | years: {sorted(int(y) for y in df.year.unique())}")
 n_cases = int(df.lung_cancer.sum())
 say(f"Lung cancer cases: {n_cases:,}")
 say(f"  Sample rate:     {100 * df.lung_cancer.mean():.2f}%")

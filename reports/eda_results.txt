@@ -1,7 +1,7 @@
 ======================================================================
 1. DATASET OVERVIEW
 ======================================================================
-Adults: 149,928 | columns: 26 | years: [np.int64(2019), np.int64(2020), np.int64(2021), np.int64(2022), np.int64(2023)]
+Adults: 149,928 | columns: 26 | years: [2019, 2020, 2021, 2022, 2023]
 Lung cancer cases: 619
   Sample rate:     0.41%
   Population rate: 0.31%  (weighted with NHIS survey weights)
@@ -11,7 +11,7 @@ Age: count    149575.0 | mean         52.8 | std          18.4 | min          18
 
 A model that always says 'no' would be 99.59% accurate -> accuracy is useless here.
 
-Missing values (%): screening_age_smoker 2.8, smoking_status 2.6, ever_smoker 2.6, ever_ecigarette 2.6, bmi_category 2.3, education 1.4, age 0.2, age_group 0.2, heart_disease 0.2, hypertension 0.1, copd 0.1, diabetes 0.0, asthma 0.0, general_health 0.0, sex 0.0
+Missing values (%): screening_age_smoker 2.8, smoking_status 2.6, ever_smoker 2.6, ever_ecigarette 2.6, bmi_category 2.3, education 0.5, age 0.2, age_group 0.2, heart_disease 0.2, hypertension 0.1, copd 0.1, diabetes 0.0, asthma 0.0, general_health 0.0, sex 0.0
 
 ======================================================================
 2. SMOKING vs LUNG CANCER  (research question 1)

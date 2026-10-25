@@ -2,11 +2,11 @@ step,rows,columns,missing_cells,what_changed
 1. Load + stack 5 years,150220,20,131400,5 yearly files stacked; 20 needed columns kept (LUNGCAN_A is blank by design for people who never had cancer)
 2. Remove duplicates,150220,21,131400,0 duplicate person IDs removed
 3. Build target,149928,22,131217,292 rows with unknown answer removed
-4. Recode codes -> values,149928,19,14607,"number codes turned into words; e.g. 4,424 'unknown' codes in 4 key columns -> missing"
-5. New columns,149928,23,23177,"added age_group, ever_smoker, screening_age_smoker, comorbidity_count"
-5b. Join regional table,149928,26,23177,"3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added"
-5c. Outlier check,149928,26,23177,IQR check on 6 numeric columns; all values plausible -> kept
-6. Checks + save clean file,149928,26,23177,"0 duplicate IDs, ages 18-85, missing values listed"
+4. Recode codes -> values,149928,19,13235,"number codes turned into words; e.g. 4,424 'unknown' codes in 4 key columns -> missing"
+5. New columns,149928,23,21805,"added age_group, ever_smoker, screening_age_smoker, comorbidity_count"
+5b. Join regional table,149928,26,21805,"3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added"
+5c. Outlier check,149928,26,21805,IQR check on 6 numeric columns; all values plausible -> kept
+6. Checks + save clean file,149928,26,21805,"0 duplicate IDs, ages 18-85, missing values listed"
 7. Encode + fill gaps (train only),149928,71,0,"one-hot encoding, training-median filling, 'unknown' flags -> 0 missing"
 8. Feature selection,149928,60,0,11 redundant/constant features dropped; 56 kept
 9. Scaling (train only),149928,60,0,5 numeric columns standardised

@@ -23,7 +23,7 @@ education_High school / GED,0.00014
 smoking_status_Current,0.00013
 bmi_category_Underweight,0.00012
 income_group_Low,0.00011
-education_Graduate,6e-05
+education_Graduate,8e-05
 income_group_Below poverty,5e-05
 education_Less than high school,5e-05
 race_ethnicity_Asian,4e-05
@@ -35,13 +35,13 @@ bmi_category_Healthy,2e-05
 bmi_category_Overweight,2e-05
 bmi_category_Obese,2e-05
 race_ethnicity_Black,1e-05
+education_Unknown,1e-05
 region_Northeast,1e-05
 asthma_unknown,1e-05
 hypertension_unknown,0.0
 region_South,0.0
 education_Some college,0.0
 heart_disease_unknown,0.0
-education_Unknown,0.0
 sex_Female,0.0
 ever_ecigarette,0.0
 copd_unknown,0.0
