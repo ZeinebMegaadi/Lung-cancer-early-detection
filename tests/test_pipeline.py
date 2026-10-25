@@ -27,7 +27,12 @@ from src.features import (
     fit_age_scaler,
     verify,
 )
-from src.hypotheses import h1_smoking, h2_age, h3_respiratory_count
+from src.hypotheses import (
+    h1_smoking,
+    h2_age,
+    h3_respiratory_count,
+    run_hypothesis_suite,
+)
 from src.stats_utils import benjamini_hochberg, feature_family, min_detectable_difference
 
 
@@ -252,6 +257,31 @@ def test_h2_age_and_h3_respiratory_count_across_views():
         else:
             assert h3.loc[view, "p"] == pytest.approx(p, rel=0.05, abs=1e-5)
         assert h3.loc[view, "ci_low"] <= rho <= h3.loc[view, "ci_high"]
+
+
+def test_hypothesis_suite_has_complete_effects_intervals_and_adjusted_p_values():
+    df = load_raw(verify=False)
+    result = run_hypothesis_suite(
+        df, make_views(df), n_perms=100, bootstrap_reps=50, seed=42
+    )
+
+    assert result["hypothesis"].value_counts().to_dict() == {
+        "H4": 56,
+        "H5": 14,
+        "H1": 4,
+        "H2": 4,
+        "H3": 4,
+    }
+    assert result[["statistic", "p", "q_BH", "effect_size", "ci_low", "ci_high"]].notna().all().all()
+    assert result["q_BH"].between(0, 1).all()
+    assert (result["ci_low"] <= result["ci_high"]).all()
+    assert result.loc[result["hypothesis"].isin(["H4", "H5"]), "ci_low"].ge(0).all()
+    assert result.loc[result["hypothesis"].isin(["H4", "H5"]), "ci_high"].le(1).all()
+    assert result.loc[result["hypothesis"].eq("H1"), "permutation_p"].notna().all()
+    assert set(result.loc[result["hypothesis"].eq("H5"), "view"]) == {"integrity_check"}
+    assert (TAB / "hypotheses.csv").is_file()
+    saved = pd.read_csv(TAB / "hypotheses.csv")
+    assert len(saved) == len(result)
 
 
 def test_seven_guide_figures_have_artifacts():

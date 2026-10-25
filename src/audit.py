@@ -65,13 +65,18 @@ def source_shift(df, fp):
         chi2, p, _, _ = stats.chi2_contingency(tab, correction=False)
         v = cramers_v(tab)
         yes_value = 2 if col != "GENDER" else 1
+        leading_yes_n = int(lead[col].eq(yes_value).sum())
+        later_yes_n = int(later_negatives[col].eq(yes_value).sum())
         result.append(
             {
                 "feature": col,
                 "leading_block_n": int(len(lead)),
                 "later_negatives_n": int(len(later_negatives)),
-                "leading_block_yes_share": float(lead[col].eq(yes_value).mean()),
-                "later_negatives_yes_share": float(later_negatives[col].eq(yes_value).mean()),
+                "leading_block_yes_n": leading_yes_n,
+                "later_negatives_yes_n": later_yes_n,
+                "leading_block_yes_share": float(leading_yes_n / len(lead)),
+                "later_negatives_yes_share": float(later_yes_n / len(later_negatives)),
+                "statistic": float(chi2),
                 "cramers_v": float(v),
                 "p_value": float(p),
             }

@@ -14,12 +14,12 @@ are copied from Handbook Chapter 2.2; data findings below are from the generated
 |---|---|---|---|
 | Data loading and organization (5 pts) | `src/data_io.py`, `tests/test_pipeline.py`, `docs/data_dictionary.md`, `docs/data_card.md`, `data/raw/CHECKSUMS.txt` | PARTIAL | Schema, dictionary, and data card are present. The observed raw-file SHA-256 prefix is `1e0d557990cd7533`, not the handbook contract `4ad2333067fcb0a9`; the approved override is documented. The handbook lineage match task has no match-count evidence. |
 | Cleaning and preprocessing (12 pts) | `src/audit.py`, `src/clean.py`, `reports/tables/cleaning_log.csv`, `reports/tables/treatments.csv`, `data/interim/` | PARTIAL | Expected view sizes and treatment outputs exist. G-01 now makes the audit and cleaning scripts directly executable; other gaps remain. |
-| EDA and statistics (13 pts) | `notebooks/01_explore.ipynb`, `src/figures.py`, `src/hypotheses.py`, `reports/figures/`, `reports/tables/` | PARTIAL | Seven core figures and H1-H5 rows exist, but several required plots are absent; `hypotheses.csv` has missing q-values for H1-H3 and missing CIs for H4-H5. |
+| EDA and statistics (13 pts) | `notebooks/01_explore.ipynb`, `src/figures.py`, `src/hypotheses.py`, `reports/figures/`, `reports/tables/hypotheses.csv` | PARTIAL | G-02 completes the H1-H5 test statistics, p/q values, effect sizes, and supported intervals; H5 is explicitly scoped as a raw-file integrity contrast. Several required plots remain absent. |
 | Feature engineering (7 pts) | `src/features.py`, `docs/feature_spec.md`, `data/processed/`, feature tests in `tests/test_pipeline.py` | OK | F0/F1/F2 are generated with 15/19/5 predictors, patient ID excluded, and verification tests passing. No predictive model is fitted. |
 | Code quality and reproducibility (3 pts) | `Makefile`, pinned `requirements.txt`, `pytest.ini`, `tests/test_pipeline.py` | PARTIAL | Local Make targets and direct handbook scripts pass focused tests; package versions are pinned. A clean-clone run has not been demonstrated, and the consistency parser has permissive exceptions. |
 | Structure and clarity (6 pts) | `slides/presentation.pptx`, `slides/slides.md`, `report/report.md` | PARTIAL | Main slide storyline and speaker notes exist. Figure numbering/content does not match the handbook inventory; no timing sheet is present. |
-| Methodological explanation (9 pts) | `slides/presentation.pptx` speaker notes, `notebooks/01_explore.ipynb`, `report/report.md` | PARTIAL | Notes explain several choices, but the required complete H1-H5 table, assumptions/intervals, and a fully mapped figure sequence are incomplete. |
-| Results and interpretation (9 pts) | `docs/results.json`, `report/report.md`, `reports/figures/captions.json` | PARTIAL | Core results are generated and the report correctly describes the small nominal H2/H3 effects in B and C. It does not include a complete H1-H5-by-view results table. |
+| Methodological explanation (9 pts) | `slides/presentation.pptx` speaker notes, `notebooks/01_explore.ipynb`, `report/report.md` | PARTIAL | G-02 adds the complete supported hypothesis results and explains family adjustments and H5 scope; assumptions and the fully mapped figure sequence remain incomplete. |
+| Results and interpretation (9 pts) | `docs/results.json`, `report/report.md`, `reports/tables/hypotheses.csv`, `reports/figures/captions.json` | PARTIAL | G-02 adds all H1-H5 feature/view results, intervals, and adjusted values to JSON/CSV and the report; report and visualization gaps remain. |
 | Technical understanding and Q&A (8 pts) | `docs/qa.md` | PARTIAL | The required question bank exists with 35 entries. Mock-round scorecards and cross-training evidence are absent. |
 | Delivery and time (3 pts) | No rehearsal log or timing sheet found | MISSING | The two timed rehearsals and delivery-time evidence are human tasks and are not documented. |
 | Report: six sections (25 pts) | `report/report.md`, `report/report.pdf` | PARTIAL | A six-section PDF exists and is 10 pages. Current section word counts are 392, 643, 552, 989, 453, and 386; Sections 1, 3, and 6 are below their handbook minima. Tables are not consistently numbered/captioned. |
@@ -31,7 +31,7 @@ are copied from Handbook Chapter 2.2; data findings below are from the generated
 | Business understanding | `report/report.md` Section 1; `slides/slides.md` | PARTIAL | RQs and scope are described, but the report section is below its word target and does not present the complete success-criteria set in the handbook. |
 | Data understanding | `src/data_io.py`, `docs/data_dictionary.md`, `docs/data_card.md`, `notebooks/01_explore.ipynb` | PARTIAL | The core artifacts exist; checksum differs from the expected snapshot and lineage/source matching is undocumented. |
 | Preprocessing | `src/clean.py`, `src/audit.py`, `reports/tables/cleaning_log.csv`, `reports/tables/treatments.csv` | PARTIAL | Four views and logs exist, and direct audit/clean script commands now execute; remaining preprocessing documentation gaps remain. |
-| EDA and statistics | `src/figures.py`, `src/hypotheses.py`, `reports/figures/`, `reports/tables/hypotheses.csv` | PARTIAL | Several core results are present; required group-profile visualization and hypothesis-table fields are incomplete. |
+| EDA and statistics | `src/figures.py`, `src/hypotheses.py`, `reports/figures/`, `reports/tables/hypotheses.csv` | PARTIAL | G-02 completes the hypothesis table; required group-profile visualizations remain. |
 | Feature engineering | `src/features.py`, `docs/feature_spec.md`, `tests/test_pipeline.py` | OK | Feature sets, recoding, leakage exclusions, and verification are implemented and tested. |
 | Conclusions and next steps | `report/report.md` Section 6; `slides/slides.md` | PARTIAL | Limits and planned work are stated, but Section 6 is below its word target; human delivery activities remain open. |
 
@@ -40,7 +40,7 @@ are copied from Handbook Chapter 2.2; data findings below are from the generated
 | ID | Severity | Description and evidence | Rubric points at risk | Proposed fix | Test/evidence that will prove it |
 |---|---|---|---|---|---|
 | G-01 | major | **DONE.** Added package-safe direct entry points for the audit, cleaning, and full-analysis scripts. The audit writes `docs/audit_summary.json` and `reports/tables/source_shift.csv`; cleaning writes its view and treatment outputs. | Cleaning/preprocessing; code quality/reproducibility | Bootstrap package context when invoked as a script; implement functional audit and cleaning `main()` entry points with an explicit warning for the approved checksum override. | **PASS:** `.venv\Scripts\python.exe -m pytest tests\test_pipeline.py -k handbook_direct_script_entrypoints -q` → `3 passed`; subprocess checks invoke all three `python src/...py` commands and assert successful exit plus expected output. |
-| G-02 | major | `reports/tables/hypotheses.csv` has 82 rows, but q-values are null for all H1-H3 rows, and CI bounds are null for all H4-H5 rows. H5 is only the single block comparison, not represented as a full view-indexed table. The report's compact table contains H1-H4 only. | EDA/statistics; results/interpretation; report | Generate the required H1-H5 results presentation with statistic, p, q or an explicitly justified not-applicable value, effect size, and interval for each supported comparison; include H5 with clear scope. | A schema/completeness test checks every required hypothesis/comparison and rejects unexplained null inferential fields; report table is regenerated and checked against `results.json`. |
+| G-02 | major | **DONE.** The 82-row table now has statistic, p, q, effect size, and 95% interval for every supported comparison. H1-H3 q-values adjust across views within each hypothesis; H4 and H5 adjust their feature families. H5 is the single raw-file integrity contrast (14 features), not a cleaned-view analysis: view D removes the leading block, so fabricating H5 rows for B-D would change its meaning. The report includes H1-H4 by view and the full H5 feature table. | EDA/statistics; results/interpretation; report | Add family-specific BH values and row-level multinomial bootstrap Cramer's V intervals; register all 82 records in `results.json`; explain H5's non-view scope in the report. | **PASS:** `.venv\Scripts\python.exe -m pytest tests\test_pipeline.py -k "h1_smoking_across_views or benjamini_hochberg_and_view_d_feature_family or h2_age_and_h3_respiratory_count_across_views or hypothesis_suite_has_complete_effects_intervals_and_adjusted_p_values" -q` → `4 passed`. `python -m src.results` regenerated 82 CSV/JSON records with zero missing statistic/p/q/effect/CI fields; `python -m src.build_report` generated a 10-page report with H5 table. |
 | G-03 | major | Only seven PNGs are generated. Existing outputs cover row order, source-shift Cramer's V, correlation, AGE histogram, views, Cramer's V dumbbell, and smoking forest. Missing requested plots include class-balance baseline, schema/value-set summary, duplicate multiplicity, grouped symptom YES shares, AGE-by-block/label and AGE_BAND summaries, PCA scree, permutation null, p-vs-q, feature-level OR intervals, power curve, respiratory-count rate/interval, and AGE_Z/feature-set visualization. | EDA/statistics; results/interpretation; report; presentation | Add the missing non-model visualizations as code-generated figures with captions and results registration. Preserve the explicit no-model-training rule; the proposed model-AUC S9 cannot be generated under that rule and must remain explicitly excluded unless the scope changes. | Figure acceptance test checks each allowed figure exists, is non-empty, is 200 dpi, has a caption/takeaway, is registered in `results.json`, and is displayed in the relevant notebook. |
 | G-04 | major | The generated seven figures are not numbered/mapped to the handbook's seven-figure inventory: report Figure 2 uses the views chart and Figure 3 uses source-shift Cramer's V, while the handbook expects the grouped YES-share plot and correlation heatmap respectively. Figure 2's required group YES-share visualization is absent. | EDA/statistics; structure/clarity; report; presentation | Align figure content, numbering, captions, report citations, slide references, and JSON registration to the handbook inventory. | Test the expected figure-name-to-question mapping and scan report/slides for all numbered figure references. |
 | G-05 | major | Only `notebooks/01_explore.ipynb` exists. It has 43 cells (15 code cells) and is a long, multi-step walkthrough; Handbook Chapter 2.2 names `notebooks/03_eda.ipynb` and Phase 4 expects thin notebooks that import project modules. | EDA/statistics; code quality/reproducibility | Retain the introductory notebook and add a thin EDA notebook that imports the shared `src/` outputs; add other notebooks only where the handbook requires them. | Execute all submitted notebooks from a fresh kernel with no errors; assert key figures/tables are displayed and saved outputs are cleared or intentionally reproducible. |
@@ -56,9 +56,9 @@ are copied from Handbook Chapter 2.2; data findings below are from the generated
 
 | Check | Observed output | Status |
 |---|---|---|
-| Direct audit command | `python src/audit.py` -> `ImportError: attempted relative import with no known parent package` | FAIL |
-| Direct clean command | `python src/clean.py` -> `ImportError: attempted relative import with no known parent package` | FAIL |
-| Direct analysis command | `python src/run_analysis.py` -> `ImportError: attempted relative import with no known parent package` | FAIL |
+| Direct audit command | Phase 1 reproduced the import error; now package-safe and writes audit summary plus source-shift table | RESOLVED by G-01; focused test passes |
+| Direct clean command | Phase 1 reproduced the import error; now package-safe and writes view/treatment outputs | RESOLVED by G-01; focused test passes |
+| Direct analysis command | Phase 1 reproduced the import error; now package-safe and emits analysis summary | RESOLVED by G-01; focused test passes |
 | Package analysis command | `python -m src.run_analysis` -> completed; 22,457 x 17, zero nulls; first positive index 1,455; 103 leading-block patterns; 2,573 exact duplicates; 133 conflicting patterns; ID AUC 0.6703 | PASS with checksum warning |
 | Cleaning views | A/B/C/D rows: 22,457 / 19,884 / 19,618 / 19,781 | MATCH |
 | Smoking odds ratio | A 1.4867; B 1.0273; C 1.0450; D 0.9952 | MATCH |
@@ -69,9 +69,9 @@ are copied from Handbook Chapter 2.2; data findings below are from the generated
 
 The B/C H2 and H3 findings are not silently reconciled with the handbook headline:
 they are small nominal associations in those views, while the effects attenuate or
-disappear in D. The report already gives this nuance; the decision log and complete
-H1-H5 table still need to reflect it. The actual run is retained. The checksum
-mismatch is also retained as a documented deviation; `data/raw` was not changed.
+disappear in D. The report and the completed G-02 table retain this nuance. The
+actual run is retained. The checksum mismatch is also retained as a documented
+deviation; `data/raw` was not changed.
 
 ## Scope constraint
 
@@ -82,7 +82,7 @@ result.
 
 ## Phase 2 progress
 
-G-01 is complete and committed independently. Its focused direct-entry-point
-regression test passed for `audit.py`, `clean.py`, and `run_analysis.py`.
-Further implementation is paused at G-02 for review, as requested by the
-one-gap-at-a-time workflow.
+G-01 and G-02 are complete. G-01 was committed independently. G-02 passes its
+focused hypothesis tests and generated-result/report checks; it is ready for its
+own independent commit. Further implementation is paused at G-03 for review, as
+requested by the one-gap-at-a-time workflow.
