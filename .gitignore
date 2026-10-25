@@ -2,5 +2,7 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .DS_Store
-# Unzipped NHIS files are too big for GitHub; keep only the .zip files
+# Unzipped or temporary big files are not uploaded (GitHub limit: 100 MB per file)
 data/raw/nhis/*.csv
+data/raw/uscs/_uscs.zip
+data/raw/brfss/_full_brfss_prevalence.csv

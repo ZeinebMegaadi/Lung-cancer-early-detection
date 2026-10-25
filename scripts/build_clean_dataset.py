@@ -8,7 +8,8 @@ Output: data/clean/nhis_lung_cancer_clean.csv        readable, one row per adult
         data/clean/data_dictionary.csv               what every column means
         data/clean/cleaning_report.txt               every cleaning step with before/after counts
 
-Run from the repository root:  python scripts/build_clean_dataset.py
+Run from the repository root (after download_data.py and build_regional_data.py):
+    python scripts/build_clean_dataset.py
 """
 import zipfile
 from pathlib import Path
@@ -134,6 +135,19 @@ comorb = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
 clean["comorbidity_count"] = clean[comorb].sum(axis=1, min_count=1)
 log("  Added: age_group, ever_smoker, screening_age_smoker, comorbidity_count")
 
+# ---------------------------------------------------------------- 5b. join regional data
+log("\nSTEP 5b - Join the regional table (EPA air pollution, BRFSS smoking rate, US lung cancer rate)")
+ctx_path = CLEAN / "regional_context.csv"
+if not ctx_path.exists():
+    raise SystemExit("Run scripts/build_regional_data.py first (it creates data/clean/regional_context.csv)")
+ctx = pd.read_csv(ctx_path)
+n_before = len(clean)
+clean = clean.merge(ctx, on=["region", "year"], how="left", validate="many_to_one")
+assert len(clean) == n_before, "The join must add columns, never rows"
+log(f"  Rows before / after join: {n_before:,} / {len(clean):,}  (join key: region + year)")
+for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    log(f"  {c}: {clean[c].isna().sum()} rows without a match (only if region is unknown)")
+
 # ---------------------------------------------------------------- 6. checks
 log("\nSTEP 6 - Checks")
 log(f"  Final rows: {len(clean):,} | columns: {clean.shape[1]}")
@@ -170,6 +184,10 @@ for c in ["ever_smoker", "screening_age_smoker", "ever_ecigarette"] + comorb:
     m[c] = clean[c].fillna(0).astype(int)
     m[c + "_unknown"] = clean[c].isna().astype(int)
 m["comorbidity_count"] = clean["comorbidity_count"].fillna(0).astype(int)
+
+# Regional columns: filled with the training median if a person's region is unknown
+for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    m[c] = clean[c].fillna(clean.loc[train_idx, c].median())
 
 # Categorical columns: one-hot encoding, missing becomes its own 'Unknown' category
 cats = ["sex", "race_ethnicity", "region", "education", "income_group", "general_health",
@@ -209,6 +227,9 @@ dictionary = pd.DataFrame([
     ("ever_smoker", "NEW: current or former smoker (1 = yes)", "from smoking_status"),
     ("screening_age_smoker", "NEW: age 50-80 and ever smoked (proxy of screening eligibility)", "from age + smoking"),
     ("comorbidity_count", "NEW: number of the 5 conditions above", "from copd...diabetes"),
+    ("pm25_mean", "JOINED: average fine-particle air pollution (PM2.5, µg/m³) in the person's region that year", "EPA AirData, by region + year"),
+    ("smoking_rate", "JOINED: % of adults who currently smoke in the person's region that year", "CDC BRFSS, by region + year"),
+    ("lung_cancer_incidence", "JOINED: new lung cancer cases per 100,000 people in the person's region that year", "CDC US Cancer Statistics, by region + year"),
     ("lung_cancer", "TARGET: ever told they had lung cancer (1 = yes)", "CANEV_A + LUNGCAN_A"),
 ], columns=["column", "meaning", "built_from"])
 dictionary.to_csv(CLEAN / "data_dictionary.csv", index=False)

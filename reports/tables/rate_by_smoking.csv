@@ -1,0 +1,4 @@
+smoking_status,n,cases,rate_%,weighted_rate_%
+Never,90937,107,0.118,0.081
+Former,37452,367,0.98,0.813
+Current,17586,127,0.722,0.598

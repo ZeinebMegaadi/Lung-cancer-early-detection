@@ -1,0 +1,36 @@
+A. EPA air pollution (fine particles, PM2.5)
+  2019: 76,867 monitor rows -> 1,442 PM2.5 annual values
+  2020: 77,770 monitor rows -> 1,417 PM2.5 annual values
+  2021: 107,019 monitor rows -> 1,421 PM2.5 annual values
+  2022: 75,534 monitor rows -> 1,409 PM2.5 annual values
+  2023: 82,887 monitor rows -> 1,798 PM2.5 annual values
+  Rows outside the 50 states + DC dropped: 56
+
+B. BRFSS adult current-smoking rate
+  1,644 rows -> 251 state-year smoking rates (territories/national rows dropped: 21)
+
+C. US Cancer Statistics - new lung cancer cases per 100,000 people
+  23,796 rows -> 255 state-year rows (other areas dropped: 0)
+
+D. Combine the 3 regional tables (one row per region and year)
+   region  year  pm25_mean  smoking_rate  lung_cancer_incidence
+Northeast  2019       5.98         14.49                   77.7
+Northeast  2020       6.20         13.19                   69.0
+Northeast  2021       6.85         12.66                   73.7
+Northeast  2022       5.80         11.99                   74.4
+Northeast  2023       7.18         10.22                   75.1
+  Midwest  2019       7.25         17.12                   82.2
+  Midwest  2020       7.04         16.53                   75.4
+  Midwest  2021       8.23         15.18                   79.3
+  Midwest  2022       6.93         14.68                   79.9
+  Midwest  2023       8.73         13.47                   80.4
+    South  2019       7.75         18.01                   74.9
+    South  2020       7.27         17.01                   68.4
+    South  2021       8.01         16.19                   71.1
+    South  2022       7.43         14.80                   71.0
+    South  2023       8.45         13.38                   70.7
+     West  2019       6.31         14.24                   49.4
+     West  2020       7.57         13.53                   44.7
+     West  2021       7.43         12.65                   46.9
+     West  2022       6.76         12.35                   46.4
+     West  2023       6.31         10.90                   46.3

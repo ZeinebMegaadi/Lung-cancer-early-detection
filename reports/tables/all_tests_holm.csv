@@ -1,0 +1,9 @@
+test,p,p_holm,significant_after_correction
+Smoking status vs lung cancer (chi-square),2.2045324823521085e-115,1.3227194894112652e-114,True
+Age vs lung cancer (Mann-Whitney),3.091173949267404e-141,2.1638217644871827e-140,True
+copd vs lung cancer (chi-square),0.0,0.0,True
+asthma vs lung cancer (chi-square),0.0005724074322368416,0.0011448148644736833,True
+hypertension vs lung cancer (chi-square),1.257436828579501e-49,5.029747314318004e-49,True
+heart_disease vs lung cancer (chi-square),5.638431595553591e-66,2.819215797776796e-65,True
+diabetes vs lung cancer (chi-square),6.735033036975486e-17,2.0205099110926457e-16,True
+ever_ecigarette vs lung cancer (chi-square),0.38709445343507787,0.38709445343507787,False

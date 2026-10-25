@@ -21,4 +21,7 @@ age_group,NEW: age band,from age
 ever_smoker,NEW: current or former smoker (1 = yes),from smoking_status
 screening_age_smoker,NEW: age 50-80 and ever smoked (proxy of screening eligibility),from age + smoking
 comorbidity_count,NEW: number of the 5 conditions above,from copd...diabetes
+pm25_mean,"JOINED: average fine-particle air pollution (PM2.5, µg/m³) in the person's region that year","EPA AirData, by region + year"
+smoking_rate,JOINED: % of adults who currently smoke in the person's region that year,"CDC BRFSS, by region + year"
+lung_cancer_incidence,"JOINED: new lung cancer cases per 100,000 people in the person's region that year","CDC US Cancer Statistics, by region + year"
 lung_cancer,TARGET: ever told they had lung cancer (1 = yes),CANEV_A + LUNGCAN_A

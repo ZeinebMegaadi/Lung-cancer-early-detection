@@ -21,8 +21,14 @@ STEP 4 - Recode NHIS codes into clear values (7/8/9, 97/98/99 = unknown -> missi
 STEP 5 - New columns (feature engineering)
   Added: age_group, ever_smoker, screening_age_smoker, comorbidity_count
 
+STEP 5b - Join the regional table (EPA air pollution, BRFSS smoking rate, US lung cancer rate)
+  Rows before / after join: 149,928 / 149,928  (join key: region + year)
+  pm25_mean: 0 rows without a match (only if region is unknown)
+  smoking_rate: 0 rows without a match (only if region is unknown)
+  lung_cancer_incidence: 0 rows without a match (only if region is unknown)
+
 STEP 6 - Checks
-  Final rows: 149,928 | columns: 23
+  Final rows: 149,928 | columns: 26
   Duplicate person IDs: 0
   Age range: 18.0 - 85.0
   Missing values (%) per column:
@@ -49,6 +55,6 @@ STEP 6 - Checks
 
 STEP 7 - Model-ready version (numbers only, no missing values, fixed train/test split)
   Age median used for filling (from training rows only): 54.0
-  Model-ready shape: (149928, 68) | train 119,942 | test 29,986
+  Model-ready shape: (149928, 71) | train 119,942 | test 29,986
   Lung cancer rate - train: 0.41% | test: 0.41%
   Note: scale numeric columns inside your model pipeline, fitted on training rows only.
