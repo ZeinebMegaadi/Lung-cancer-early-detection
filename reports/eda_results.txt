@@ -45,7 +45,7 @@ flag keeps that information for a future model.
 ======================================================================
 Age: mean 52.8, median 54, SD 18.4, skewness -0.05, excess kurtosis -1.08
 Normality tests on age: Shapiro-Wilk (5,000-person sample) p = 5.71e-33; D'Agostino K2 (all adults) p < 1e-300
-Reading: age is NOT normal (flat with two humps, and a pile-up at 85 = '85 or older'); the Q-Q plot in Fig 10 shows
+Reading: age is NOT normal (flat with two humps, and a pile-up at 85 = '85 or older'); the Q-Q plot in Fig 4 shows
 the S-shape of a flat distribution. -> use rank-based tests (Mann-Whitney, Spearman) for age.
 
 Categorical distributions saved (reports/tables/categorical_distributions.csv). Largest groups:

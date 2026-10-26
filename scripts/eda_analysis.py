@@ -192,11 +192,11 @@ say(f"Age: mean {a_all.mean():.1f}, median {a_all.median():.0f}, SD {a_all.std()
     f"skewness {a_all.skew():.2f}, excess kurtosis {a_all.kurt():.2f}")
 say(f"Normality tests on age: Shapiro-Wilk (5,000-person sample) p = {fmt_p(sw.pvalue)}; "
     f"D'Agostino K2 (all adults) p {fmt_p(dag.pvalue) if dag.pvalue == 0 else '= ' + fmt_p(dag.pvalue)}")
-say("Reading: age is NOT normal (flat with two humps, and a pile-up at 85 = '85 or older'); the Q-Q plot in Fig 10 shows")
+say("Reading: age is NOT normal (flat with two humps, and a pile-up at 85 = '85 or older'); the Q-Q plot in Fig 4 shows")
 say("the S-shape of a flat distribution. -> use rank-based tests (Mann-Whitney, Spearman) for age.")
 
 # Figure 10 - numeric distributions: histogram, Q-Q plot, count bars
-fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
 sns.histplot(a_all, bins=34, kde=True, color=BLUE, ax=axes[0])
 axes[0].set_xlabel("Age (years)"); axes[0].set_ylabel("Number of adults"); axes[0].set_title("Age histogram")
 stats.probplot(sample, dist="norm", plot=axes[1])
@@ -209,23 +209,23 @@ for i, v in enumerate(cc.values):
     axes[2].text(i, v, f"{v:.1f}%", ha="center", va="bottom", fontsize=11)
 axes[2].set_xlabel("Number of chronic conditions"); axes[2].set_ylabel("% of adults")
 axes[2].set_title(f"Comorbidity count (skew {df['comorbidity_count'].skew():.2f})")
-fig.suptitle("Fig 10. Distribution of the numeric variables", y=1.03)
-save("fig10_numeric_distributions")
+fig.suptitle("Fig 4. Distribution of the numeric variables", y=1.03)
+save("fig04_numeric_distributions")
 
 # Figure 11 - categorical distributions (bar charts)
 uni_rows = []
-fig, axes = plt.subplots(2, 4, figsize=(24, 11))
+fig, axes = plt.subplots(4, 2, figsize=(13, 15))
 for ax, c in zip(axes.ravel(), ORDER):
     share = df[c].value_counts(normalize=True).reindex(ORDER[c]) * 100
     ax.barh(share.index[::-1], share.values[::-1], color=BLUE)
     for i, v in enumerate(share.values[::-1]):
-        ax.text(v + 0.5, i, f"{v:.1f}%", va="center", fontsize=11)
-    ax.set_xlim(0, share.max() * 1.3); ax.set_title(LABEL[c], fontsize=15); ax.set_xlabel("% of adults")
-    ax.tick_params(axis="y", labelsize=12)
+        ax.text(v + 0.5, i, f"{v:.1f}%", va="center", fontsize=13)
+    ax.set_xlim(0, share.max() * 1.3); ax.set_title(LABEL[c], fontsize=15); ax.set_xlabel("% of adults", fontsize=13)
+    ax.tick_params(axis="both", labelsize=13)
     for k, v in share.items():
         uni_rows.append({"variable": c, "category": k, "pct_of_adults": round(v, 2)})
-fig.suptitle("Fig 11. Who is in the data? Distribution of the categorical variables (unweighted)", y=1.01)
-save("fig11_categorical_distributions")
+fig.suptitle("Fig 5. Who is in the data? Categorical variables (unweighted)", y=1.01)
+save("fig05_categorical_distributions")
 pd.DataFrame(uni_rows).to_csv(TAB / "categorical_distributions.csv", index=False)
 say("\nCategorical distributions saved (reports/tables/categorical_distributions.csv). Largest groups:")
 for c in ORDER:
@@ -265,8 +265,9 @@ ax.bar(SMOKE_ORDER, rates["weighted_rate_%"], color=[BLUE, GREY, ORANGE])
 for i, v in enumerate(rates["weighted_rate_%"]):
     ax.text(i, v, f"{v:.2f}%", ha="center", va="bottom", fontsize=14)
 ax.set_ylabel("Lung cancer (% of adults, weighted)")
-ax.set_title(f"Fig 3. Lung cancer by smoking status (p = {p:.1e})")
-save("fig03_smoking_vs_lung_cancer")
+ax.set_ylim(0, rates["weighted_rate_%"].max() * 1.18)
+ax.set_title(f"Fig 6. Lung cancer by smoking status (p = {p:.1e})")
+save("fig06_smoking_vs_lung_cancer")
 
 # ======================================================================= 3. age
 header("3. AGE vs LUNG CANCER  (research question 2)")
@@ -293,8 +294,8 @@ ag = df.dropna(subset=["age_group"]).groupby("age_group").apply(wrate, include_g
 ag = ag.reindex(AGE_ORDER)
 axes[1].bar(ag.index, ag.values, color=ORANGE)
 axes[1].set_ylabel("Lung cancer (%, weighted)"); axes[1].set_title("Rate by age group")
-fig.suptitle(f"Fig 4. Lung cancer increases with age (Mann-Whitney p = {p:.1e})", y=1.03)
-save("fig04_age_vs_lung_cancer")
+fig.suptitle(f"Fig 7. Lung cancer increases with age (Mann-Whitney p = {p:.1e})", y=1.03)
+save("fig07_age_vs_lung_cancer")
 ag.round(3).to_csv(TAB / "rate_by_age_group.csv")
 
 # ======================================================================= 4. COPD & other conditions
@@ -327,8 +328,8 @@ ax.set_yticks(y); ax.set_yticklabels(cond["condition"]); ax.set_xscale("log")
 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
 ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
 ax.set_xlabel("Odds ratio (log scale, 95% CI) - right of 1 = higher risk")
-ax.set_title("Fig 5. Which conditions go with lung cancer?")
-save("fig05_odds_ratios_conditions")
+ax.set_title("Fig 9. Which conditions go with lung cancer?")
+save("fig09_odds_ratios_conditions")
 
 # ======================================================================= 4b. confounding check
 header("4b. IS THE COPD LINK ONLY DUE TO SMOKING?  (confounding check, research question 2)")
@@ -378,8 +379,8 @@ ax.set_yticks(ys); ax.set_yticklabels(strata["group"], fontsize=13); ax.set_xsca
 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
 ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
 ax.set_xlabel("Odds ratio of COPD for lung cancer (log scale, 95% CI)")
-ax.set_title(f"Fig 13. COPD stays linked to lung cancer within every smoking group (CMH p {'< 1e-300' if cmh.pvalue == 0 else '= %.0e' % cmh.pvalue})", fontsize=14)
-save("fig13_copd_stratified_by_smoking")
+ax.set_title(f"Fig 10. COPD stays linked to lung cancer within every smoking group (CMH p {'< 1e-300' if cmh.pvalue == 0 else '= %.0e' % cmh.pvalue})", fontsize=14)
+save("fig10_copd_stratified_by_smoking")
 
 # ======================================================================= 4c. socio-demographic and health factors
 header("4c. SOCIO-DEMOGRAPHIC AND HEALTH FACTORS  (research question 2)")
@@ -425,18 +426,19 @@ say("    cancer and its treatment cause weight loss and poor health, not the oth
 say("  - Race differences may partly reflect differences in age and smoking between groups")
 say("    (not adjusted here). All Cramer's V are small because the outcome is rare.")
 
-fig, axes = plt.subplots(2, 3, figsize=(21, 11))
+fig, axes = plt.subplots(3, 2, figsize=(13, 15))
 for ax, c in zip(axes.ravel(), DEMO):
     wr = demo_rates[c]
     ax.bar(range(len(wr)), wr.values, color=ORANGE)
     for i, val in enumerate(wr.values):
-        ax.text(i, val, f"{val:.2f}", ha="center", va="bottom", fontsize=11)
-    ax.set_xticks(range(len(wr))); ax.set_xticklabels(wr.index, rotation=30, ha="right", fontsize=12)
+        ax.text(i, val, f"{val:.2f}", ha="center", va="bottom", fontsize=13)
+    ax.set_xticks(range(len(wr))); ax.set_xticklabels(wr.index, rotation=25, ha="right", fontsize=13)
+    ax.tick_params(axis="y", labelsize=12)
     pv = demo.loc[demo.variable == c, "p"].iloc[0]
     ax.set_title(f"{LABEL[c]} (p = {pv:.0e})", fontsize=14); ax.set_ylabel("Lung cancer (%, weighted)", fontsize=12)
     ax.set_ylim(0, wr.max() * 1.2)
-fig.suptitle("Fig 12. Lung cancer rate by socio-demographic and health factors", y=1.01)
-save("fig12_demographics_vs_lung_cancer")
+fig.suptitle("Fig 11. Lung cancer rate by socio-demographic and health factors", y=1.01)
+save("fig11_demographics_vs_lung_cancer")
 
 # ======================================================================= 5. interaction
 header("5. SMOKING x AGE  (stand-out: combined effect)")
@@ -450,8 +452,9 @@ say("screening_age_smoker feature (age 50-80 AND ever smoked).")
 fig, ax = plt.subplots(figsize=(8, 5))
 sns.heatmap(inter, annot=True, fmt=".2f", cmap="Oranges", cbar_kws={"label": "% with lung cancer"}, ax=ax)
 ax.set_xlabel("Smoking status"); ax.set_ylabel("Age group")
-ax.set_title("Fig 6. Risk is highest for older smokers")
-save("fig06_age_x_smoking")
+ax.tick_params(axis="y", labelrotation=0)
+ax.set_title("Fig 8. Risk is highest for older smokers")
+save("fig08_age_x_smoking")
 
 # ======================================================================= 6. correlations
 header("6. CORRELATIONS (Spearman)")
@@ -462,8 +465,8 @@ corr.round(3).to_csv(TAB / "correlation_matrix.csv")
 fig, ax = plt.subplots(figsize=(11, 9))
 sns.heatmap(corr, mask=np.triu(np.ones_like(corr, bool)), annot=True, fmt=".2f", cmap="RdBu_r",
             center=0, vmin=-1, vmax=1, annot_kws={"size": 10}, ax=ax)
-ax.set_title("Fig 7. Spearman correlation matrix")
-save("fig07_correlation_heatmap")
+ax.set_title("Fig 12. Spearman correlation matrix")
+save("fig12_correlation_heatmap")
 pairs = corr.where(np.triu(np.ones(corr.shape, bool), 1)).stack().sort_values(key=abs, ascending=False)
 say("Strongest pairs: " + "; ".join(f"{a}-{b} {v:.2f}" for (a, b), v in pairs.head(6).items()))
 say("Why Spearman and not Pearson: most columns are 0/1 or ordered, and age is not normal; Spearman")
@@ -487,15 +490,15 @@ for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
 say("Note: only 20 region-years -> low power; regional columns give context, not personal detail.")
 say("Limits: registry rates are crude (not age-adjusted), state values are averaged without population")
 say("weights, and 2019-2023 pollution cannot explain cancers diagnosed many years earlier.")
-fig, axes = plt.subplots(1, 3, figsize=(17, 5))
+fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
 for ax, c, lab in zip(axes, ["pm25_mean", "smoking_rate", "lung_cancer_incidence"],
                       ["PM2.5 (µg/m³)", "Adult smoking rate (%)", "Registry incidence /100k"]):
     sns.scatterplot(data=reg, x=c, y="nhis_rate_%", hue="region", s=120, ax=ax, legend=(c == "lung_cancer_incidence"))
     if ax.get_legend():
         sns.move_legend(ax, "upper left", bbox_to_anchor=(1.02, 1), frameon=False)
     ax.set_xlabel(lab); ax.set_ylabel("NHIS lung cancer (%)")
-fig.suptitle("Fig 8. Regional factors vs the NHIS lung cancer rate (each dot = 1 region-year)", y=1.03)
-save("fig08_regional_factors")
+fig.suptitle("Fig 13. Regional factors vs the NHIS lung cancer rate (each dot = 1 region-year)", y=1.03)
+save("fig13_regional_factors")
 
 # ======================================================================= 8. multiple testing
 header("8. ALL TESTS, CORRECTED FOR MULTIPLE TESTING (Holm)")
@@ -534,8 +537,8 @@ fig, ax = plt.subplots(figsize=(9, 7))
 top = rank.head(15)[::-1]
 colors = [ORANGE if c in ("pm25_mean", "smoking_rate", "lung_cancer_incidence") else BLUE for c in top.index]
 ax.barh(top.index, top.values, color=colors)
-ax.set_xlabel("Mutual information with lung cancer"); ax.set_title("Fig 9. Most informative features (training set)")
-save("fig09_feature_relevance")
+ax.set_xlabel("Mutual information with lung cancer"); ax.set_title("Fig 14. Most informative features (training set)")
+save("fig14_feature_relevance")
 
 # ======================================================================= 10. success criteria
 header("10. SUCCESS CRITERIA CHECK (Phase 1 - measurable criteria)")

@@ -14,9 +14,9 @@ Scope (midterm): CRISP-DM phases 1-6, from business understanding to feature eng
 
 | # | Question | Where it is answered |
 |---|---|---|
-| RQ1 | Is smoking status associated with having had lung cancer? | `eda_results.txt` section 2, Fig 3, Fig 6 |
-| RQ2 | Are age, chronic conditions (COPD, heart disease...) and socio-demographic / health factors (sex, race, education, income, BMI, self-rated health) associated with lung cancer? Does the COPD link survive once smoking is taken into account? | sections 3, 4, 4b, 4c, Fig 4, 5, 12, 13 |
-| RQ3 | Do regional factors (PM2.5 air pollution, regional smoking rate, registry incidence) add information beyond the personal factors? | section 7 and 9, Fig 8, Fig 9 |
+| RQ1 | Is smoking status associated with having had lung cancer? | `eda_results.txt` section 2, Fig 6, Fig 8 |
+| RQ2 | Are age, chronic conditions (COPD, heart disease...) and socio-demographic / health factors (sex, race, education, income, BMI, self-rated health) associated with lung cancer? Does the COPD link survive once smoking is taken into account? | sections 3, 4, 4b, 4c, Fig 7, 9, 10, 11 |
+| RQ3 | Do regional factors (PM2.5 air pollution, regional smoking rate, registry incidence) add information beyond the personal factors? | section 7 and 9, Fig 13, Fig 14 |
 
 **Measurable success criteria** (criteria 1-4 and 6-8 are checked automatically in `eda_results.txt` section 10 and `reports/tables/success_criteria_check.csv`; criterion 5 is built into the code: every fitted step uses only rows with `split == "train"`)
 
@@ -73,7 +73,7 @@ scripts/
   eda_analysis.py             step 3: charts, statistics, hypothesis tests, success-criteria check
   feature_extraction_pca.py   step 4: PCA feature extraction (fitted on training rows only)
 reports/
-  figures/                    15 charts (fig01 ... fig15) + outlier box plots
+  figures/                    16 charts (fig01 ... fig16), numbered in the order of the report
   tables/                     the numbers behind every chart and test
   eda_results.txt             all EDA results and tests explained in plain words
   pca_results.txt             PCA results and the keep / reject decision
@@ -110,7 +110,7 @@ The raw data is already in `data/raw/`, so step 0 only downloads files that are 
 4. **Recode** NHIS number codes into words; codes 7/8/9 (don't know) → missing.
 5. **New columns:** `age_group`, `ever_smoker`, `screening_age_smoker`, `comorbidity_count`.
 6. **Join** the regional table on **region + year** → adds `pm25_mean`, `smoking_rate`, `lung_cancer_incidence`. Check: same number of rows before and after.
-7. **Outliers:** IQR rule + box plots on every numeric column; each value is checked for plausibility and the decision is written in `outlier_check.csv` (all real values kept).
+7. **Outliers:** IQR rule + box plots (Fig 3) on every numeric column; each value is checked for plausibility and the decision is written in `outlier_check.csv` (all real values kept).
 8. **Checks:** row counts, duplicates, ranges, missing values.
 9. **Model-ready file:** fixed 80/20 train/test split (seed 42, stratified on the target); missing values filled using **training rows only** + "unknown" flags; categories one-hot encoded.
 10. **Feature selection (training rows only):** drop redundant columns (e.g. age bands when exact age is kept), constant columns, **near-constant columns (more than 99.5% of rows with the same value)** and near-duplicates (|r| > 0.95). Result: 67 candidates → 48 kept. Every decision is in `final_features.csv`.
@@ -119,7 +119,7 @@ The raw data is already in `data/raw/`, so step 0 only downloads files that are 
 
 **Feature extraction (`feature_extraction_pca.py`)**
 1. Standardise all 48 selected features and fit a PCA on **training rows only** (equivalent to a PCA on the correlation matrix).
-2. Scree plot, number of components for 80 / 90 / 95% of the variance, Kaiser rule, loadings of PC1-PC3.
+2. Scree plot (Fig 15), projection (Fig 16), number of components for 80 / 90 / 95% of the variance, Kaiser rule, loadings of PC1-PC3.
 3. Check on the test rows that the kept components generalise.
 4. Decision: 34 of 48 components are needed for 95% of the variance (no dominant component), so the **original, interpretable features are kept**; PCA stays an option for distance-based models later.
 
@@ -129,18 +129,19 @@ The raw data is already in `data/raw/`, so step 0 only downloads files that are 
 |---|---|---|
 | fig01 | How rare is lung cancer? | Class balance |
 | fig02 | What is still missing? Is missingness linked to the target? | Missing-value chart + chi-square on missing yes/no |
-| fig10 | How are the numeric variables distributed? Is age normal? | Histogram, Q-Q plot, skewness / kurtosis, Shapiro-Wilk, D'Agostino |
-| fig11 | Who is in the data? | Bar charts of every categorical variable |
-| fig03 | RQ1 – Is smoking linked to lung cancer? | Chi-square + Cramér's V + odds ratio (95% CI) |
-| fig04 | RQ2 – Is age linked to lung cancer? | Mann–Whitney U (age is not normal) + Welch t-test as a check |
-| fig05 | RQ2 – Which conditions go with lung cancer? | Chi-square + odds ratios (95% CI) |
-| fig13 | RQ2 – Is the COPD link only due to smoking? | Odds ratios within each smoking group + Cochran-Mantel-Haenszel test + Breslow-Day test |
-| fig12 | RQ2 – Socio-demographic and health factors | Weighted rates + chi-square + Cramér's V |
-| fig06 | Combined effect of age and smoking | Heatmap of weighted rates |
-| fig07 | Which variables move together? | Spearman correlation |
-| fig08 | RQ3 – Do regional factors matter? Does NHIS agree with official cancer statistics? | Spearman (20 region-years) |
-| fig09 | Which features carry the most information? | Mutual information on training rows only |
-| fig14, fig15 | Can the features be compressed? | PCA scree plot and projection |
+| fig03 | Are there outliers? | IQR rule + box plots (made by `build_clean_dataset.py`) |
+| fig04 | How are the numeric variables distributed? Is age normal? | Histogram, Q-Q plot, skewness / kurtosis, Shapiro-Wilk, D'Agostino |
+| fig05 | Who is in the data? | Bar charts of every categorical variable |
+| fig06 | RQ1 – Is smoking linked to lung cancer? | Chi-square + Cramér's V + odds ratio (95% CI) |
+| fig07 | RQ2 – Is age linked to lung cancer? | Mann–Whitney U (age is not normal) + Welch t-test as a check |
+| fig08 | Combined effect of age and smoking | Heatmap of weighted rates |
+| fig09 | RQ2 – Which conditions go with lung cancer? | Chi-square + odds ratios (95% CI) |
+| fig10 | RQ2 – Is the COPD link only due to smoking? | Odds ratios within each smoking group + Cochran-Mantel-Haenszel test + Breslow-Day test |
+| fig11 | RQ2 – Socio-demographic and health factors | Weighted rates + chi-square + Cramér's V |
+| fig12 | Which variables move together? | Spearman correlation |
+| fig13 | RQ3 – Do regional factors matter? Does NHIS agree with official cancer statistics? | Spearman (20 region-years) |
+| fig14 | Which features carry the most information? | Mutual information on training rows only |
+| fig15, fig16 | Can the features be compressed? | PCA scree plot and projection (`feature_extraction_pca.py`) |
 
 All rates are **weighted with NHIS survey weights** (population estimates). All 18 hypothesis tests are **Holm-corrected** together for multiple testing; 14 stay significant.
 

@@ -4,8 +4,8 @@ Step 4 - Feature extraction with Principal Component Analysis (PCA).
     python scripts/feature_extraction_pca.py
 
 Reads : data/clean/nhis_lung_cancer_model_ready.csv   (final selected features, train/test split)
-Writes: reports/figures/fig14_pca_scree.png             explained variance per component
-        reports/figures/fig15_pca_projection.png        adults projected on the first 2 components
+Writes: reports/figures/fig15_pca_scree.png             explained variance per component
+        reports/figures/fig16_pca_projection.png        adults projected on the first 2 components
         reports/tables/pca_explained_variance.csv
         reports/tables/pca_loadings.csv                 weight of every feature in PC1-PC3
         reports/pca_results.txt                         results and decision in plain words
@@ -118,7 +118,7 @@ reduction = 100 * (1 - k[0.95] / len(features))
 say(f"  Keeping 95% of the variance needs {k[0.95]} components instead of {len(features)} features "
     f"({reduction:.0f}% fewer columns).")
 say("  The variance is spread over many components (no dominant one): the features are mostly not")
-say("  redundant, which agrees with the correlation matrix (Fig 7) and the feature selection step.")
+say("  redundant, which agrees with the correlation matrix (Fig 12) and the feature selection step.")
 say("  We KEEP THE ORIGINAL FEATURES for the midterm dataset because:")
 say("    1. interpretability matters for a health question (an odds ratio for 'COPD' is meaningful,")
 say("       a weight on 'PC4' is not);")
@@ -138,10 +138,10 @@ ax2.axhline(95, color=GREY, ls="--", lw=1)
 ax2.text(n_show, 95.5, "95%", ha="right", va="bottom", fontsize=12, color="dimgrey")
 ax2.set_ylim(0, 105); ax2.set_ylabel("Cumulative variance (%)"); ax2.grid(False)
 ax.set_xlabel("Principal component"); ax.set_ylabel("Explained variance (%)")
-ax.set_title(f"Fig 14. PCA scree plot: {k[0.95]} of {len(features)} components needed for 95% of the variance")
+ax.set_title(f"Fig 15. PCA scree plot: {k[0.95]} of {len(features)} components needed for 95% of the variance")
 h1, l1 = ax.get_legend_handles_labels(); h2, l2 = ax2.get_legend_handles_labels()
 ax.legend(h1 + h2, l1 + l2, loc="center right", fontsize=12)
-plt.tight_layout(); plt.savefig(FIG / "fig14_pca_scree.png", dpi=150, bbox_inches="tight"); plt.close()
+plt.tight_layout(); plt.savefig(FIG / "fig15_pca_scree.png", dpi=150, bbox_inches="tight"); plt.close()
 
 P = pca.transform(Z_train)[:, :2]
 proj = pd.DataFrame({"PC1": P[:, 0], "PC2": P[:, 1], "lung_cancer": train["lung_cancer"].values})
@@ -151,11 +151,11 @@ fig, ax = plt.subplots(figsize=(10, 7))
 ax.scatter(neg.PC1, neg.PC2, s=6, alpha=0.25, color=GREY, label="No lung cancer (random 8,000)")
 ax.scatter(pos.PC1, pos.PC2, s=18, alpha=0.8, color=ORANGE, label=f"Lung cancer (all {len(pos)})")
 ax.set_xlabel(f"PC1 ({100 * ratio[0]:.1f}% of variance)"); ax.set_ylabel(f"PC2 ({100 * ratio[1]:.1f}% of variance)")
-ax.set_title("Fig 15. Training adults on the first two principal components")
+ax.set_title("Fig 16. Training adults on the first two principal components")
 ax.legend(fontsize=12, loc="upper right")
-plt.tight_layout(); plt.savefig(FIG / "fig15_pca_projection.png", dpi=150, bbox_inches="tight"); plt.close()
+plt.tight_layout(); plt.savefig(FIG / "fig16_pca_projection.png", dpi=150, bbox_inches="tight"); plt.close()
 m_pos, m_neg = proj.loc[proj.lung_cancer == 1, "PC1"].mean(), proj.loc[proj.lung_cancer == 0, "PC1"].mean()
-say(f"\nFig 15 reading: mean PC1 score = {m_pos:+.2f} for lung cancer cases vs {m_neg:+.2f} for the other adults.")
+say(f"\nFig 16 reading: mean PC1 score = {m_pos:+.2f} for lung cancer cases vs {m_neg:+.2f} for the other adults.")
 say("PC1 is the 'age and chronic-disease burden' axis (see loadings), so cases sit on its high side,")
 say("but the two groups overlap heavily - two components are not enough to separate a rare outcome.")
 

@@ -196,13 +196,17 @@ for c, decision in OUTLIER_DECISION.items():
     log(f"  {c:<22} bounds [{lo:.1f}, {hi:.1f}]  outliers: {n_out:,} ({100 * n_out / len(x):.2f}%)  -> {decision}")
 pd.DataFrame(rows).round(3).to_csv(CLEAN / "outlier_check.csv", index=False)
 
-fig, axes = plt.subplots(1, len(OUTLIER_DECISION), figsize=(4 * len(OUTLIER_DECISION), 4.5))
-for ax, c in zip(axes, OUTLIER_DECISION):
+UNITS = {"age": "years", "comorbidity_count": "conditions (0-5)", "pm25_mean": "PM2.5 (µg/m³)",
+         "smoking_rate": "% of adults", "lung_cancer_incidence": "cases per 100,000", "survey_weight": "weight"}
+plt.rcParams.update({"font.size": 13})
+fig, axes = plt.subplots(2, 3, figsize=(12, 7.5))
+for ax, c in zip(axes.ravel(), OUTLIER_DECISION):
     ax.boxplot(clean[c].dropna(), widths=0.6, flierprops={"markersize": 2, "alpha": 0.3})
-    ax.set_title(c, fontsize=11); ax.set_xticks([])
-fig.suptitle("Outlier check: box plots of the numeric columns (all values kept - see outlier_check.csv)", y=1.02)
-plt.tight_layout(); plt.savefig(FIG / "prep_outliers_boxplots.png", dpi=150, bbox_inches="tight"); plt.close()
-log("  Box plots saved to reports/figures/prep_outliers_boxplots.png")
+    n_out = int(pd.DataFrame(rows).set_index("column").loc[c, "n_outliers"])
+    ax.set_title(f"{c}\n{n_out:,} beyond 1.5 x IQR", fontsize=13); ax.set_xticks([]); ax.set_ylabel(UNITS[c], fontsize=12)
+fig.suptitle("Fig 3. Outlier check (IQR rule): every flagged value is plausible, so all values are kept", y=1.01, fontsize=14)
+plt.tight_layout(); plt.savefig(FIG / "fig03_outlier_boxplots.png", dpi=150, bbox_inches="tight"); plt.close()
+log("  Box plots saved to reports/figures/fig03_outlier_boxplots.png")
 track("5c. Outlier check", clean, "IQR check on 6 numeric columns; all values plausible -> kept")
 
 # ---------------------------------------------------------------- 6. checks

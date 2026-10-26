@@ -34,7 +34,7 @@ STEP 5c - Outlier check (IQR rule: below Q1 - 1.5 x IQR or above Q3 + 1.5 x IQR)
   smoking_rate           bounds [8.7, 20.7]  outliers: 0 (0.00%)  -> KEEP - official CDC percentages between 0 and 100
   lung_cancer_incidence  bounds [10.4, 114.4]  outliers: 0 (0.00%)  -> KEEP - official registry rates; differences between regions are real
   survey_weight          bounds [-4883.8, 19849.6]  outliers: 7,431 (4.96%)  -> KEEP - NHIS design weight, used for population estimates only, not as a feature
-  Box plots saved to reports/figures/prep_outliers_boxplots.png
+  Box plots saved to reports/figures/fig03_outlier_boxplots.png
 
 STEP 6 - Checks
   Final rows: 149,928 | columns: 26
