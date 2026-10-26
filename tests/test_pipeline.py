@@ -25,7 +25,8 @@ from src.build_report import make_report
 from src.build_slides import build_deck
 from src.data_io import load_raw, validate_schema
 from src.figures import build_guide_figures
-from src.results import write_results
+from src.lineage import count_row_matches, run_lineage_check
+from src.results import check_consistency, write_results
 from src.features import (
     FEATURE_SETS,
     add_features,
@@ -520,3 +521,38 @@ def test_feature_engineering_scaling_sets_and_outputs():
     assert count_table["count"].sum() == len(views["B_dedup"])
     for feature_set in FEATURE_SETS:
         assert (Path("data/processed") / f"features_B_{feature_set}.csv").is_file()
+
+
+def test_lineage_row_matching_on_fixtures():
+    fixture_dir = Path("tests/fixtures/lineage")
+    combined = pd.read_csv(fixture_dir / "mini_combined.csv")
+    source = pd.read_csv(fixture_dir / "mini_source.csv")
+    stats = count_row_matches(source, combined)
+    assert stats["gender_mapping"] == "numeric_10"
+    assert stats["source_rows"] == 2
+    assert stats["matches_in_combined"] == 2
+    assert stats["match_rate"] == pytest.approx(1.0)
+
+
+def test_lineage_pipeline_records_unavailability_when_sources_missing(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    (tmp_path / "data" / "raw").mkdir(parents=True)
+    (tmp_path / "data" / "external").mkdir(parents=True)
+    combined = Path(__file__).resolve().parents[1] / "tests/fixtures/lineage/mini_combined.csv"
+    target = tmp_path / "data/raw/mini.csv"
+    target.write_text(combined.read_text(encoding="utf-8"), encoding="utf-8")
+    summary = run_lineage_check(combined_path=target)
+    assert summary["status"] == "sources_unavailable"
+    assert all(not row["available"] for row in summary["sources"])
+
+
+def test_numeric_consistency_passes_on_generated_sources():
+    assert check_consistency()
+
+
+def test_numeric_consistency_flags_injected_mismatch(tmp_path):
+    report = Path("report/report.md").read_text(encoding="utf-8")
+    bad = report.replace("82.1%", "82.1%\n\nInjected bogus statistic 9.9999.", 1)
+    bad_path = tmp_path / "bad_report.md"
+    bad_path.write_text(bad, encoding="utf-8")
+    assert check_consistency(paths=[bad_path]) is False

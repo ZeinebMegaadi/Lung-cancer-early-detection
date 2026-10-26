@@ -1,0 +1,55 @@
+{
+  "status": "sources_unavailable",
+  "checked_at_utc": "2026-10-26T08:05:52+00:00",
+  "combined_file": "data\\raw\\lung_cancer_combined_22457.csv",
+  "feature_match_columns": [
+    "GENDER",
+    "AGE",
+    "SMOKING",
+    "YELLOW_FINGERS",
+    "ANXIETY",
+    "PEER_PRESSURE",
+    "CHRONIC_DISEASE",
+    "FATIGUE",
+    "ALLERGY",
+    "WHEEZING",
+    "ALCOHOL_CONSUMING",
+    "COUGHING",
+    "SHORTNESS_OF_BREATH",
+    "SWALLOWING_DIFFICULTY",
+    "CHEST_PAIN"
+  ],
+  "gender_mappings_tried": [
+    "numeric_01",
+    "numeric_10"
+  ],
+  "sources": [
+    {
+      "source_id": "kaggle_mysarahmadbhat",
+      "label": "Kaggle Lung Cancer survey (handbook ~309 rows)",
+      "handbook_ref": "https://www.kaggle.com/datasets/mysarahmadbhat/lung-cancer",
+      "path": null,
+      "available": false,
+      "gender_mapping": null,
+      "source_rows": null,
+      "matches_in_combined": null,
+      "match_rate": null,
+      "unique_source_patterns": null,
+      "unique_matched_patterns": null
+    },
+    {
+      "source_id": "kaggle_akashnath29",
+      "label": "Kaggle Lung Cancer Dataset (handbook ~3,000 rows)",
+      "handbook_ref": "https://www.kaggle.com/datasets/akashnath29/lung-cancer-dataset",
+      "path": null,
+      "available": false,
+      "gender_mapping": null,
+      "source_rows": null,
+      "matches_in_combined": null,
+      "match_rate": null,
+      "unique_source_patterns": null,
+      "unique_matched_patterns": null
+    }
+  ],
+  "interpretation": "The handbook B-4 Kaggle source CSVs were not present in data/external/. No match counts are invented. Place downloaded files using data/external/README.md, then re-run python -m src.lineage."
+}

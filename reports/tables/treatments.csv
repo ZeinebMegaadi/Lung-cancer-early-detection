@@ -1,0 +1,9 @@
+issue,diagnostic,treatment,rows_before,rows_after,rationale
+Missing values,Total null count,No treatment required,22457,22457,The raw dataset contains no missing values.
+Types and categories,All columns int64; category value-set checks,Preserve raw codes in interim views; recode for feature tables,22457,22457,Keep raw data unchanged and make coding transformations explicit.
+Exact duplicates,2573 repeated feature-plus-label rows,"Remove duplicates, keep first (view B)",22457,19884,Avoid repeated records driving the primary descriptive estimates.
+Label conflicts,133 feature patterns across 315 raw rows have both labels,Retain in B; remove conflicting feature patterns in view C,19884,19618,Keep the primary view minimally altered and test a conflict-free sensitivity view.
+Order and leading block,First positive at index 1455; 1455 earlier rows are negative,Retain in B; remove earlier rows in view D,19884,19781,Quantify sensitivity to the ordered block without replacing the primary view.
+AGE outliers,IQR fences 40.5 to 84.5; 221 flagged,Keep all rows; add AGE_OUTLIER flag table,22457,22457,Flag unusual ages without discarding plausible observations.
+Identifier leakage,patient_id-only AUC 0.6703,Exclude patient_id and row position from all feature sets,22457,22457,The sequential identifier is associated with label order and is not a patient feature.
+Integration and lineage,One raw CSV supplied; lineage not confirmed,No integration performed; lineage remains OPEN,22457,22457,Do not infer or invent source lineage.

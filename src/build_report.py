@@ -13,6 +13,44 @@ REPORT = ROOT / "report"
 RESULTS = DOCS / "results.json"
 DICTIONARY = DOCS / "data_dictionary.md"
 FEATURE_SPEC = DOCS / "feature_spec.md"
+LINEAGE_SUMMARY = DOCS / "lineage_summary.json"
+
+
+def lineage_paragraphs():
+    if not LINEAGE_SUMMARY.is_file():
+        return (
+            "Row-level lineage against the handbook Kaggle sources has not been run yet. "
+            "Execute `python -m src.lineage` after placing optional files in "
+            "`data/external/` (see README there).",
+            "The referenced original source files were not included in the available raw-data "
+            "directory, so the requested row-match/lineage comparison remains open until "
+            "external files are supplied.",
+        )
+    summary = json.loads(LINEAGE_SUMMARY.read_text(encoding="utf-8"))
+    if summary["status"] == "sources_unavailable":
+        return (
+            "Handbook task B-4 was executed on "
+            f"{summary['checked_at_utc']}: the expected Kaggle source CSVs were **not** present "
+            "under `data/external/`. Match counts were therefore not invented; see "
+            "`docs/lineage_report.md` for the recorded status.",
+            "The referenced original source files were not available in the repository snapshot, "
+            "so the row-match/lineage comparison is documented as **sources unavailable** "
+            "rather than asserted without evidence.",
+        )
+    available = [row for row in summary["sources"] if row["available"]]
+    detail = "; ".join(
+        f"{row['label']}: {row['matches_in_combined']:,} of {row['source_rows']:,} rows matched "
+        f"({100 * row['match_rate']:.1f}%, gender map {row['gender_mapping']})"
+        for row in available
+    )
+    return (
+        f"Handbook task B-4 lineage checks ran on {summary['checked_at_utc']}. {detail}. "
+        "Full rules and tables are in `docs/lineage_report.md` and "
+        "`reports/tables/lineage_match.csv`.",
+        "External source files were compared using exact 15-feature row equality after the "
+        "documented GENDER and symptom recoding rules. Interpretation follows the match counts "
+        "above and does not claim clinical validation.",
+    )
 
 
 def number(value, digits=2):
@@ -59,6 +97,7 @@ def make_report(data):
     power, spec = data["power"], data["external_context"]["uspstf"]
     refs = data["external_context"]["references"]
     ci_percent = ds["confidence_interval_percent"]
+    lineage_data, lineage_preprocessing = lineage_paragraphs()
     report = [
         "# Lung Cancer Risk Project: Integrity Audit and Descriptive Analysis",
         "",
@@ -193,8 +232,8 @@ def make_report(data):
             "unknown provenance also prevents identification of sampling design, inclusion "
             "criteria, consent, or intended use. The package contains only the combined CSV "
             "and checksum record; no source files or attributable citation identify its "
-            "origin. Row-level lineage therefore remains unverified, and the data card marks "
-            "the author, collection, and licence unknown [5]."
+            f"origin. {lineage_data} The data card marks the author, collection, and licence "
+            "unknown [5]."
         ),
         "",
         "## 3. Preprocessing and integrity audit",
@@ -278,9 +317,7 @@ def make_report(data):
             "set. The source-shift comparison is descriptive: the leading block has a "
             "different profile from later negative rows, consistent with a source or "
             "collection-process shift, but the metadata do not identify a source. The "
-            "referenced original source files were not included in the available raw-data "
-            "directory, so the requested row-match/lineage comparison remains open and no "
-            "match count is asserted here."
+            f"{lineage_preprocessing}"
         ),
         (
             "Integration is also limited by the checksum discrepancy. The analysis preserves "

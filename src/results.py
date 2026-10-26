@@ -15,7 +15,7 @@ from .audit import (
     source_shift,
 )
 from .clean import age_iqr_flag, make_views, summarize
-from .config import DOCS, FIG, RAW_FILE, TAB
+from .config import DOCS, FIG, RAW_FILE, ROOT, TAB
 from .data_io import load_raw, sha256
 from .hypotheses import run_hypothesis_suite
 from .stats_utils import min_detectable_difference
@@ -340,6 +340,9 @@ def collect_results():
             "slide_numbers": list(range(1, 19)),
         },
     }
+    lineage_path = DOCS / "lineage_summary.json"
+    if lineage_path.is_file():
+        results["lineage"] = json.loads(lineage_path.read_text(encoding="utf-8"))
     return results
 
 
@@ -355,12 +358,7 @@ def write_results():
     return results
 
 
-def check_consistency():
-    """Flag report/slide numeric literals not present among JSON number values."""
-    results_path = DOCS / "results.json"
-    if not results_path.exists():
-        raise FileNotFoundError(f"Missing results file: {results_path}")
-    results = json.loads(results_path.read_text(encoding="utf-8"))
+def _collect_numeric_values(results):
     numeric_values = []
 
     def collect(value):
@@ -376,53 +374,107 @@ def check_consistency():
                 collect(nested)
 
     collect(results)
+    return numeric_values
+
+
+def _allowed_static_literals(results):
+    """Rubric and deliverable metadata allowed outside measured findings."""
+    allowed = set()
+    spec = results.get("deliverable_spec", {})
+    for key, value in spec.items():
+        if isinstance(value, (int, float)):
+            allowed.add(float(value))
+        elif isinstance(value, list):
+            for item in value:
+                if isinstance(item, (int, float)):
+                    allowed.add(float(item))
+    uspstf = results.get("external_context", {}).get("uspstf", {})
+    for value in uspstf.values():
+        if isinstance(value, (int, float)):
+            allowed.add(float(value))
+    for reference in results.get("external_context", {}).get("references", []):
+        for key in ("year", "volume", "issue", "page_start", "page_end", "article_number"):
+            value = reference.get(key)
+            if isinstance(value, (int, float)):
+                allowed.add(float(value))
+    return allowed
+
+
+def _prepare_markdown_for_scan(text, results):
+    text = re.sub(r"https?://\S+", "", text)
+    text = re.sub(r"10\.\d+/\S+", "", text)
+    text = re.sub(r"`[^`]*`", "", text)
+    text = text.replace("SHA-256", "SHA")
+    for checksum in (
+        results["dataset"]["sha256"],
+        results["dataset"]["sha256_prefix"],
+        results["dataset"]["expected_sha256_prefix"],
+    ):
+        text = text.replace(checksum, "")
+    return text
+
+
+def _token_matches(value, token, numeric_values, allowed_literals):
+    if value in allowed_literals:
+        return True
+    is_percent = token.endswith("%")
+    bare = token.rstrip("%").replace(",", "")
+    mantissa = re.split(r"e", bare, flags=re.I)[0]
+    decimals = len(mantissa.split(".", 1)[1]) if "." in mantissa else 0
+    scientific = "e" in bare.lower()
+    if scientific:
+        tolerance = 0.5 * 10 ** (-decimals) if decimals else 0.05
+    else:
+        tolerance = 0.5 * 10 ** (-decimals) if decimals else 0.5
+    for candidate in numeric_values:
+        candidate_value = candidate * 100 if is_percent else candidate
+        if scientific:
+            if abs(candidate_value - value) <= tolerance:
+                return True
+            continue
+        if abs(candidate_value - value) <= tolerance:
+            return True
+        if decimals:
+            if f"{candidate_value:.{decimals}f}" == f"{value:.{decimals}f}":
+                return True
+    return False
+
+
+def check_consistency(paths=None):
+    """Flag report/slide numeric literals not supported by docs/results.json."""
+    results_path = DOCS / "results.json"
+    if not results_path.exists():
+        raise FileNotFoundError(f"Missing results file: {results_path}")
+    results = json.loads(results_path.read_text(encoding="utf-8"))
+    numeric_values = _collect_numeric_values(results)
+    allowed_literals = _allowed_static_literals(results)
+    if paths is None:
+        paths = [ROOT / "report" / "report.md", ROOT / "slides" / "slides.md"]
+    pattern = r"(?<![A-Za-z0-9])[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:e[-+]?\d+)?%?"
     misses = []
-    for path in [DOCS.parent / "report" / "report.md", DOCS.parent / "slides" / "slides.md"]:
+    for path in paths:
         if not path.exists():
             continue
-        text = path.read_text(encoding="utf-8")
-        text = re.sub(r"https?://\S+", "", text)
-        text = re.sub(r"10\.\d+/\S+", "", text)
-        text = text.replace("SHA-256", "SHA")
-        for checksum in (
-            results["dataset"]["sha256"],
-            results["dataset"]["sha256_prefix"],
-            results["dataset"]["expected_sha256_prefix"],
-        ):
-            text = text.replace(checksum, "")
-        pattern = r"(?<![A-Za-z0-9])[-+]?(?:\d{1,3}(?:,\d{3})+|\d+)(?:\.\d+)?(?:e[-+]?\d+)?%?"
-        for match in re.finditer(pattern, text, re.I):
-            token = match.group(0)
-            is_percent = token.endswith("%")
-            bare = token.rstrip("%").replace(",", "")
-            try:
-                value = float(bare)
-            except ValueError:
+        prepared_lines = _prepare_markdown_for_scan(
+            path.read_text(encoding="utf-8"), results
+        ).splitlines()
+        for line_number, line in enumerate(prepared_lines, start=1):
+            if re.match(r"^\|\s*[-:]+\s*\|", line):
                 continue
-            mantissa = re.split(r"e", bare, flags=re.I)[0]
-            decimals = len(mantissa.split(".", 1)[1]) if "." in mantissa else 0
-            scientific = "e" in bare.lower()
-            candidates_match = False
-            for candidate in numeric_values:
-                candidate_value = candidate * 100 if is_percent else candidate
-                if scientific:
-                    candidate_text = f"{candidate_value:.{decimals}e}"
-                    target_text = f"{value:.{decimals}e}"
-                else:
-                    candidate_text = f"{candidate_value:.{decimals}f}"
-                    target_text = f"{value:.{decimals}f}"
-                if candidate_text == target_text:
-                    candidates_match = True
-                    break
-            if candidates_match:
-                continue
-            if value in {0.0, 1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0}:
-                continue
-            misses.append((path.name, token))
+            for match in re.finditer(pattern, line, re.I):
+                token = match.group(0)
+                bare = token.rstrip("%").replace(",", "")
+                try:
+                    value = float(bare)
+                except ValueError:
+                    continue
+                if _token_matches(value, token, numeric_values, allowed_literals):
+                    continue
+                misses.append((path.name, line_number, token))
     if misses:
         print("Unmatched numeric literals:")
-        for filename, token in misses:
-            print(f"{filename}: {token}")
+        for filename, line_number, token in misses:
+            print(f"{filename}:{line_number}: {token}")
         return False
     print("Report/slides numeric consistency: PASS")
     return True

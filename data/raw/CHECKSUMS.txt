@@ -1,0 +1,5 @@
+# Raw dataset checksum record
+# Expected prefix per project contract: 4ad2333067fcb0a9
+# Actual full SHA-256: 1e0d557990cd7533d2cd37b883fe796b000575d925ed27e33c764f5fe944ee57
+# Actual prefix: 1e0d557990cd7533
+# Status: MISMATCH; continued only under explicit user-approved override.
