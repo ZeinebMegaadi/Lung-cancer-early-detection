@@ -284,6 +284,17 @@ for c in candidates:
     if c not in decisions and tr[c].nunique() <= 1:
         decisions[c] = ("DROP", "constant in training rows: carries no information")
 
+# Rule 2b - near-constant (course filter pass): more than 99.5% of training rows share one value.
+# Such a column describes fewer than 1 adult in 200 (e.g. 'COPD answer unknown' = 0.06%), so it
+# adds almost no information and only increases the number of dimensions.
+NEAR_CONSTANT = 0.995
+for c in candidates:
+    if c not in decisions:
+        top_share = tr[c].value_counts(normalize=True).iloc[0]
+        if top_share > NEAR_CONSTANT:
+            decisions[c] = ("DROP", f"near-constant: {100 * top_share:.2f}% of training rows have the same value "
+                                    f"(limit {100 * NEAR_CONSTANT:.1f}%)")
+
 # Rule 3 - near-duplicates: |correlation| > 0.95 with a column already kept
 remaining = [c for c in candidates if c not in decisions]
 corr = tr[remaining].corr().abs()

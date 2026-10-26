@@ -1,6 +1,6 @@
 column,decision,reason
 age,KEEP,risk rises strongly with age
-age_missing,KEEP,'unknown' flag: tells the model the value was missing
+age_missing,DROP,near-constant: 99.76% of training rows have the same value (limit 99.5%)
 ever_smoker,DROP,redundant: same information as the smoking_status columns (Current/Former/Never)
 ever_smoker_unknown,DROP,redundant: same as smoking_status_Unknown
 screening_age_smoker,KEEP,official high-risk group (age 50-80 and ever smoked)
@@ -8,22 +8,22 @@ screening_age_smoker_unknown,KEEP,'unknown' flag: tells the model the value was 
 ever_ecigarette,KEEP,health or lifestyle factor linked to lung cancer
 ever_ecigarette_unknown,KEEP,'unknown' flag: tells the model the value was missing
 copd,KEEP,"lung disease, strongly linked to lung cancer"
-copd_unknown,KEEP,'unknown' flag: tells the model the value was missing
+copd_unknown,DROP,near-constant: 99.94% of training rows have the same value (limit 99.5%)
 asthma,KEEP,health or lifestyle factor linked to lung cancer
-asthma_unknown,KEEP,'unknown' flag: tells the model the value was missing
+asthma_unknown,DROP,near-constant: 99.96% of training rows have the same value (limit 99.5%)
 hypertension,KEEP,health or lifestyle factor linked to lung cancer
-hypertension_unknown,KEEP,'unknown' flag: tells the model the value was missing
+hypertension_unknown,DROP,near-constant: 99.90% of training rows have the same value (limit 99.5%)
 heart_disease,KEEP,health or lifestyle factor linked to lung cancer
-heart_disease_unknown,KEEP,'unknown' flag: tells the model the value was missing
+heart_disease_unknown,DROP,near-constant: 99.79% of training rows have the same value (limit 99.5%)
 diabetes,KEEP,health or lifestyle factor linked to lung cancer
-diabetes_unknown,KEEP,'unknown' flag: tells the model the value was missing
+diabetes_unknown,DROP,near-constant: 99.96% of training rows have the same value (limit 99.5%)
 comorbidity_count,KEEP,summary of 5 conditions (overall health)
 pm25_mean,KEEP,regional air pollution (joined)
 smoking_rate,KEEP,regional smoking level (joined)
 lung_cancer_incidence,KEEP,regional baseline risk (joined)
 sex_Female,KEEP,category of sex
 sex_Male,DROP,near-duplicate of sex_Female (|r| = 1.00 on training rows)
-sex_Unknown,KEEP,category of sex
+sex_Unknown,DROP,near-constant: 99.99% of training rows have the same value (limit 99.5%)
 race_ethnicity_AIAN,KEEP,category of race_ethnicity
 race_ethnicity_AIAN and other,KEEP,category of race_ethnicity
 race_ethnicity_Asian,KEEP,category of race_ethnicity
@@ -49,7 +49,7 @@ general_health_Excellent,KEEP,category of general_health
 general_health_Fair,KEEP,category of general_health
 general_health_Good,KEEP,category of general_health
 general_health_Poor,KEEP,category of general_health
-general_health_Unknown,KEEP,category of general_health
+general_health_Unknown,DROP,near-constant: 99.96% of training rows have the same value (limit 99.5%)
 general_health_Very good,KEEP,category of general_health
 bmi_category_Healthy,KEEP,category of bmi_category
 bmi_category_Obese,KEEP,category of bmi_category

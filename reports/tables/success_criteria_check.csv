@@ -1,0 +1,9 @@
+criterion,observed,target,met
+No duplicate person IDs in the clean file,0,0,True
+No missing values in the model-ready file,0,0,True
+Regional join adds no rows,"149,928 -> 149,928",equal,True
+Train and test keep the same lung cancer rate (stratified split),0.41% vs 0.41%,difference < 0.05 points,True
+Every research question has at least one hypothesis test,"{'RQ1': True, 'RQ2': True, 'RQ3': True}",all True,True
+Every test is Holm-corrected and reported with an effect size,18 tests,all corrected,True
+Every candidate feature has a written KEEP/DROP reason,0,0 missing reasons,True
+Leakage: 'ever had any cancer' (CANEV_A) is not a feature,False,False,True

@@ -6,3 +6,7 @@ __pycache__/
 data/raw/nhis/*.csv
 data/raw/uscs/_uscs.zip
 data/raw/brfss/_full_brfss_prevalence.csv
+
+# Python virtual environment (created on each computer, never uploaded)
+.venv/
+venv/

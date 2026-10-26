@@ -1,0 +1,26 @@
+,,weighted_rate_%
+sex,Female,0.319
+sex,Male,0.299
+race_ethnicity,White,0.392
+race_ethnicity,Black,0.223
+race_ethnicity,Hispanic,0.101
+race_ethnicity,Asian,0.217
+race_ethnicity,AIAN / other / multiple,0.279
+education,Less than high school,0.487
+education,High school / GED,0.403
+education,Some college,0.317
+education,Bachelor,0.151
+education,Graduate,0.158
+income_group,Below poverty,0.462
+income_group,Low,0.433
+income_group,Middle,0.324
+income_group,High,0.208
+bmi_category,Underweight,1.136
+bmi_category,Healthy,0.354
+bmi_category,Overweight,0.294
+bmi_category,Obese,0.243
+general_health,Excellent,0.031
+general_health,Very good,0.102
+general_health,Good,0.282
+general_health,Fair,0.958
+general_health,Poor,2.471

@@ -1,0 +1,6 @@
+group,n,cases,odds_ratio,ci_low,ci_high
+Never smokers,90901,107,8.453,4.994,14.306
+Former smokers,37424,366,9.776,7.943,12.031
+Current smokers,17572,127,8.378,5.881,11.934
+Crude (smoking ignored),145897,600,14.771,12.562,17.369
+Mantel-Haenszel (adjusted for smoking),145897,600,9.277,7.814,11.014

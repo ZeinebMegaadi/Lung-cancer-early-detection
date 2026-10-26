@@ -1,0 +1,6 @@
+column,pct_missing,lc_rate_if_missing_%,lc_rate_if_present_%,chi2,p,min_expected,p_holm
+bmi_category,2.34,0.37,0.414,0.07,0.7884142537959358,14.5,1.0
+ever_ecigarette,2.57,0.441,0.412,0.02,0.8793163368140426,15.9,1.0
+smoking_status,2.64,0.455,0.412,0.09,0.7668539887459579,16.3,1.0
+ever_smoker,2.64,0.455,0.412,0.09,0.7668539887459579,16.3,1.0
+screening_age_smoker,2.84,0.446,0.412,0.05,0.828235844803714,17.6,1.0

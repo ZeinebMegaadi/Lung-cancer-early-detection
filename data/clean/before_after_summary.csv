@@ -8,5 +8,5 @@ step,rows,columns,missing_cells,what_changed
 5c. Outlier check,149928,26,21805,IQR check on 6 numeric columns; all values plausible -> kept
 6. Checks + save clean file,149928,26,21805,"0 duplicate IDs, ages 18-85, missing values listed"
 7. Encode + fill gaps (train only),149928,71,0,"one-hot encoding, training-median filling, 'unknown' flags -> 0 missing"
-8. Feature selection,149928,60,0,11 redundant/constant features dropped; 56 kept
-9. Scaling (train only),149928,60,0,5 numeric columns standardised
+8. Feature selection,149928,52,0,19 redundant/constant features dropped; 48 kept
+9. Scaling (train only),149928,52,0,5 numeric columns standardised

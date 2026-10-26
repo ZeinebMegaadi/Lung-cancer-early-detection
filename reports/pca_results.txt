@@ -1,0 +1,57 @@
+======================================================================
+PCA - FEATURE EXTRACTION (fitted on training rows only)
+======================================================================
+Input: 48 selected features | 119,942 training rows | 29,986 test rows
+
+Explained variance of the first 10 components:
+component  eigenvalue  explained_variance_%  cumulative_%
+      PC1        3.98                  8.28          8.28
+      PC2        2.66                  5.54         13.82
+      PC3        2.48                  5.17         18.99
+      PC4        2.15                  4.47         23.46
+      PC5        2.00                  4.16         27.62
+      PC6        1.72                  3.59         31.21
+      PC7        1.63                  3.39         34.61
+      PC8        1.53                  3.18         37.79
+      PC9        1.47                  3.07         40.86
+     PC10        1.44                  3.00         43.86
+
+PC1 explains 8.3% of the variance. If all 48 features were unrelated,
+each component would explain about 2.1%.
+Components needed for 80% of the variance: 26 of 48
+Components needed for 90% of the variance: 31 of 48
+Components needed for 95% of the variance: 34 of 48
+Kaiser rule (eigenvalue > 1): 24 components
+Components with almost zero variance (eigenvalue < 0.01): 8
+  -> these are exact linear dependencies between features: each one-hot group (e.g. all
+     education_* columns) adds up to 1, and comorbidity_count is the sum of the 5 condition columns.
+     This is harmless for trees and for this description, but a future LINEAR model (logistic
+     regression) must drop one reference category per group to avoid perfect multicollinearity.
+
+Strongest loadings (|loading| >= 0.4) - what each component represents:
+  PC1: comorbidity_count +0.79, hypertension +0.62, screening_age_smoker +0.55, smoking_status_Never -0.53, age +0.50, diabetes +0.47, copd +0.46, heart_disease +0.41
+  PC2: race_ethnicity_White +0.62, region_South -0.48, income_group_High +0.45, smoking_status_Former +0.45, race_ethnicity_Black -0.41, race_ethnicity_Hispanic -0.41
+  PC3: smoking_rate +0.67, pm25_mean +0.60, lung_cancer_incidence +0.57, region_Midwest +0.47, region_Northeast -0.44, region_South +0.43
+Interpretation (names follow the loadings above):
+  PC1 = age and chronic-disease burden (comorbidities, hypertension, age, ever smoked in screening age)
+  PC2 = socio-demographic profile (race, income, region South)
+  PC3 = regional context (regional smoking rate, PM2.5, registry incidence, region)
+
+Test-set check: the first 34 components keep 95.3% of the TEST variance
+(close to 95% -> the PCA generalises; it was never fitted on test rows).
+
+DECISION
+  Keeping 95% of the variance needs 34 components instead of 48 features (29% fewer columns).
+  The variance is spread over many components (no dominant one): the features are mostly not
+  redundant, which agrees with the correlation matrix (Fig 7) and the feature selection step.
+  We KEEP THE ORIGINAL FEATURES for the midterm dataset because:
+    1. interpretability matters for a health question (an odds ratio for 'COPD' is meaningful,
+       a weight on 'PC4' is not);
+    2. the compression gain is moderate and would mix personal and regional information;
+    3. most columns are 0/1 indicators, for which PCA (built for continuous data) is less natural.
+  The PCA-transformed version is kept as an option to compare in the future modelling phase
+  (e.g. for distance-based models such as k-NN or clustering, which suffer most from many dimensions).
+
+Fig 15 reading: mean PC1 score = +2.89 for lung cancer cases vs -0.01 for the other adults.
+PC1 is the 'age and chronic-disease burden' axis (see loadings), so cases sit on its high side,
+but the two groups overlap heavily - two components are not enough to separate a rare outcome.

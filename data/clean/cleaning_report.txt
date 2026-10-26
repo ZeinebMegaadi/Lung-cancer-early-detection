@@ -68,7 +68,7 @@ STEP 7 - Model-ready version (numbers only, no missing values, fixed train/test 
   Lung cancer rate - train: 0.41% | test: 0.41%
 
 STEP 8 - Final feature selection (decided on TRAINING rows only)
-  Candidates: 67 | kept: 56 | dropped: 11
+  Candidates: 67 | kept: 48 | dropped: 19
     DROP ever_smoker                      redundant: same information as the smoking_status columns (Current/Former/Never)
     DROP ever_smoker_unknown              redundant: same as smoking_status_Unknown
     DROP age_group_18-44                  redundant: age bands duplicate the exact age column (kept: age)
@@ -77,6 +77,14 @@ STEP 8 - Final feature selection (decided on TRAINING rows only)
     DROP age_group_65-74                  redundant: age bands duplicate the exact age column (kept: age)
     DROP age_group_75+                    redundant: age bands duplicate the exact age column (kept: age)
     DROP age_group_Unknown                redundant: age bands duplicate the exact age column (kept: age)
+    DROP age_missing                      near-constant: 99.76% of training rows have the same value (limit 99.5%)
+    DROP copd_unknown                     near-constant: 99.94% of training rows have the same value (limit 99.5%)
+    DROP asthma_unknown                   near-constant: 99.96% of training rows have the same value (limit 99.5%)
+    DROP hypertension_unknown             near-constant: 99.90% of training rows have the same value (limit 99.5%)
+    DROP heart_disease_unknown            near-constant: 99.79% of training rows have the same value (limit 99.5%)
+    DROP diabetes_unknown                 near-constant: 99.96% of training rows have the same value (limit 99.5%)
+    DROP sex_Unknown                      near-constant: 99.99% of training rows have the same value (limit 99.5%)
+    DROP general_health_Unknown           near-constant: 99.96% of training rows have the same value (limit 99.5%)
     DROP smoking_status_Unknown           near-duplicate of screening_age_smoker_unknown (|r| = 0.96 on training rows)
     DROP region_West                      near-duplicate of lung_cancer_incidence (|r| = 0.95 on training rows)
     DROP sex_Male                         near-duplicate of sex_Female (|r| = 1.00 on training rows)
@@ -104,5 +112,5 @@ SUMMARY - What each step changed
                  5c. Outlier check 149928       26          21805                                                  IQR check on 6 numeric columns; all values plausible -> kept
        6. Checks + save clean file 149928       26          21805                                                            0 duplicate IDs, ages 18-85, missing values listed
 7. Encode + fill gaps (train only) 149928       71              0                                       one-hot encoding, training-median filling, 'unknown' flags -> 0 missing
-              8. Feature selection 149928       60              0                                                               11 redundant/constant features dropped; 56 kept
-           9. Scaling (train only) 149928       60              0                                                                                5 numeric columns standardised
+              8. Feature selection 149928       52              0                                                               19 redundant/constant features dropped; 48 kept
+           9. Scaling (train only) 149928       52              0                                                                                5 numeric columns standardised

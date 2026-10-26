@@ -1,0 +1,49 @@
+,PC1,PC2,PC3
+age,0.4998,0.296,-0.0414
+screening_age_smoker,0.5479,0.3899,0.1103
+screening_age_smoker_unknown,0.0124,-0.134,-0.1739
+ever_ecigarette,0.0491,0.037,0.129
+ever_ecigarette_unknown,0.0182,-0.1329,-0.1725
+copd,0.4611,0.0696,-0.0657
+asthma,0.2134,-0.0253,-0.1168
+hypertension,0.6167,0.0582,-0.1246
+heart_disease,0.41,0.0943,-0.0941
+diabetes,0.47,-0.0568,-0.1734
+comorbidity_count,0.7933,0.0443,-0.211
+pm25_mean,0.1619,-0.3875,0.6003
+smoking_rate,0.1788,-0.3455,0.6744
+lung_cancer_incidence,0.18,-0.0836,0.5692
+sex_Female,-0.0369,-0.1178,-0.0394
+race_ethnicity_AIAN,0.0404,-0.059,-0.0473
+race_ethnicity_AIAN and other,0.045,-0.058,-0.0169
+race_ethnicity_Asian,-0.2073,-0.0334,-0.2057
+race_ethnicity_Black,0.1131,-0.4144,-0.0257
+race_ethnicity_Hispanic,-0.0987,-0.4082,-0.3435
+race_ethnicity_Other or multiple,-0.0493,-0.0376,-0.0653
+race_ethnicity_White,0.0958,0.6182,0.3957
+region_Midwest,0.0884,0.0637,0.4657
+region_Northeast,-0.0897,0.378,-0.4366
+region_South,0.1626,-0.4768,0.4291
+education_Bachelor,-0.255,0.1665,0.077
+education_Graduate,-0.2275,0.214,0.0413
+education_High school / GED,0.2011,-0.1381,-0.0097
+education_Less than high school,0.194,-0.28,-0.2012
+education_Some college,0.1011,-0.0121,0.0367
+education_Unknown,0.0142,-0.0347,-0.0435
+income_group_Below poverty,0.1822,-0.2867,-0.1429
+income_group_High,-0.3459,0.4548,0.1354
+income_group_Low,0.2043,-0.2498,-0.1007
+income_group_Middle,0.0847,-0.0958,0.0315
+general_health_Excellent,-0.3976,-0.0005,0.0715
+general_health_Fair,0.3651,-0.1165,-0.1369
+general_health_Good,0.215,-0.0939,-0.0928
+general_health_Poor,0.3016,-0.0277,-0.0988
+general_health_Very good,-0.2247,0.1799,0.158
+bmi_category_Healthy,-0.2657,0.099,0.0323
+bmi_category_Obese,0.2942,-0.1861,-0.0493
+bmi_category_Overweight,-0.0306,0.1052,0.0334
+bmi_category_Underweight,-0.0086,-0.0145,-0.0062
+bmi_category_Unknown,0.0083,-0.0467,-0.0464
+smoking_status_Current,0.2578,-0.0195,0.1001
+smoking_status_Former,0.3996,0.4491,0.1269
+smoking_status_Never,-0.5295,-0.3414,-0.1212

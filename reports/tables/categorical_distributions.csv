@@ -1,0 +1,35 @@
+variable,category,pct_of_adults
+sex,Female,54.27
+sex,Male,45.73
+race_ethnicity,White,67.49
+race_ethnicity,Black,10.76
+race_ethnicity,Hispanic,13.61
+race_ethnicity,Asian,5.64
+race_ethnicity,AIAN,0.64
+race_ethnicity,AIAN and other,0.74
+race_ethnicity,Other or multiple,1.11
+education,Less than high school,8.59
+education,High school / GED,25.05
+education,Some college,28.46
+education,Bachelor,23.04
+education,Graduate,14.87
+income_group,Below poverty,10.08
+income_group,Low,17.55
+income_group,Middle,29.46
+income_group,High,42.91
+bmi_category,Underweight,1.59
+bmi_category,Healthy,31.52
+bmi_category,Overweight,34.47
+bmi_category,Obese,32.42
+general_health,Excellent,21.9
+general_health,Very good,34.12
+general_health,Good,28.67
+general_health,Fair,11.67
+general_health,Poor,3.64
+smoking_status,Never,62.3
+smoking_status,Former,25.66
+smoking_status,Current,12.05
+region,Northeast,16.65
+region,Midwest,22.04
+region,South,36.24
+region,West,25.06

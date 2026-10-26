@@ -1,0 +1,7 @@
+variable,categories,chi2,dof,p,cramers_v,min_expected,highest_rate_group,highest_weighted_rate_%,lowest_rate_group,lowest_weighted_rate_%
+sex,2,2.01,1,0.1557564531283881,0.0038,283.1,Female,0.319,Male,0.299
+race_ethnicity,5,70.69,4,1.6253248938758187e-14,0.0217,15.5,White,0.392,Hispanic,0.101
+education,5,114.74,4,7.098645148199196e-24,0.0277,52.6,Less than high school,0.487,Bachelor,0.151
+income_group,4,77.99,3,8.286367859448948e-17,0.0228,62.4,Below poverty,0.462,High,0.208
+bmi_category,4,69.16,3,6.464373871146956e-15,0.0217,9.6,Underweight,1.136,Obese,0.243
+general_health,5,1154.69,4,1.0575276748439792e-248,0.0878,22.5,Poor,2.471,Excellent,0.031

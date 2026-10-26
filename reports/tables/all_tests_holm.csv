@@ -1,9 +1,19 @@
-test,p,p_holm,significant_after_correction
-Smoking status vs lung cancer (chi-square),2.2045324823521085e-115,1.3227194894112652e-114,True
-Age vs lung cancer (Mann-Whitney),3.091173949267404e-141,2.1638217644871827e-140,True
-copd vs lung cancer (chi-square),0.0,0.0,True
-asthma vs lung cancer (chi-square),0.0005724074322368416,0.0011448148644736833,True
-hypertension vs lung cancer (chi-square),1.257436828579501e-49,5.029747314318004e-49,True
-heart_disease vs lung cancer (chi-square),5.638431595553591e-66,2.819215797776796e-65,True
-diabetes vs lung cancer (chi-square),6.735033036975486e-17,2.0205099110926457e-16,True
-ever_ecigarette vs lung cancer (chi-square),0.38709445343507787,0.38709445343507787,False
+test,research_question,p,p_holm,significant_after_correction
+Smoking status vs lung cancer (chi-square),RQ1,2.2045324823521085e-115,3.086345475292952e-114,True
+Age vs lung cancer (Mann-Whitney),RQ2,3.0911739492674036e-141,4.636760923901105e-140,True
+copd vs lung cancer (chi-square),RQ2,0.0,0.0,True
+asthma vs lung cancer (chi-square),RQ2,0.0005724074322368416,0.002862037161184208,True
+hypertension vs lung cancer (chi-square),RQ2,1.257436828579501e-49,1.5089241942954014e-48,True
+heart_disease vs lung cancer (chi-square),RQ2,5.638431595553591e-66,7.329961074219669e-65,True
+diabetes vs lung cancer (chi-square),RQ2,6.735033036975486e-17,6.735033036975486e-16,True
+ever_ecigarette vs lung cancer (chi-square),RQ2,0.38709445343507787,1.0,False
+COPD vs lung cancer adjusted for smoking (CMH),RQ2,0.0,0.0,True
+sex vs lung cancer (chi-square),RQ2,0.1557564531283881,0.6230258125135524,False
+race_ethnicity vs lung cancer (chi-square),RQ2,1.6253248938758187e-14,1.137727425713073e-13,True
+education vs lung cancer (chi-square),RQ2,7.098645148199196e-24,7.808509663019116e-23,True
+income_group vs lung cancer (chi-square),RQ2,8.286367859448948e-17,7.457731073504053e-16,True
+bmi_category vs lung cancer (chi-square),RQ2,6.464373871146956e-15,5.171499096917565e-14,True
+general_health vs lung cancer (chi-square),RQ2,1.0575276748439792e-248,1.6920442797503668e-247,True
+"pm25_mean vs NHIS regional rate (Spearman, 20 region-years)",RQ3,0.6288739402126037,1.0,False
+"smoking_rate vs NHIS regional rate (Spearman, 20 region-years)",RQ3,0.7146383646582314,1.0,False
+"lung_cancer_incidence vs NHIS regional rate (Spearman, 20 region-years)",RQ3,3.490503836386607e-05,0.00020943023018319643,True
