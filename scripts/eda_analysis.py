@@ -351,7 +351,11 @@ st = StratifiedTable(tables2x2)
 mh_or = st.oddsratio_pooled
 mh_lo, mh_hi = st.oddsratio_pooled_confint()
 cmh = st.test_null_odds()
+# statsmodels returns p = 1 - cdf, which rounds to 0 for very large statistics; the survival function keeps
+# the real value (chi-square with 1 degree of freedom)
+cmh_p = stats.chi2.sf(cmh.statistic, 1)
 bd = st.test_equal_odds()
+bd_p = stats.chi2.sf(bd.statistic, len(tables2x2) - 1)
 strata = pd.DataFrame(strata_rows + [
     {"group": "Crude (smoking ignored)", "n": len(cs), "cases": int(cs.lung_cancer.sum()),
      "odds_ratio": c_or, "ci_low": c_lo, "ci_high": c_hi},
@@ -360,12 +364,12 @@ strata = pd.DataFrame(strata_rows + [
 strata.round(3).to_csv(TAB / "copd_stratified_by_smoking.csv", index=False)
 say(strata.round(2).to_string(index=False))
 say(f"CMH test  H0: no COPD-lung cancer link once smoking is held fixed")
-say(f"  Result: chi2 = {cmh.statistic:.1f}, p {fmt_p(cmh.pvalue) if cmh.pvalue == 0 else '= ' + fmt_p(cmh.pvalue)}")
-say(f"Breslow-Day test (is the odds ratio the same in every smoking group?): p = {bd.pvalue:.3f}")
+say(f"  Result: chi2 = {cmh.statistic:.1f}, p {fmt_p(cmh_p) if cmh_p == 0 else '= ' + fmt_p(cmh_p)}")
+say(f"Breslow-Day test (is the odds ratio the same in every smoking group?): p = {bd_p:.3f}")
 say(f"Reading: the crude odds ratio {c_or:.1f} falls to {mh_or:.1f} after adjusting for smoking -> part of the")
 say("crude link was due to smoking, but COPD stays strongly associated with lung cancer in never, former")
 say("and current smokers alike. (Association, not causation; age is a second possible confounder.)")
-tests.append(("COPD vs lung cancer adjusted for smoking (CMH)", "RQ2", cmh.pvalue))
+tests.append(("COPD vs lung cancer adjusted for smoking (CMH)", "RQ2", cmh_p))
 
 fig, ax = plt.subplots(figsize=(9, 5))
 ys = np.arange(len(strata))[::-1]
@@ -379,7 +383,7 @@ ax.set_yticks(ys); ax.set_yticklabels(strata["group"], fontsize=13); ax.set_xsca
 ax.xaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:g}"))
 ax.xaxis.set_minor_formatter(matplotlib.ticker.NullFormatter())
 ax.set_xlabel("Odds ratio of COPD for lung cancer (log scale, 95% CI)")
-ax.set_title(f"Fig 10. COPD stays linked to lung cancer within every smoking group (CMH p {'< 1e-300' if cmh.pvalue == 0 else '= %.0e' % cmh.pvalue})", fontsize=14)
+ax.set_title(f"Fig 10. COPD stays linked to lung cancer within every smoking group (CMH p {'< 1e-300' if cmh_p == 0 else '= %.0e' % cmh_p})", fontsize=14)
 save("fig10_copd_stratified_by_smoking")
 
 # ======================================================================= 4c. socio-demographic and health factors

@@ -1,0 +1,4 @@
+regional_measure,rho_all_20,p_all_20,rho_between_4_regions,rho_within_region,p_within_region
+pm25_mean,-0.1151,0.6289,0.0,0.0316,0.8948
+smoking_rate,0.0872,0.7146,0.0,-0.3474,0.1334
+lung_cancer_incidence,0.7895,0.0,1.0,0.0331,0.8899

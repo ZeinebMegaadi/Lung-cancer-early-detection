@@ -116,7 +116,7 @@ smoking group, then pool the groups with the Cochran-Mantel-Haenszel (CMH) test.
                Crude (smoking ignored) 145897    600       14.77   12.56    17.37
 Mantel-Haenszel (adjusted for smoking) 145897    600        9.28    7.81    11.01
 CMH test  H0: no COPD-lung cancer link once smoking is held fixed
-  Result: chi2 = 949.7, p < 1e-300
+  Result: chi2 = 949.7, p = 1.51e-208
 Breslow-Day test (is the odds ratio the same in every smoking group?): p = 0.693
 Reading: the crude odds ratio 14.8 falls to 9.3 after adjusting for smoking -> part of the
 crude link was due to smoking, but COPD stays strongly associated with lung cancer in never, former
@@ -211,13 +211,13 @@ weights, and 2019-2023 pollution cannot explain cancers diagnosed many years ear
                               heart_disease vs lung cancer (chi-square)               RQ2  5.64e-66  7.33e-65                          True
                                    diabetes vs lung cancer (chi-square)               RQ2  6.74e-17  6.74e-16                          True
                             ever_ecigarette vs lung cancer (chi-square)               RQ2  3.87e-01  1.00e+00                         False
-                         COPD vs lung cancer adjusted for smoking (CMH)               RQ2  < 1e-300  < 1e-300                          True
+                         COPD vs lung cancer adjusted for smoking (CMH)               RQ2 1.51e-208 2.41e-207                          True
                                         sex vs lung cancer (chi-square)               RQ2  1.56e-01  6.23e-01                         False
                              race_ethnicity vs lung cancer (chi-square)               RQ2  1.63e-14  1.14e-13                          True
                                   education vs lung cancer (chi-square)               RQ2  7.10e-24  7.81e-23                          True
                                income_group vs lung cancer (chi-square)               RQ2  8.29e-17  7.46e-16                          True
                                bmi_category vs lung cancer (chi-square)               RQ2  6.46e-15  5.17e-14                          True
-                             general_health vs lung cancer (chi-square)               RQ2 1.06e-248 1.69e-247                          True
+                             general_health vs lung cancer (chi-square)               RQ2 1.06e-248 1.80e-247                          True
             pm25_mean vs NHIS regional rate (Spearman, 20 region-years)               RQ3  6.29e-01  1.00e+00                         False
          smoking_rate vs NHIS regional rate (Spearman, 20 region-years)               RQ3  7.15e-01  1.00e+00                         False
 lung_cancer_incidence vs NHIS regional rate (Spearman, 20 region-years)               RQ3  3.49e-05  2.09e-04                          True

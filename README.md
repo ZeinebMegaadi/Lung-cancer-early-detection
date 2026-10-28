@@ -18,7 +18,7 @@ Scope (midterm): CRISP-DM phases 1-6, from business understanding to feature eng
 | RQ2 | Are age, chronic conditions (COPD, heart disease...) and socio-demographic / health factors (sex, race, education, income, BMI, self-rated health) associated with lung cancer? Does the COPD link survive once smoking is taken into account? | sections 3, 4, 4b, 4c, Fig 7, 9, 10, 11 |
 | RQ3 | Do regional factors (PM2.5 air pollution, regional smoking rate, registry incidence) add information beyond the personal factors? | section 7 and 9, Fig 13, Fig 14 |
 
-**Measurable success criteria** (criteria 1-4 and 6-8 are checked automatically in `eda_results.txt` section 10 and `reports/tables/success_criteria_check.csv`; criterion 5 is built into the code: every fitted step uses only rows with `split == "train"`)
+**Measurable success criteria** (criteria 1-4 and 6-8 are checked automatically in `eda_results.txt` section 10 and `reports/tables/success_criteria_check.csv`; criterion 5 is checked by an assertion in `supplementary_analysis.py`, section 11: the saved scaler must equal a refit on training rows only)
 
 1. 0 duplicate person IDs in the clean dataset.
 2. 0 missing values in the model-ready dataset.
@@ -72,12 +72,14 @@ scripts/
   build_clean_dataset.py      step 2: clean NHIS, join the regional table, select and scale features
   eda_analysis.py             step 3: charts, statistics, hypothesis tests, success-criteria check
   feature_extraction_pca.py   step 4: PCA feature extraction (fitted on training rows only)
+  supplementary_analysis.py   step 5: detailed population profile and supplementary checks
 reports/
   figures/                    16 charts (fig01 ... fig16), numbered in the order of the report
   tables/                     the numbers behind every chart and test
   eda_results.txt             all EDA results and tests explained in plain words
   pca_results.txt             PCA results and the keep / reject decision
-run_all.py                    runs steps 0-4 in order
+  supplementary_results.txt   population profile, per-year rates, age-adjusted odds ratios, survey-design check
+run_all.py                    runs steps 0-5 in order
 ```
 
 ## 4. How to rebuild everything
@@ -92,7 +94,7 @@ pip install -r requirements.txt
 python run_all.py
 ```
 
-The raw data is already in `data/raw/`, so step 0 only downloads files that are missing. A full run takes about one minute. All paths are relative to the repository, and every random step uses seed 42, so the results are identical on every computer.
+The raw data is already in `data/raw/`, so step 0 only downloads files that are missing. A full run takes about two minutes. All paths are relative to the repository, and every random step uses seed 42, so the results are identical on every computer.
 
 ## 5. What the scripts do (simple version)
 
@@ -123,6 +125,15 @@ The raw data is already in `data/raw/`, so step 0 only downloads files that are 
 3. Check on the test rows that the kept components generalise.
 4. Decision: 34 of 48 components are needed for 95% of the variance (no dominant component), so the **original, interpretable features are kept**; PCA stays an option for distance-based models later.
 
+**Population profile and supplementary checks (`supplementary_analysis.py`)**
+1. **Who is in the data:** for every category of every variable (sex, age group, race/ethnicity, region, year, education, income, smoking, e-cigarettes, BMI, health, each condition): adults, share of the sample and of the population (weighted), cases, non-cases and lung-cancer rate (`population_profile.csv`); cases vs other adults side by side (`cases_vs_noncases.csv`); age, sex and smoking inside each sex and race group (`group_profile.csv`); cases and rates per survey year (`rate_by_year.csv`).
+2. **Confounding:** smoking odds ratio inside each age group and adjusted for age (CMH); COPD adjusted for smoking and for smoking × age group.
+3. **RQ3:** the regional correlations split into between-region and within-region parts (the 20 region-years are 4 regions × 5 years).
+4. **Benchmark:** recall and precision of the USPSTF-style rule (`screening_age_smoker`), the baseline a future model must beat.
+5. **Mutual information** as a share of the target's entropy, compared with a permutation null (training rows).
+6. **Survey design:** survey-weighted odds ratios with cluster-robust intervals (NHIS strata and PSUs read from the raw files).
+7. **Criterion 5 check:** asserts that the saved scaler equals a refit on training rows only.
+
 ## 6. EDA and hypothesis tests (`eda_analysis.py`)
 
 | Figure | Question | Method / test |
@@ -147,8 +158,8 @@ All rates are **weighted with NHIS survey weights** (population estimates). All 
 
 **Key findings**
 - **RQ1:** ever-smokers have **7.7 times** the odds of having had lung cancer (95% CI 6.2–9.4). Former smokers have a higher rate than current smokers, most likely because people stop smoking after diagnosis.
-- **RQ2:** median age 72 vs 54 (Mann–Whitney p < 1e-140). COPD has the strongest link (odds ratio 15.1, still **9.3 after adjusting for smoking**). Lower education and income go with higher rates; underweight and poor self-rated health have the highest rates (most likely reverse causation). Sex and e-cigarette use are not significant.
-- **RQ3:** the NHIS regional rate follows the official registry rate (ρ = 0.79), which validates the self-reported target, but PM2.5 and the regional smoking rate show no detectable link (20 region-years only). Personal factors carry far more information than regional ones.
+- **RQ2:** median age 72 vs 54 (Mann–Whitney p < 1e-140). COPD has the strongest link (odds ratio 15.1; on adults with known smoking status the crude 14.8 falls to **9.3 after adjusting for smoking**, and to 5.7 after adjusting for smoking and age group). Smoking itself stays strong after adjusting for age (odds ratio 5.8). Lower education and income go with higher rates; underweight and poor self-rated health have the highest rates (most likely reverse causation). Sex and e-cigarette use are not significant.
+- **RQ3:** the NHIS regional rate follows the official registry rate (ρ = 0.79 over 20 region-years). The agreement comes from differences between the 4 regions (the West is low on both; within a region, ρ ≈ 0.03), so it is consistent with the official data rather than a formal validation. PM2.5 and the regional smoking rate show no detectable link. Personal factors carry far more information than regional ones.
 
 ## 7. Limitations and notes for modelling
 

@@ -3,7 +3,8 @@ import subprocess
 import sys
 from pathlib import Path
 
-STEPS = ["download_data.py", "build_regional_data.py", "build_clean_dataset.py", "eda_analysis.py", "feature_extraction_pca.py"]
+STEPS = ["download_data.py", "build_regional_data.py", "build_clean_dataset.py", "eda_analysis.py", "feature_extraction_pca.py",
+         "supplementary_analysis.py"]
 for step in STEPS:
     print(f"\n========== {step} ==========")
     result = subprocess.run([sys.executable, str(Path(__file__).parent / "scripts" / step)])

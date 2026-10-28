@@ -1,0 +1,4 @@
+adjustment,odds_ratio,ci_low,ci_high,strata
+none (crude),14.7061,12.5047,17.2951,1
+smoking status,9.2431,7.7842,10.9754,3
+smoking status x age group,5.7304,4.8177,6.816,15

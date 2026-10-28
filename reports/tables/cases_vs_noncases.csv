@@ -1,0 +1,33 @@
+characteristic,lung_cancer,no_lung_cancer,unit
+Adults,619.0,149309.0,count
+"Age, mean",71.1942,52.7253,years
+"Age, standard deviation",10.1562,18.3451,years
+"Age, median",72.0,54.0,years
+"Age, Q1",65.0,37.0,years
+"Age, Q3",79.0,68.0,years
+Aged 65 or older,76.2136,30.9009,%
+Female,57.189,54.2597,%
+Race/ethnicity: White,81.9063,67.4266,%
+Race/ethnicity: Hispanic,4.3619,13.6522,%
+Race/ethnicity: Black,8.8853,10.7716,%
+Race/ethnicity: Asian,2.5848,5.6507,%
+Race/ethnicity: AIAN / other / multiple,2.2617,2.4988,%
+Ever smoked (former or current),82.1963,37.5198,%
+Current smoker,21.1314,12.0097,%
+Ever used an e-cigarette,17.4419,16.0613,%
+COPD,46.6019,5.4635,%
+Heart disease,22.6384,5.9967,%
+Hypertension,65.2666,36.4553,%
+Diabetes,21.1632,10.676,%
+Asthma,18.7702,13.8851,%
+"Comorbidity count, mean",1.7415,0.7241,conditions
+Fair or poor self-rated health,57.3506,15.1324,%
+Underweight,5.4455,1.5712,%
+Obese,27.2277,32.444,%
+Less than high school,14.0523,8.5644,%
+Bachelor or graduate degree,18.3007,37.9837,%
+Family income below the poverty line,15.3473,10.0624,%
+Region: Northeast,18.9015,16.6407,%
+Region: Midwest,28.1099,22.0181,%
+Region: South,36.9952,36.2416,%
+Region: West,15.9935,25.0996,%

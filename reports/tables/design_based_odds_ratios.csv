@@ -1,0 +1,4 @@
+exposure,adults,or_unweighted,ci_low_unweighted,ci_high_unweighted,or_design,ci_low_design,ci_high_design,ci_width_ratio
+Ever smoked (vs never),145975,7.6882,6.2365,9.4778,9.1399,7.1715,11.6486,1.159
+COPD (vs none),149826,15.101,12.8732,17.7144,18.642,15.4272,22.5267,1.1859
+"Age, per 10 years",149575,2.0299,1.908,2.1595,2.1473,2.0306,2.2707,0.903
