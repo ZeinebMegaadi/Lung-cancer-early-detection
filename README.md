@@ -172,7 +172,7 @@ All rates are **weighted with NHIS survey weights** (population estimates). All 
 - **Self-reported** answers; no pack-years or medical tests.
 - **Associations, not causes:** only COPD was adjusted for a confounder (smoking).
 
-## 8. Next steps (future modelling, not done in the midterm)
+## 8. Next steps:
 
 1. Logistic regression with class weights as an interpretable baseline (adjusted odds ratios for all factors at once).
 2. Tree-based models (random forest, gradient boosting) compared with stratified cross-validation on the training rows only.
