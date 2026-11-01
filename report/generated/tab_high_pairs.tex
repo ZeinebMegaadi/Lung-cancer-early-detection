@@ -1,0 +1,18 @@
+\begin{tabularx}{\textwidth}{l >{\raggedright\arraybackslash}p{4.2cm} l r l >{\raggedright\arraybackslash}X}
+\toprule
+Matrix & Pair & Measure & Value & Type & Why it is high \\
+\midrule
+Fig.~12b & year -- smoking\_\allowbreak{}rate & $\eta$ & 0.67 & built-from & smoking\_rate is joined on region + year, and BRFSS smoking fell every year 2019--2023 \\
+Fig.~12b & age -- age\_\allowbreak{}group & $\eta$ & 0.96 & built-from & age\_group is age cut into bands \\
+Fig.~12b & region -- pm25\_\allowbreak{}mean & $\eta$ & 0.71 & built-from & pm25\_mean is joined on region + year (20 values) \\
+Fig.~12b & region -- smoking\_\allowbreak{}rate & $\eta$ & 0.73 & built-from & smoking\_rate is joined on region + year (20 values) \\
+Fig.~12b & region -- lung\_\allowbreak{}cancer\_\allowbreak{}incidence & $\eta$ & 0.98 & built-from & lung\_cancer\_incidence is joined on region + year; the West is far lower than the other regions \\
+Fig.~12b & smoking\_\allowbreak{}status -- ever\_\allowbreak{}smoker & Cram\'er's $V$ & 1.00 & built-from & ever\_smoker = Current or Former smoking\_status \\
+Fig.~12b & smoking\_\allowbreak{}status -- screening\_\allowbreak{}age\_\allowbreak{}smoker & Cram\'er's $V$ & 0.69 & built-from & screening\_age\_smoker = aged 50--80 AND ever smoked \\
+Fig.~12b & ever\_\allowbreak{}smoker -- screening\_\allowbreak{}age\_\allowbreak{}smoker & Cram\'er's $V$ & 0.69 & built-from & screening\_age\_smoker = aged 50--80 AND ever smoked \\
+Fig.~12b & hypertension -- comorbidity\_\allowbreak{}count & $\eta$ & 0.73 & built-from & comorbidity\_count is the sum of the 5 condition flags, hypertension the most common (36.5\%) \\
+Fig.~12b & diabetes -- comorbidity\_\allowbreak{}count & $\eta$ & 0.57 & built-from & comorbidity\_count is the sum of the 5 condition flags \\
+Fig.~12c & screening\_\allowbreak{}age\_\allowbreak{}smoker\_\allowbreak{}unknown -- ever\_\allowbreak{}ecigarette\_\allowbreak{}unknown & Spearman & 0.93 & same-concept & both flag the same $\sim$2.8\% of adults who skipped the smoking / tobacco questions \\
+Fig.~12c & screening\_\allowbreak{}age\_\allowbreak{}smoker -- smoking\_\allowbreak{}status\_\allowbreak{}Former & Spearman & 0.55 & built-from & screening\_age\_smoker is built from smoking status, and most former smokers are aged 50--80 \\
+\bottomrule
+\end{tabularx}

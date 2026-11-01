@@ -1,0 +1,46 @@
+\section{Reproducibility}\label{app:repro}
+
+We kept the project reproducible from day one, following the rule that every number and figure comes from code, never from hand edits. Code and data are in the team repository, branch main: \url{https://github.com/ZeinebMegaadi/Lung-cancer-early-detection}
+
+Requirements: Python 3.11, 3.12 or 3.13 and the packages listed in \file{requirements.txt} (pandas, NumPy, scikit-learn, SciPy, matplotlib, seaborn, statsmodels, and jupyter, ipykernel and nbconvert for the notebook). The commands below rebuild everything:
+
+\begin{verbatim}
+git clone https://github.com/ZeinebMegaadi/Lung-cancer-early-detection.git
+cd Lung-cancer-early-detection
+python -m venv .venv
+.venv\Scripts\Activate.ps1       (Mac / Linux: source .venv/bin/activate)
+pip install -r requirements.txt
+python run_all.py
+python scripts/build_report.py   (this report)
+\end{verbatim}
+
+\begin{table}[htbp]
+\centering\small
+\caption{The six pipeline steps run by \texttt{run\_all.py}, the notebook, and the report build.}\label{tab:pipeline-steps}
+\begin{tabularx}{\textwidth}{@{}l >{\raggedright\arraybackslash}p{4.6cm} >{\raggedright\arraybackslash}X@{}}
+\toprule
+Step & Script & Output \\
+\midrule
+0 & \texttt{download\_data.py} & raw NHIS, EPA, BRFSS and USCS files in \texttt{data/raw/} (skipped when already present) \\
+1 & \texttt{build\_regional\_data.py} & \texttt{data/clean/regional\_context.csv} (20 region-years) and \texttt{regional\_report.txt} \\
+2 & \texttt{build\_clean\_dataset.py} & clean, model-ready and scaled datasets; data dictionary; feature decisions; VIF tables (\texttt{vif\_before.csv}, \texttt{vif\_after.csv}); outlier table; before/after summary; cleaning report; Fig.~\ref{fig:outliers} \\
+3 & \texttt{eda\_analysis.py} & Figures~\ref{fig:balance}--\ref{fig:missing} and \ref{fig:numeric}--\ref{fig:mi}, including Figures~\ref{fig:assoc} and~\ref{fig:featcorr}; test, correlation and association tables in \texttt{reports/tables/}; \texttt{reports/eda\_results.txt} with every test (with its denominator) and the success-criteria check \\
+4 & \texttt{feature\_extraction\_pca.py} & Figures~\ref{fig:scree}--\ref{fig:projection}; \texttt{reports/pca\_results.txt}; PCA tables \\
+5 & \texttt{supplementary\_analysis.py} & dataset composition (Tables~\ref{tab:comp-years}--\ref{tab:comp-groups}), population profile (Tables~\ref{tab:prof-demo}--\ref{tab:cases}), per-year rates, age-adjusted odds ratios, regional within/between check, screening-rule baseline, mutual-information check, survey-design check and the criterion-5 assertion; \texttt{reports/supplementary\_results.txt} \\
+-- & \file{notebooks/lung_cancer_project.ipynb} & the whole project section by section; every code cell calls a function of the scripts above (not run by \texttt{run\_all.py}) \\
+-- & \texttt{build\_report.py} & this report's generated tables and numbers (\texttt{report/generated/}); compiles \texttt{report/main.tex} with pdflatex (run twice) (not run by \texttt{run\_all.py}) \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+We tested this on a fresh run: the full pipeline takes about 100 seconds, finishes without errors or warnings, and the regenerated results match the committed ones. The cleaned file \file{data/clean/nhis_lung_cancer_clean.csv} ($149{,}928 \times 26$) has the SHA-256 prefix \texttt{5daf9b80b848efe9} with Unix (LF) line endings, as stored in git; pandas on Windows writes Windows (CRLF) line endings, which give the prefix \texttt{2b25cb8142487dd4} for the same data. Every script can also be imported: its steps are functions, and \texttt{main()} runs them in order. The notebook \file{notebooks/lung_cancer_project.ipynb} uses this to walk through the six CRISP-DM sections by calling those functions, with its outputs saved. By default (\texttt{REBUILD = False}) it reuses the built files; two consecutive runs were checked to leave every output byte-identical to \texttt{run\_all.py}'s. All numbers in this report come from \file{reports/eda_results.txt}, \file{reports/pca_results.txt}, \file{reports/supplementary_results.txt}, \file{reports/tables/} and \file{data/clean/cleaning_report.txt}; the tables that hold numbers and the key numbers in the text are generated from those files by \file{scripts/build_report.py}. Figure N of this report is the file \file{reports/figures/figNN_*.png} with the same number (Figures~\ref{fig:assoc} and~\ref{fig:featcorr} are \file{fig12b_*.png} and \file{fig12c_*.png}).
+
+\section{Final feature list}\label{app:features}
+
+The \nFeatures features of \file{nhis_lung_cancer_model_ready.csv}, in file order. Scaled columns are standardised in \file{nhis_lung_cancer_model_ready_scaled.csv}; all other columns are 0/1 indicators. Reference categories (not in the file): race/ethnicity White, education High school / GED, income High, BMI Healthy, general health Excellent, smoking status Never (which also contains unknown smoking status, flagged by feature 3), sex Male; region is represented by features 11--13.
+
+\begin{table}[htbp]
+\centering\small
+\caption{The \nFeatures final features.}\label{tab:feature-list}
+\input{generated/tab_feature_list}
+\end{table}

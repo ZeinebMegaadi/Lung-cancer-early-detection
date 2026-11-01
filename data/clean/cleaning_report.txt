@@ -68,7 +68,12 @@ STEP 7 - Model-ready version (numbers only, no missing values, fixed train/test 
   Lung cancer rate - train: 0.41% | test: 0.41%
 
 STEP 8 - Final feature selection (decided on TRAINING rows only)
-  Candidates: 67 | kept: 48 | dropped: 19
+  Rule 4 - multi-column dependencies (VIF, training rows)
+    VIF after rules 1-3 (48 features): 28 infinite (exact dependencies), 42 above 10; near-zero eigenvalues: 8
+    After 4a + 4b (41 features): VIF above 10 = region_Midwest 39.0, lung_cancer_incidence 33.6, region_South 30.5, region_Northeast 24.0; near-zero eigenvalues: 1
+    VIF of the 38 final features: max 7.49 (screening_age_smoker_unknown), 0 above 10; near-zero eigenvalues: 0
+    Saved reports/tables/vif_before.csv and vif_after.csv
+  Candidates: 67 | kept: 38 | dropped: 29
     DROP ever_smoker                      redundant: same information as the smoking_status columns (Current/Former/Never)
     DROP ever_smoker_unknown              redundant: same as smoking_status_Unknown
     DROP age_group_18-44                  redundant: age bands duplicate the exact age column (kept: age)
@@ -86,8 +91,18 @@ STEP 8 - Final feature selection (decided on TRAINING rows only)
     DROP sex_Unknown                      near-constant: 99.99% of training rows have the same value (limit 99.5%)
     DROP general_health_Unknown           near-constant: 99.96% of training rows have the same value (limit 99.5%)
     DROP smoking_status_Unknown           near-duplicate of screening_age_smoker_unknown (|r| = 0.96 on training rows)
-    DROP region_West                      near-duplicate of lung_cancer_incidence (|r| = 0.95 on training rows)
-    DROP sex_Male                         near-duplicate of sex_Female (|r| = 1.00 on training rows)
+    DROP region_West                      near-duplicate of lung_cancer_incidence (|r| = 0.95 on training rows); it is also the reference category of region (West): the other region dummies are read relative to it
+    DROP sex_Male                         near-duplicate of sex_Female (|r| = 1.00 on training rows); it is also the reference category of sex (Male): the other sex dummies are read relative to it
+    DROP comorbidity_count                exact linear combination of the 5 condition flags; Spearman 0.79 with hypertension; infinite VIF (kept in the clean dataset and the EDA as a descriptive variable)
+    DROP race_ethnicity_White             reference category of race_ethnicity (White): the other race_ethnicity dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+    DROP education_High school / GED      reference category of education (High school / GED): the other education dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+    DROP income_group_High                reference category of income_group (High): the other income_group dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+    DROP bmi_category_Healthy             reference category of bmi_category (Healthy): the other bmi_category dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+    DROP general_health_Excellent         reference category of general_health (Excellent): the other general_health dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF); the 0.04% with unknown general health (general_health_Unknown, dropped by rule 2b) also fall into this reference
+    DROP smoking_status_Never             reference category of smoking_status (Never): the other smoking_status dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF); adults with unknown smoking status (smoking_status_Unknown, dropped by rule 3) also fall into this reference and are identified only by screening_age_smoker_unknown
+    DROP region_Midwest                   the 3 regional columns already encode region x year; region dummies + lung_cancer_incidence were near-collinear (VIF 24-39, 1 near-zero PCA eigenvalue)
+    DROP region_Northeast                 the 3 regional columns already encode region x year; region dummies + lung_cancer_incidence were near-collinear (VIF 24-39, 1 near-zero PCA eigenvalue)
+    DROP region_South                     the 3 regional columns already encode region x year; region dummies + lung_cancer_incidence were near-collinear (VIF 24-39, 1 near-zero PCA eigenvalue)
   Leakage check: 'ever had any cancer' (CANEV_A) was never a candidate - it reveals the answer.
 
 STEP 9 - Scaling (StandardScaler fitted on TRAINING rows only)
@@ -95,7 +110,6 @@ STEP 9 - Scaling (StandardScaler fitted on TRAINING rows only)
   Binary 0/1 columns are not scaled (they are already on a 0-1 scale).
                        train_mean  train_std  test_mean
 age                           0.0        1.0     -0.002
-comorbidity_count            -0.0        1.0     -0.010
 pm25_mean                    -0.0        1.0      0.006
 smoking_rate                  0.0        1.0     -0.001
 lung_cancer_incidence         0.0        1.0      0.019
@@ -112,5 +126,5 @@ SUMMARY - What each step changed
                  5c. Outlier check 149928       26          21805                                                  IQR check on 6 numeric columns; all values plausible -> kept
        6. Checks + save clean file 149928       26          21805                                                            0 duplicate IDs, ages 18-85, missing values listed
 7. Encode + fill gaps (train only) 149928       71              0                                       one-hot encoding, training-median filling, 'unknown' flags -> 0 missing
-              8. Feature selection 149928       52              0                                                               19 redundant/constant features dropped; 48 kept
-           9. Scaling (train only) 149928       52              0                                                                                5 numeric columns standardised
+              8. Feature selection 149928       42              0    29 redundant / near-constant / near-duplicate / linearly dependent features dropped; 38 kept (max VIF 7.5)
+           9. Scaling (train only) 149928       42              0                                                                                4 numeric columns standardised

@@ -6,7 +6,7 @@ age,Age in years (85 = 85 or older),AGEP_A
 sex,Male / Female,SEX_A
 race_ethnicity,Hispanic origin and race,HISPALLP_A
 region,US region,REGION
-education,Highest education level (grouped),EDUC_A
+education,Highest education level (grouped),EDUC_A (EDUCP_A from 2021)
 income_group,"Family income vs poverty line: below (<1), low (1-2), middle (2-4), high (4+)",RATCAT_A
 general_health,Self-rated general health,PHSTAT_A
 bmi_category,Body mass index category,BMICAT_A

@@ -1,25 +1,19 @@
 ,mutual_information
 age,0.00274
 copd,0.00263
-comorbidity_count,0.00197
 screening_age_smoker,0.00158
-smoking_status_Never,0.00158
 general_health_Poor,0.00111
 smoking_status_Former,0.00109
 hypertension,0.00072
 general_health_Fair,0.00071
 heart_disease,0.00066
-general_health_Excellent,0.00062
 general_health_Very good,0.00054
-race_ethnicity_White,0.00023
-income_group_High,0.00023
 race_ethnicity_Hispanic,0.00022
 education_Bachelor,0.00022
 diabetes,0.00018
-smoking_rate,0.00017
 lung_cancer_incidence,0.00017
+smoking_rate,0.00017
 pm25_mean,0.00014
-education_High school / GED,0.00014
 smoking_status_Current,0.00013
 bmi_category_Underweight,0.00012
 income_group_Low,0.00011
@@ -30,14 +24,10 @@ race_ethnicity_Asian,4e-05
 asthma,3e-05
 race_ethnicity_Other or multiple,2e-05
 race_ethnicity_AIAN,2e-05
-region_Midwest,2e-05
-bmi_category_Healthy,2e-05
 bmi_category_Overweight,2e-05
 bmi_category_Obese,2e-05
 race_ethnicity_Black,1e-05
 education_Unknown,1e-05
-region_Northeast,1e-05
-region_South,0.0
 education_Some college,0.0
 sex_Female,0.0
 ever_ecigarette,0.0

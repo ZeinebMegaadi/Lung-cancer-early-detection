@@ -1,0 +1,39 @@
+feature,vif,exact_dependency
+screening_age_smoker_unknown,7.49,False
+ever_ecigarette_unknown,7.45,False
+screening_age_smoker,2.18,False
+smoking_status_Former,2.03,False
+general_health_Good,1.91,False
+general_health_Very good,1.76,False
+smoking_status_Current,1.72,False
+age,1.7,False
+general_health_Fair,1.69,False
+education_Bachelor,1.67,False
+education_Graduate,1.6,False
+bmi_category_Obese,1.59,False
+education_Some college,1.57,False
+bmi_category_Overweight,1.45,False
+income_group_Low,1.42,False
+hypertension,1.41,False
+income_group_Below poverty,1.39,False
+lung_cancer_incidence,1.38,False
+smoking_rate,1.34,False
+general_health_Poor,1.34,False
+income_group_Middle,1.32,False
+education_Less than high school,1.32,False
+ever_ecigarette,1.32,False
+race_ethnicity_Hispanic,1.24,False
+copd,1.18,False
+diabetes,1.17,False
+pm25_mean,1.14,False
+heart_disease,1.14,False
+race_ethnicity_Black,1.12,False
+race_ethnicity_Asian,1.1,False
+bmi_category_Unknown,1.07,False
+sex_Female,1.07,False
+asthma,1.06,False
+bmi_category_Underweight,1.04,False
+education_Unknown,1.02,False
+race_ethnicity_Other or multiple,1.02,False
+race_ethnicity_AIAN,1.01,False
+race_ethnicity_AIAN and other,1.01,False

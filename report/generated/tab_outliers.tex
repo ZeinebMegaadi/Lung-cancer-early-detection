@@ -1,0 +1,12 @@
+\begin{tabularx}{\textwidth}{l l r >{\raggedright\arraybackslash}X}
+\toprule
+Column & Bounds & Flagged & Decision and reason \\
+\midrule
+age & [$-$9.5, 114.5] & 0 (0\%) & keep -- every age 18-85 is a real adult; 85 means ``85 or older'' (NHIS top-code), not an error \\
+comorbidity\_count & [$-$1.5, 2.5] & 7,451 (4.97\%) & keep -- a count from 0 to 5; high values are real people with several diseases \\
+pm25\_mean & [5.3, 9.2] & 0 (0\%) & keep -- official EPA measurements; only 20 region-year values, none impossible \\
+smoking\_rate & [8.7, 20.7] & 0 (0\%) & keep -- official CDC percentages between 0 and 100 \\
+lung\_cancer\_incidence & [10.4, 114.4] & 0 (0\%) & keep -- official registry rates; differences between regions are real \\
+survey\_weight & [$-$4883.8, 19849.6] & 7,431 (4.96\%) & keep -- NHIS design weight, used for population estimates only, not as a feature \\
+\bottomrule
+\end{tabularx}

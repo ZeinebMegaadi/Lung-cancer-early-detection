@@ -41,64 +41,81 @@ def download(url, dest):
 
 
 # 1. NHIS ------------------------------------------------------------------
-print("1. NHIS adult files")
-for y in YEARS:
-    yy = str(y)[-2:]
-    download(f"https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/{y}/adult{yy}csv.zip",
-             RAW / "nhis" / f"adult{yy}csv.zip")
+def download_nhis():
+    print("1. NHIS adult files")
+    for y in YEARS:
+        yy = str(y)[-2:]
+        download(f"https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/{y}/adult{yy}csv.zip",
+                 RAW / "nhis" / f"adult{yy}csv.zip")
+
 
 # 2. EPA air quality ---------------------------------------------------------
-print("\n2. EPA annual concentration by monitor")
-for y in YEARS:
-    download(f"https://aqs.epa.gov/aqsweb/airdata/annual_conc_by_monitor_{y}.zip",
-             RAW / "epa" / f"annual_conc_by_monitor_{y}.zip")
+def download_epa():
+    print("\n2. EPA annual concentration by monitor")
+    for y in YEARS:
+        download(f"https://aqs.epa.gov/aqsweb/airdata/annual_conc_by_monitor_{y}.zip",
+                 RAW / "epa" / f"annual_conc_by_monitor_{y}.zip")
+
 
 # 3. BRFSS smoking prevalence --------------------------------------------------
-print("\n3. BRFSS current-smoker prevalence by state")
-brfss_out = RAW / "brfss" / "brfss_current_smoker_by_state_2019_2023.csv"
-if not brfss_out.exists():
-    brfss_out.parent.mkdir(parents=True, exist_ok=True)
-    # Ask the CDC API for only the rows we need (small file)
-    where = "topic like '%Smoker Status%' AND break_out='Overall' AND year between '2019' and '2023'"
-    url = ("https://data.cdc.gov/resource/dttw-5yxu.csv?$limit=50000&$where="
-           + urllib.parse.quote(where))
-    try:
-        req = urllib.request.Request(url, headers=HEADERS)
-        with urllib.request.urlopen(req, timeout=300) as r:
-            df = pd.read_csv(io.BytesIO(r.read()))
-        if df.empty:
-            raise ValueError("API returned no rows")
-    except Exception as e:  # fallback: full export, then keep only smoking rows
-        print(f"  filtered API failed ({e}); downloading the full file instead")
-        full = download("https://data.cdc.gov/api/views/dttw-5yxu/rows.csv?accessType=DOWNLOAD",
-                        RAW / "brfss" / "_full_brfss_prevalence.csv")
-        df = pd.read_csv(full, low_memory=False)
-        df.columns = df.columns.str.lower()
-        df = df[df["topic"].astype(str).str.contains("Smoker Status", case=False)
-                & (df["break_out"].astype(str).str.lower() == "overall")
-                & df["year"].between(2019, 2023)]
-        full.unlink()
-    df.to_csv(brfss_out, index=False)
-    print(f"  saved {brfss_out.relative_to(ROOT)} ({len(df):,} rows)")
-else:
-    print(f"  already here: {brfss_out.relative_to(ROOT)}")
+def download_brfss():
+    print("\n3. BRFSS current-smoker prevalence by state")
+    brfss_out = RAW / "brfss" / "brfss_current_smoker_by_state_2019_2023.csv"
+    if not brfss_out.exists():
+        brfss_out.parent.mkdir(parents=True, exist_ok=True)
+        # Ask the CDC API for only the rows we need (small file)
+        where = "topic like '%Smoker Status%' AND break_out='Overall' AND year between '2019' and '2023'"
+        url = ("https://data.cdc.gov/resource/dttw-5yxu.csv?$limit=50000&$where="
+               + urllib.parse.quote(where))
+        try:
+            req = urllib.request.Request(url, headers=HEADERS)
+            with urllib.request.urlopen(req, timeout=300) as r:
+                df = pd.read_csv(io.BytesIO(r.read()))
+            if df.empty:
+                raise ValueError("API returned no rows")
+        except Exception as e:  # fallback: full export, then keep only smoking rows
+            print(f"  filtered API failed ({e}); downloading the full file instead")
+            full = download("https://data.cdc.gov/api/views/dttw-5yxu/rows.csv?accessType=DOWNLOAD",
+                            RAW / "brfss" / "_full_brfss_prevalence.csv")
+            df = pd.read_csv(full, low_memory=False)
+            df.columns = df.columns.str.lower()
+            df = df[df["topic"].astype(str).str.contains("Smoker Status", case=False)
+                    & (df["break_out"].astype(str).str.lower() == "overall")
+                    & df["year"].between(2019, 2023)]
+            full.unlink()
+        df.to_csv(brfss_out, index=False)
+        print(f"  saved {brfss_out.relative_to(ROOT)} ({len(df):,} rows)")
+    else:
+        print(f"  already here: {brfss_out.relative_to(ROOT)}")
+
 
 # 4. US Cancer Statistics (lung cancer incidence) -------------------------------
-print("\n4. US Cancer Statistics - lung cancer incidence by state")
-uscs_out = RAW / "uscs" / "uscs_lung_incidence_by_area.csv"
-if not uscs_out.exists():
-    z = download("https://www.cdc.gov/cancer/uscs/USCS-1999-2023-ASCII.zip", RAW / "uscs" / "_uscs.zip")
-    with zipfile.ZipFile(z) as zf:
-        name = [n for n in zf.namelist() if n.upper().endswith("BYAREA.TXT")][0]
-        with zf.open(name) as f:
-            df = pd.read_csv(f, sep="|", dtype=str, encoding="latin-1")
-    df.columns = df.columns.str.upper()
-    df = df[df["SITE"].str.contains("Lung", case=False, na=False)
-            & (df["EVENT_TYPE"].str.lower() == "incidence")]
-    df.to_csv(uscs_out, index=False)
-    z.unlink()                                    # the full zip is large; keep only the lung rows
-    print(f"  saved {uscs_out.relative_to(ROOT)} ({len(df):,} rows)")
-else:
-    print(f"  already here: {uscs_out.relative_to(ROOT)}")
+def download_uscs():
+    print("\n4. US Cancer Statistics - lung cancer incidence by state")
+    uscs_out = RAW / "uscs" / "uscs_lung_incidence_by_area.csv"
+    if not uscs_out.exists():
+        z = download("https://www.cdc.gov/cancer/uscs/USCS-1999-2023-ASCII.zip", RAW / "uscs" / "_uscs.zip")
+        with zipfile.ZipFile(z) as zf:
+            name = [n for n in zf.namelist() if n.upper().endswith("BYAREA.TXT")][0]
+            with zf.open(name) as f:
+                df = pd.read_csv(f, sep="|", dtype=str, encoding="latin-1")
+        df.columns = df.columns.str.upper()
+        df = df[df["SITE"].str.contains("Lung", case=False, na=False)
+                & (df["EVENT_TYPE"].str.lower() == "incidence")]
+        df.to_csv(uscs_out, index=False)
+        z.unlink()                                    # the full zip is large; keep only the lung rows
+        print(f"  saved {uscs_out.relative_to(ROOT)} ({len(df):,} rows)")
+    else:
+        print(f"  already here: {uscs_out.relative_to(ROOT)}")
 
-print("\nAll raw data downloaded.")
+
+def main():
+    download_nhis()
+    download_epa()
+    download_brfss()
+    download_uscs()
+    print("\nAll raw data downloaded.")
+
+
+if __name__ == "__main__":
+    main()

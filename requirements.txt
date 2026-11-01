@@ -1,7 +1,8 @@
 # Python 3.11, 3.12 or 3.13
 # Install with:  pip install -r requirements.txt
-# Last full run tested with: Python 3.13, pandas 3.0.5, numpy 2.5.3, scikit-learn 1.9.1,
-# scipy 1.18.1, matplotlib 3.11.2, seaborn 0.13.2, statsmodels 0.15.0
+# Last full run tested with: Python 3.13, pandas 3.1.0, numpy 2.5.4, scikit-learn 1.9.1,
+# scipy 1.18.1, matplotlib 3.11.2, seaborn 0.13.2, statsmodels 0.15.0,
+# jupyter 1.1.1, ipykernel 7.4.0, nbconvert 7.17.2
 pandas>=2.2,<4
 numpy>=1.26,<3
 scikit-learn>=1.4,<2
@@ -9,3 +10,7 @@ scipy>=1.11,<2
 matplotlib>=3.8,<4
 seaborn>=0.13,<0.14
 statsmodels>=0.14,<0.16
+# notebook (notebooks/lung_cancer_project.ipynb)
+jupyter>=1.0,<2
+ipykernel>=6.29,<8
+nbconvert>=7.16,<8

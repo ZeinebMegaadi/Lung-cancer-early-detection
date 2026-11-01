@@ -1,8 +1,29 @@
+OUTCOME
+  Having ever been told by a doctor that one had lung cancer, self-reported by US adults in NHIS
+  2019-2023 (149,928 adults, 619 cases).
 RESEARCH QUESTIONS
-  RQ1  Is smoking status associated with having had lung cancer?
-  RQ2  Are age, chronic conditions and socio-demographic / health factors associated with lung cancer?
-  RQ3  Do regional factors (PM2.5, regional smoking rate, registry incidence) add information
-       beyond the personal factors?
+  RQ1   Smoking. How much higher are the odds of a lung-cancer history among ever-smokers (current or
+        former) than among never-smokers? How much of that odds ratio remains when ever- and
+        never-smokers are compared within the same age group (Mantel-Haenszel over five age groups), and
+        does its size differ between age groups (Breslow-Day)?
+  RQ2a  Age. Are adults with a lung-cancer history older than those without, and by how much
+        (Mann-Whitney U, rank-biserial r)? How does the survey-weighted rate change across the five age
+        groups, alone and combined with smoking status?
+  RQ2b  Chronic conditions and e-cigarettes. Which of five doctor-diagnosed conditions (COPD, heart
+        disease, hypertension, diabetes, asthma), and ever using an e-cigarette, are associated with a
+        lung-cancer history (odds ratios with 95% CIs)? Does the COPD association remain after
+        stratifying by smoking status, and then by smoking status x age group?
+  RQ2c  Socio-demographic and health factors. Is a lung-cancer history associated with sex,
+        race/ethnicity, education, family income relative to the poverty line, BMI category and
+        self-rated general health (chi-square tests of independence, Cramer's V)? For the four ordered
+        factors, how does the survey-weighted rate change from the lowest to the highest level (described
+        from the rates, not tested as a trend)?
+  RQ3   Regional context. Across the 20 region-years (4 US Census regions x 2019-2023), does the
+        survey-weighted NHIS lung-cancer rate follow (a) the official US Cancer Statistics incidence, (b)
+        mean EPA PM2.5, and (c) BRFSS adult smoking prevalence? Is any agreement driven by differences
+        between regions or by year-to-year changes within them? As features, how much information do the
+        three regional columns carry about an individual's lung-cancer history compared with personal
+        factors (mutual information against a permutation null)?
 Significance level: alpha = 0.05 after Holm correction for multiple testing.
 
 ======================================================================
@@ -10,11 +31,13 @@ Significance level: alpha = 0.05 after Holm correction for multiple testing.
 ======================================================================
 Adults: 149,928 | columns: 26 | years: [2019, 2020, 2021, 2022, 2023]
 Lung cancer cases: 619
-  Sample rate:     0.41%
-  Population rate: 0.31%  (weighted with NHIS survey weights)
+  Sample rate:     0.41%  (619 of 149,928 adults, unweighted)
+  Population rate: 0.31%  (all 149,928 adults, weighted with NHIS survey weights)
+Denominators: every rate, odds ratio and correlation below states its subset (n adults, n cases) and
+whether it is survey-weighted. 'Unweighted' describes the sample; 'weighted' estimates the US adult population.
 Why both? NHIS interviews some groups more than others; the weights correct this.
 
-Numeric columns - centre, spread and shape:
+Numeric columns - centre, spread and shape (all 149,928 adults with the value known, unweighted):
                         mean  median   mode    std    IQR    min    max  skewness  kurtosis_excess
 age                    52.80   54.00  85.00  18.36  31.00  18.00  85.00     -0.05            -1.08
 comorbidity_count       0.73    0.00   0.00   0.91   1.00   0.00   5.00      1.29             1.54
@@ -27,15 +50,17 @@ No log transform is needed: the only skewed column is a small count (0-5), not a
 
 A model that always says 'no' would be 99.59% accurate -> accuracy is useless here.
 
-Missing values (%): screening_age_smoker 2.84, smoking_status 2.64, ever_smoker 2.64, ever_ecigarette 2.57, bmi_category 2.34, education 0.51, age 0.24, age_group 0.24, heart_disease 0.22, hypertension 0.11, copd 0.07, diabetes 0.05, asthma 0.04, general_health 0.04, sex 0.01
+Missing values (% of all 149,928 adults): screening_age_smoker 2.84, smoking_status 2.64, ever_smoker 2.64, ever_ecigarette 2.57, bmi_category 2.34, education 0.51, age 0.24, age_group 0.24, heart_disease 0.22, hypertension 0.11, copd 0.07, diabetes 0.05, asthma 0.04, general_health 0.04, sex 0.01
 
 Missing-data check: is 'value missing' related to lung cancer? (chi-square on missing yes/no x target)
-              column  pct_missing  lc_rate_if_missing_%  lc_rate_if_present_%  chi2        p  min_expected  p_holm
-        bmi_category         2.34                 0.370                 0.414  0.07 0.788414          14.5     1.0
-     ever_ecigarette         2.57                 0.441                 0.412  0.02 0.879316          15.9     1.0
-      smoking_status         2.64                 0.455                 0.412  0.09 0.766854          16.3     1.0
-         ever_smoker         2.64                 0.455                 0.412  0.09 0.766854          16.3     1.0
-screening_age_smoker         2.84                 0.446                 0.412  0.05 0.828236          17.6     1.0
+All 149,928 adults (619 cases), unweighted; the two rates compare adults with the value missing
+vs present (adults_missing / cases_missing = size of the 'missing' group).
+              column  pct_missing  adults_missing  cases_missing  lc_rate_if_missing_%  lc_rate_if_present_%  chi2        p  min_expected  p_holm
+        bmi_category         2.34            3514             13                 0.370                 0.414  0.07 0.788414          14.5     1.0
+     ever_ecigarette         2.57            3852             17                 0.441                 0.412  0.02 0.879316          15.9     1.0
+      smoking_status         2.64            3953             18                 0.455                 0.412  0.09 0.766854          16.3     1.0
+         ever_smoker         2.64            3953             18                 0.455                 0.412  0.09 0.766854          16.3     1.0
+screening_age_smoker         2.84            4264             19                 0.446                 0.412  0.05 0.828236          17.6     1.0
 Reading: if p_holm >= 0.05, missingness is not detectably linked to lung cancer, so filling the gaps
 (training median / 0) plus an 'unknown' flag does not hide a pattern. If p_holm < 0.05, the 'unknown'
 flag keeps that information for a future model.
@@ -59,8 +84,9 @@ Categorical distributions saved (reports/tables/categorical_distributions.csv). 
   US region                        South (36.2%)
 
 ======================================================================
-2. SMOKING vs LUNG CANCER  (research question 1)
+2. SMOKING vs LUNG CANCER  (RQ1)
 ======================================================================
+Subset: adults with known smoking status, n = 145,975 (601 cases; 3,953 adults with unknown status excluded). rate_% unweighted, weighted_rate_% survey-weighted.
                     n  cases  rate_%  weighted_rate_%
 smoking_status                                       
 Never           90937    107    0.12             0.08
@@ -72,7 +98,7 @@ Chi-square test of independence
   Why: both variables are categories (3 x 2 table)
   Assumption check: smallest expected count = 72.4 (needs >= 5) -> OK
   Result: chi2(2) = 528.0, p = 2.20e-115, Cramer's V = 0.060
-  Odds ratio, ever vs never smokers: 7.66 (95% CI 6.22 - 9.44)
+  Odds ratio, ever vs never smokers: 7.66 (95% CI 6.22 - 9.44); same 145,975 adults (601 cases), unweighted
   In words: ever-smokers have about 7.7 times the odds of having had lung cancer.
   Why is 'Former' higher than 'Current'? NHIS asks about smoking NOW: many people stop smoking
   after a diagnosis (reverse causation), so patients move from 'Current' to 'Former'.
@@ -80,8 +106,9 @@ Chi-square test of independence
   is the better effect size for a rare outcome.
 
 ======================================================================
-3. AGE vs LUNG CANCER  (research question 2)
+3. AGE vs LUNG CANCER  (RQ2a)
 ======================================================================
+Subset: adults with known age, n = 149,575 (618 cases), unweighted; rate by age group weighted.
 Median age: lung cancer 72 vs no lung cancer 54
 Normality check (Shapiro-Wilk on 5,000 ages): p = 5.71e-33 -> age is not normal
 Mann-Whitney U test
@@ -92,23 +119,25 @@ Mann-Whitney U test
   -> both tests agree, so the conclusion does not depend on the choice of test.
 
 ======================================================================
-4. COPD AND OTHER CONDITIONS  (research question 2)
+4. COPD, OTHER CONDITIONS AND E-CIGARETTES  (RQ2b)
 ======================================================================
-      condition  rate_if_yes_%  rate_if_no_%  odds_ratio  ci_low  ci_high     p  cramers_v  min_expected
-           copd          3.412         0.233      15.103  12.877   17.715 0.000      0.114        34.813
-  heart_disease          1.532         0.338       4.599   3.803    5.561 0.000      0.045        37.239
-   hypertension          0.738         0.226       3.272   2.772    3.861 0.000      0.038       226.395
-       diabetes          0.815         0.365       2.252   1.856    2.732 0.000      0.022        66.353
-         asthma          0.557         0.389       1.438   1.175    1.760 0.001      0.009        85.935
-ever_ecigarette          0.447         0.405       1.108   0.898    1.368 0.387      0.002        96.723
+Each row: adults with that condition known (adults, cases); rates and odds ratios unweighted.
+      condition  adults  cases  rate_if_yes_%  rate_if_no_%  odds_ratio  ci_low  ci_high        p  cramers_v  min_expected
+           copd  149826    618          3.412         0.233      15.103  12.877   17.715 < 1e-300      0.114        34.813
+  heart_disease  149597    614          1.532         0.338       4.599   3.803    5.561 5.64e-66      0.045        37.239
+   hypertension  149766    619          0.738         0.226       3.272   2.772    3.861 1.26e-49      0.038       226.395
+       diabetes  149860    619          0.815         0.365       2.252   1.856    2.732 6.74e-17      0.022        66.353
+         asthma  149864    618          0.557         0.389       1.438   1.175    1.760 5.72e-04      0.009        85.935
+ever_ecigarette  146076    602          0.447         0.405       1.108   0.898    1.368 3.87e-01      0.002        96.723
 All expected counts >= 5 -> the chi-square approximation is valid.
 
 ======================================================================
-4b. IS THE COPD LINK ONLY DUE TO SMOKING?  (confounding check, research question 2)
+4b. IS THE COPD LINK ONLY DUE TO SMOKING?  (confounding check, RQ2b)
 ======================================================================
 Problem: smokers get COPD more often AND lung cancer more often, so smoking could create a
 COPD-lung cancer link on its own (confounding). Solution: compare COPD vs no COPD WITHIN each
 smoking group, then pool the groups with the Cochran-Mantel-Haenszel (CMH) test.
+Subset: adults with known COPD and smoking status, n = 145,897 (600 cases), unweighted.
                                  group      n  cases  odds_ratio  ci_low  ci_high
                          Never smokers  90901    107        8.45    4.99    14.31
                         Former smokers  37424    366        9.78    7.94    12.03
@@ -123,35 +152,42 @@ crude link was due to smoking, but COPD stays strongly associated with lung canc
 and current smokers alike. (Association, not causation; age is a second possible confounder.)
 
 ======================================================================
-4c. SOCIO-DEMOGRAPHIC AND HEALTH FACTORS  (research question 2)
+4c. SOCIO-DEMOGRAPHIC AND HEALTH FACTORS  (RQ2c)
 ======================================================================
 Note: race groups AIAN, 'AIAN and other' and 'Other or multiple' are merged for the test
 (expected counts below 5 otherwise, which makes the chi-square approximation unreliable).
 
 Sex  -  H0: sex and lung cancer are not related
+  Adults with sex known: n = 149,912 (619 cases); rates survey-weighted, test unweighted
   Weighted lung cancer rate (%): Female 0.32, Male 0.30
   chi2(1) = 2.0, p = 1.56e-01, Cramer's V = 0.004, smallest expected count = 283.1
 
 Race / ethnicity  -  H0: race_ethnicity and lung cancer are not related
+  Adults with race_ethnicity known: n = 149,928 (619 cases); rates survey-weighted, test unweighted
   Weighted lung cancer rate (%): White 0.39, Black 0.22, Hispanic 0.10, Asian 0.22, AIAN / other / multiple 0.28
   chi2(4) = 70.7, p = 1.63e-14, Cramer's V = 0.022, smallest expected count = 15.5
 
 Education  -  H0: education and lung cancer are not related
+  Adults with education known: n = 149,168 (612 cases); rates survey-weighted, test unweighted
   Weighted lung cancer rate (%): Less than high school 0.49, High school / GED 0.40, Some college 0.32, Bachelor 0.15, Graduate 0.16
   chi2(4) = 114.7, p = 7.10e-24, Cramer's V = 0.028, smallest expected count = 52.6
 
 Family income vs poverty line  -  H0: income_group and lung cancer are not related
+  Adults with income_group known: n = 149,928 (619 cases); rates survey-weighted, test unweighted
   Weighted lung cancer rate (%): Below poverty 0.46, Low 0.43, Middle 0.32, High 0.21
   chi2(3) = 78.0, p = 8.29e-17, Cramer's V = 0.023, smallest expected count = 62.4
 
 BMI category  -  H0: bmi_category and lung cancer are not related
+  Adults with bmi_category known: n = 146,414 (606 cases); rates survey-weighted, test unweighted
   Weighted lung cancer rate (%): Underweight 1.14, Healthy 0.35, Overweight 0.29, Obese 0.24
   chi2(3) = 69.2, p = 6.46e-15, Cramer's V = 0.022, smallest expected count = 9.6
 
 Self-rated general health  -  H0: general_health and lung cancer are not related
+  Adults with general_health known: n = 149,868 (619 cases); rates survey-weighted, test unweighted
   Weighted lung cancer rate (%): Excellent 0.03, Very good 0.10, Good 0.28, Fair 0.96, Poor 2.47
   chi2(4) = 1154.7, p = 1.06e-248, Cramer's V = 0.088, smallest expected count = 22.5
 
+Ever-smokers (%, unweighted; adults with known education / income and smoking status):
 Ever-smokers (%) by education: Less than high school 46, High school / GED 46, Some college 42, Bachelor 28, Graduate 26
 Ever-smokers (%) by income:    Below poverty 44, Low 43, Middle 39, High 33
 
@@ -165,8 +201,9 @@ Reading:
     (not adjusted here). All Cramer's V are small because the outcome is rare.
 
 ======================================================================
-5. SMOKING x AGE  (stand-out: combined effect)
+5. SMOKING x AGE  (RQ2a: age combined with smoking status)
 ======================================================================
+Survey-weighted lung cancer rate (%); adults with known age group and smoking status, n = 145,664 (600 cases):
 smoking_status  Never  Former  Current
 age_group                             
 18-44            0.00    0.04     0.09
@@ -180,22 +217,87 @@ screening_age_smoker feature (age 50-80 AND ever smoked).
 ======================================================================
 6. CORRELATIONS (Spearman)
 ======================================================================
+Data: all 149,928 adults (619 cases), unweighted; each pair uses the adults with
+both values known (n = 145,664 to 149,928).
 Strongest pairs: hypertension-comorbidity_count 0.79; diabetes-comorbidity_count 0.49; asthma-comorbidity_count 0.45; age-hypertension 0.44; smoking_rate-lung_cancer_incidence 0.43; age-comorbidity_count 0.41
 Why Spearman and not Pearson: most columns are 0/1 or ordered, and age is not normal; Spearman
 uses ranks, so it only assumes a monotonic (always up or always down) relationship.
-Reading: comorbidity_count correlates with its own parts (by construction); no pair of different
-variables is above 0.5, so there is no harmful redundancy among the personal features.
 
 ======================================================================
-7. REGIONAL DATA  (research question 3) + cross-source check
+6b. ASSOCIATION MATRIX OF ALL ANALYSIS VARIABLES (Fig 12b)
+======================================================================
+24 variables = the 26 columns of the clean file minus person_id and survey_weight (CANEV_A is not in it).
+Numeric: age, comorbidity_count, pm25_mean, smoking_rate, lung_cancer_incidence. Every other variable is categorical (0/1 flags, ordered groups, year).
+Methods: Cramer's V for categorical-categorical, correlation ratio eta for categorical-numeric,
+|Spearman| for numeric-numeric. All three run from 0 (no association) to 1 (one determines the other).
+Data: all 149,928 adults, unweighted; each pair uses the adults with both values known (n = 142,511 to 149,928).
+Strongest pairs: smoking_status-ever_smoker 1.00 (Cramer's V); region-lung_cancer_incidence 0.98 (eta); age-age_group 0.96 (eta); region-smoking_rate 0.73 (eta); hypertension-comorbidity_count 0.73 (eta); region-pm25_mean 0.71 (eta); smoking_status-screening_age_smoker 0.69 (Cramer's V); ever_smoker-screening_age_smoker 0.69 (Cramer's V)
+With the target: copd 0.114; general_health 0.088; comorbidity_count 0.072; age_group 0.069; screening_age_smoker 0.066; age 0.065
+
+======================================================================
+6c. CORRELATIONS BETWEEN THE FINAL MODEL FEATURES (Fig 12c, training rows)
+======================================================================
+Data: 38 final features + the target on the 119,942 training rows (495 cases), unweighted; Spearman; no missing values.
+Feature pairs with |r| >= 0.3: 9; with |r| > 0.5: 2
+Largest: ever_ecigarette_unknown-screening_age_smoker_unknown +0.93; smoking_status_Former-screening_age_smoker +0.55; bmi_category_Overweight-bmi_category_Obese -0.49; general_health_Very good-general_health_Good -0.46; hypertension-age +0.44; lung_cancer_incidence-smoking_rate +0.43
+
+Pairs above 0.5 (reports/tables/high_correlation_pairs.csv):
+                           matrix                        var_a                   var_b    measure  value         type
+  Fig 12b (variables, all adults)                         year            smoking_rate        eta   0.67   built-from
+  Fig 12b (variables, all adults)                          age               age_group        eta   0.96   built-from
+  Fig 12b (variables, all adults)                       region               pm25_mean        eta   0.71   built-from
+  Fig 12b (variables, all adults)                       region            smoking_rate        eta   0.73   built-from
+  Fig 12b (variables, all adults)                       region   lung_cancer_incidence        eta   0.98   built-from
+  Fig 12b (variables, all adults)               smoking_status             ever_smoker Cramer's V   1.00   built-from
+  Fig 12b (variables, all adults)               smoking_status    screening_age_smoker Cramer's V   0.69   built-from
+  Fig 12b (variables, all adults)                  ever_smoker    screening_age_smoker Cramer's V   0.69   built-from
+  Fig 12b (variables, all adults)                 hypertension       comorbidity_count        eta   0.73   built-from
+  Fig 12b (variables, all adults)                     diabetes       comorbidity_count        eta   0.57   built-from
+Fig 12c (features, training rows) screening_age_smoker_unknown ever_ecigarette_unknown   Spearman   0.93 same-concept
+Fig 12c (features, training rows)         screening_age_smoker   smoking_status_Former   Spearman   0.55   built-from
+Reading - redundancy:
+  12 pairs exceed 0.5: 11 built-from (one column is computed from the other, or both are
+  joined on region + year), 1 same-concept and 0 genuine association.
+  No two separately measured personal variables are associated above 0.5. The built-from overlaps are
+  handled in feature selection: ever_smoker, age_group, comorbidity_count and the region dummies are not
+  model features (rules 1 and 4). The two high pairs left among the final features are kept on purpose:
+  the two 'unknown' flags (both mark adults who skipped the smoking questions) and screening_age_smoker vs
+  former smoking (the rule needs smoking status and age together); their VIFs are below 10
+  (reports/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1
+  columns, so dependencies spread over several columns (a one-hot group, or region vs the regional
+  columns) were invisible to a pairwise check; the VIF step catches them.
+
+Why the correlations with the target are small
+  The target is 1 for 0.41% of adults (619 of 149,928). For two 0/1 variables
+  Spearman = Pearson = phi, and phi can only reach 1 if both have the same prevalence. A feature with
+  prevalence q can reach at most phi_max = sqrt(p(1-q) / (q(1-p))) with a target of prevalence p:
+             feature  adults  cases  prevalence_%   phi  phi_max  odds_ratio  phi_share_of_max_%
+                copd  149826    618           5.6 0.114    0.263        15.1                43.0
+       heart_disease  149597    614           6.1 0.045    0.253         4.6                18.0
+        hypertension  149766    619          36.6 0.038    0.085         3.3                45.0
+            diabetes  149860    619          10.7 0.022    0.186         2.3                12.0
+              asthma  149864    618          13.9 0.009    0.160         1.4                 6.0
+         ever_smoker  145975    601          37.7 0.059    0.083         7.7                71.0
+screening_age_smoker  145664    600          22.2 0.066    0.120         6.5                55.0
+     ever_ecigarette  146076    602          16.1 0.002    0.147         1.1                 2.0
+  (unweighted; adults with the feature known; odds ratio with the same +0.5 correction as section 4)
+  So COPD's phi of 0.11 is not 'weak': it is 43% of the most it could be (0.26), and its odds ratio is 15.1.
+  Correlations with a rare target must therefore be read together with odds ratios and rates, never alone.
+
+======================================================================
+7. REGIONAL DATA  (RQ3) + cross-source check
 ======================================================================
 Cross-source validation: does the NHIS self-reported rate follow the official cancer-registry rate?
-  Spearman rho (20 region-years) = 0.79, p = 0.000
+Unit: 20 region-years (4 regions x 5 years). NHIS rate = survey-weighted rate of the adults in that
+region-year: 4,574-11,646 adults each (149,928 adults and 619 cases in total).
+  Spearman rho (20 region-years) = 0.79, p = 3.5e-05
   (Not the same measure: NHIS = people EVER diagnosed; registry = NEW cases per year.)
-  pm25_mean              vs NHIS rate: rho = -0.12, p = 0.629
-  smoking_rate           vs NHIS rate: rho = 0.09, p = 0.715
-  lung_cancer_incidence  vs NHIS rate: rho = 0.79, p = 0.000
+  pm25_mean              vs NHIS rate: rho = -0.12, p = 0.63
+  smoking_rate           vs NHIS rate: rho = 0.09, p = 0.71
+  lung_cancer_incidence  vs NHIS rate: rho = 0.79, p = 3.5e-05
 Note: only 20 region-years -> low power; regional columns give context, not personal detail.
+Section 9 adds that, as features, the three regional columns carry one shared signal (which region-year),
+so they cannot separate the effect of pollution, regional smoking and registry incidence.
 Limits: registry rates are crude (not age-adjusted), state values are averaged without population
 weights, and 2019-2023 pollution cannot explain cancers diagnosed many years earlier.
 
@@ -204,20 +306,20 @@ weights, and 2019-2023 pollution cannot explain cancers diagnosed many years ear
 ======================================================================
                                                                    test research_question         p    p_holm  significant_after_correction
                              Smoking status vs lung cancer (chi-square)               RQ1 2.20e-115 3.09e-114                          True
-                                      Age vs lung cancer (Mann-Whitney)               RQ2 3.09e-141 4.64e-140                          True
-                                       copd vs lung cancer (chi-square)               RQ2  < 1e-300  < 1e-300                          True
-                                     asthma vs lung cancer (chi-square)               RQ2  5.72e-04  2.86e-03                          True
-                               hypertension vs lung cancer (chi-square)               RQ2  1.26e-49  1.51e-48                          True
-                              heart_disease vs lung cancer (chi-square)               RQ2  5.64e-66  7.33e-65                          True
-                                   diabetes vs lung cancer (chi-square)               RQ2  6.74e-17  6.74e-16                          True
-                            ever_ecigarette vs lung cancer (chi-square)               RQ2  3.87e-01  1.00e+00                         False
-                         COPD vs lung cancer adjusted for smoking (CMH)               RQ2 1.51e-208 2.41e-207                          True
-                                        sex vs lung cancer (chi-square)               RQ2  1.56e-01  6.23e-01                         False
-                             race_ethnicity vs lung cancer (chi-square)               RQ2  1.63e-14  1.14e-13                          True
-                                  education vs lung cancer (chi-square)               RQ2  7.10e-24  7.81e-23                          True
-                               income_group vs lung cancer (chi-square)               RQ2  8.29e-17  7.46e-16                          True
-                               bmi_category vs lung cancer (chi-square)               RQ2  6.46e-15  5.17e-14                          True
-                             general_health vs lung cancer (chi-square)               RQ2 1.06e-248 1.80e-247                          True
+                                      Age vs lung cancer (Mann-Whitney)              RQ2a 3.09e-141 4.64e-140                          True
+                                       copd vs lung cancer (chi-square)              RQ2b  < 1e-300  < 1e-300                          True
+                                     asthma vs lung cancer (chi-square)              RQ2b  5.72e-04  2.86e-03                          True
+                               hypertension vs lung cancer (chi-square)              RQ2b  1.26e-49  1.51e-48                          True
+                              heart_disease vs lung cancer (chi-square)              RQ2b  5.64e-66  7.33e-65                          True
+                                   diabetes vs lung cancer (chi-square)              RQ2b  6.74e-17  6.74e-16                          True
+                            ever_ecigarette vs lung cancer (chi-square)              RQ2b  3.87e-01  1.00e+00                         False
+                         COPD vs lung cancer adjusted for smoking (CMH)              RQ2b 1.51e-208 2.41e-207                          True
+                                        sex vs lung cancer (chi-square)              RQ2c  1.56e-01  6.23e-01                         False
+                             race_ethnicity vs lung cancer (chi-square)              RQ2c  1.63e-14  1.14e-13                          True
+                                  education vs lung cancer (chi-square)              RQ2c  7.10e-24  7.81e-23                          True
+                               income_group vs lung cancer (chi-square)              RQ2c  8.29e-17  7.46e-16                          True
+                               bmi_category vs lung cancer (chi-square)              RQ2c  6.46e-15  5.17e-14                          True
+                             general_health vs lung cancer (chi-square)              RQ2c 1.06e-248 1.80e-247                          True
             pm25_mean vs NHIS regional rate (Spearman, 20 region-years)               RQ3  6.29e-01  1.00e+00                         False
          smoking_rate vs NHIS regional rate (Spearman, 20 region-years)               RQ3  7.15e-01  1.00e+00                         False
 lung_cancer_incidence vs NHIS regional rate (Spearman, 20 region-years)               RQ3  3.49e-05  2.09e-04                          True
@@ -228,38 +330,53 @@ Limitation: tests treat every adult as an independent draw; they do not use the 
 design-based test would not change the conclusions, but the exact p-values would be larger.
 
 ======================================================================
-9. FEATURE RELEVANCE (training rows only - no leakage)
+9. FEATURE RELEVANCE (training rows only - no leakage; RQ3: regional vs personal)
 ======================================================================
+Training rows only: n = 119,942 adults (495 cases), unweighted; 38 final features.
 Top 15 features by mutual information:
 age                         0.00274
 copd                        0.00263
-comorbidity_count           0.00197
 screening_age_smoker        0.00158
-smoking_status_Never        0.00158
 general_health_Poor         0.00111
 smoking_status_Former       0.00109
 hypertension                0.00072
 general_health_Fair         0.00071
 heart_disease               0.00066
-general_health_Excellent    0.00062
 general_health_Very good    0.00054
-race_ethnicity_White        0.00023
-income_group_High           0.00023
 race_ethnicity_Hispanic     0.00022
+education_Bachelor          0.00022
+diabetes                    0.00018
+lung_cancer_incidence       0.00017
+smoking_rate                0.00017
+pm25_mean                   0.00014
 Columns treated as continuous: age
-Reading: the personal factors (age, COPD, comorbidities, smoking, general health) carry the most
-information; the regional columns carry very little (consistent with section 7).
+Reading: the personal factors (age, COPD, smoking, general health, hypertension) carry the most
+information. The regional columns carry very little (MI 0.00014-0.00017, vs 0.00274 for age),
+and the three values measure the same thing (see below).
+
+Why the three regional MI values are (almost) equal:
+                    column  distinct_values  region_year_cells  one_value_per_cell       mi                                       cells_sharing_a_value
+                 pm25_mean               18                 20                True 0.000145 6.31 = West 2019 & West 2023; 7.43 = South 2022 & West 2021
+              smoking_rate               20                 20                True 0.000173                                                            
+     lung_cancer_incidence               20                 20                True 0.000173                                                            
+region x year (cell label)               20                 20                True 0.000173                                                            
+  As discrete columns, the regional values only say WHICH region-year an adult lives in. smoking_rate and
+  lung_cancer_incidence take a different value in each of the 20 cells, so their MI is exactly the MI of the
+  region-year label; pm25_mean has two ties (two pairs of cells share a value), so it merges them and its MI
+  is slightly lower. The three MI values therefore measure ONE thing (region-year identity), not three
+  independent regional signals; they cannot tell whether pollution, smoking prevalence or registry
+  incidence matters. Together they carry what the region-year label carries, and no more.
 
 ======================================================================
 10. SUCCESS CRITERIA CHECK (Phase 1 - measurable criteria)
 ======================================================================
-                                                       criterion                                observed                   target  met
-                       No duplicate person IDs in the clean file                                       0                        0 True
-                       No missing values in the model-ready file                                       0                        0 True
-                                      Regional join adds no rows                      149,928 -> 149,928                    equal True
-Train and test keep the same lung cancer rate (stratified split)                          0.41% vs 0.41% difference < 0.05 points True
-        Every research question has at least one hypothesis test {'RQ1': True, 'RQ2': True, 'RQ3': True}                 all True True
-   Every test is Holm-corrected and reported with an effect size                                18 tests            all corrected True
-          Every candidate feature has a written KEEP/DROP reason                                       0        0 missing reasons True
-       Leakage: 'ever had any cancer' (CANEV_A) is not a feature                                   False                    False True
+                                                       criterion                                                             observed                   target  met
+                       No duplicate person IDs in the clean file                                                                    0                        0 True
+                       No missing values in the model-ready file                                                                    0                        0 True
+                                      Regional join adds no rows                                                   149,928 -> 149,928                    equal True
+Train and test keep the same lung cancer rate (stratified split)                                                       0.41% vs 0.41% difference < 0.05 points True
+        Every research question has at least one hypothesis test {'RQ1': True, 'RQ2a': True, 'RQ2b': True, 'RQ2c': True, 'RQ3': True}                 all True True
+   Every test is Holm-corrected and reported with an effect size                                                             18 tests            all corrected True
+          Every candidate feature has a written KEEP/DROP reason                                                  67 of 67 candidates        0 missing reasons True
+       Leakage: 'ever had any cancer' (CANEV_A) is not a feature                                                                False                    False True
 Criteria met: 8 / 8

@@ -1,0 +1,15 @@
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{5.2cm} r >{\raggedright\arraybackslash}X}
+\toprule
+Rule & Dropped & Features \\
+\midrule
+1. Redundant by construction & 8 & ever\_smoker, ever\_smoker\_unknown, age\_group\_18-44, age\_group\_45-54, age\_group\_55-64, age\_group\_65-74, age\_group\_75+, age\_group\_Unknown \\
+2. Constant in training rows & 0 & -- \\
+2b. Near-constant: more than 99.5\% of training rows share one value & 8 & age\_missing, copd\_unknown, asthma\_unknown, hypertension\_unknown, heart\_disease\_unknown, diabetes\_unknown, sex\_Unknown, general\_health\_Unknown \\
+3. Near-duplicates: $|r| > 0.95$ with a column already kept & 3 & sex\_Male, region\_West, smoking\_status\_Unknown \\
+4a. Exact linear combination of other features (VIF = $\infty$) & 1 & comorbidity\_count \\
+4b. Reference category of each one-hot group & 6 & race\_ethnicity\_White, education\_High school / GED, income\_group\_High, general\_health\_Excellent, bmi\_category\_Healthy, smoking\_status\_Never \\
+4c. Near-collinear block (region dummies vs regional columns) & 3 & region\_Midwest, region\_Northeast, region\_South \\
+\midrule
+Total dropped & 29 & 38 features kept \\
+\bottomrule
+\end{tabularx}

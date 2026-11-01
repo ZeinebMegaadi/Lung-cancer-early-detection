@@ -1,0 +1,5 @@
+column,distinct_values,region_year_cells,one_value_per_cell,mi,cells_sharing_a_value
+pm25_mean,18,20,True,0.00014482755466996354,6.31 = West 2019 & West 2023; 7.43 = South 2022 & West 2021
+smoking_rate,20,20,True,0.00017335791364303098,
+lung_cancer_incidence,20,20,True,0.00017335791364303098,
+region x year (cell label),20,20,True,0.00017335791364303098,

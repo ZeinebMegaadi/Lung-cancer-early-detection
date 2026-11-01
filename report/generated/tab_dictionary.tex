@@ -1,0 +1,32 @@
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.8cm} >{\raggedright\arraybackslash}X l >{\raggedright\arraybackslash}p{3.4cm}}
+\toprule
+Column & Meaning & Type & Built from \\
+\midrule
+person\_id & Unique ID: survey year + NHIS household number & identifier & NHIS HHX + SRVY\_YR \\
+year & Survey year (2019-2023) & numeric & SRVY\_YR \\
+survey\_weight & NHIS sampling weight (use for population estimates) & weight & WTFA\_A \\
+age & Age in years (85 = 85 or older) & numeric & AGEP\_A \\
+sex & Male / Female & binary & SEX\_A \\
+race\_ethnicity & Hispanic origin and race & nominal & HISPALLP\_A \\
+region & US region & nominal & REGION \\
+education & Highest education level (grouped) & ordinal & EDUC\_A (EDUCP\_A from 2021) \\
+income\_group & Family income vs poverty line: below (<1), low (1-2), middle (2-4), high (4+) & ordinal & RATCAT\_A \\
+general\_health & Self-rated general health & ordinal & PHSTAT\_A \\
+bmi\_category & Body mass index category & ordinal & BMICAT\_A \\
+smoking\_status & Cigarette smoking: Current / Former / Never & nominal & SMKCIGST\_A \\
+ever\_ecigarette & Ever used an e-cigarette (1 = yes) & binary & ECIGEV\_A \\
+copd & Ever told COPD, emphysema or chronic bronchitis (1 = yes) & binary & COPDEV\_A \\
+asthma & Ever had asthma (1 = yes) & binary & ASEV\_A \\
+hypertension & Ever told high blood pressure (1 = yes) & binary & HYPEV\_A \\
+heart\_disease & Ever told coronary heart disease (1 = yes) & binary & CHDEV\_A \\
+diabetes & Ever told diabetes (1 = yes) & binary & DIBEV\_A \\
+age\_group & NEW: age band & engineered & from age \\
+ever\_smoker & NEW: current or former smoker (1 = yes) & engineered & from smoking\_status \\
+screening\_age\_smoker & NEW: age 50-80 and ever smoked (proxy of screening eligibility) & engineered & from age + smoking \\
+comorbidity\_count & NEW: number of the 5 conditions above & engineered & from copd...diabetes \\
+pm25\_mean & JOINED: average fine-particle air pollution (PM2.5, µg/m³) in the person's region that year & regional & EPA AirData, by region + year \\
+smoking\_rate & JOINED: \% of adults who currently smoke in the person's region that year & regional & CDC BRFSS, by region + year \\
+lung\_cancer\_incidence & JOINED: new lung cancer cases per 100,000 people in the person's region that year & regional & CDC US Cancer Statistics, by region + year \\
+lung\_cancer & TARGET: ever told they had lung cancer (1 = yes) & target & CANEV\_A + LUNGCAN\_A \\
+\bottomrule
+\end{tabularx}

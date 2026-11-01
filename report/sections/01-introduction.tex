@@ -1,0 +1,86 @@
+\section{Introduction}\label{sec:intro}
+
+Our goal is simple to state: find out which personal and regional factors are associated with lung cancer, and hand the modelling phase a dataset it can trust.
+
+\subsection{Context}\label{sec:context}
+
+Lung cancer is the leading cause of cancer death in the United States, mostly because it is usually found late. Low-dose CT screening saves lives, but it is only offered to people at high risk. The US Preventive Services Task Force~\cite{uspstf} defines them as adults aged 50--80 with at least 20 pack-years who still smoke or quit within the last 15 years. Validated risk models such as PLCOm2012~\cite{tammemagi} go further and combine age, smoking dose and duration, COPD and family history. The real problem is therefore upstream of the scan: knowing who is at risk. That is a data problem, and it is the one we picked. Our target records a past diagnosis, so this midterm studies risk factors and associations; the repository keeps its original name (Lung-cancer-early-detection), but no claim about early detection is made here.
+
+\subsection{Problem statement and objectives}\label{sec:problem}
+
+Using five years of nationally representative survey data, joined with regional pollution, smoking and cancer-registry data, we want to:
+\begin{enumerate}
+  \item identify which demographic, behavioural, health and regional factors are associated with having ever been diagnosed with lung cancer;
+  \item measure how strong each association is, with effect sizes and confidence intervals rather than $p$-values alone;
+  \item check whether the strongest associations survive adjustment for the obvious confounders (age for smoking; smoking and age for COPD);
+  \item deliver a clean, documented, leakage-free feature set for a future risk model.
+\end{enumerate}
+
+\subsection{Research questions}\label{sec:rq}
+
+\textbf{Outcome.} Having ever been told by a doctor that one had lung cancer, self-reported by US adults in NHIS 2019--2023 (\nAdults adults, \nCases cases).
+
+We fixed these questions (Table~\ref{tab:rq}) at the start of the analysis, so it could not drift toward whatever happened to look significant, and made each one name the comparison, the measure and the adjustment it relies on. The second question is split into three (RQ2a--c), one per family of factors. The same five labels mark every test in the code (\file{reports/tables/all_tests_holm.csv}): RQ1 has 1 test, RQ2a 1, RQ2b 7, RQ2c 6 and RQ3 3, for \nTests in total.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Research questions and how each one is answered.}\label{tab:rq}
+\begin{tabularx}{\textwidth}{@{}l >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{4.1cm} >{\raggedright\arraybackslash}p{2.2cm}@{}}
+\toprule
+\# & Question & How we answer it & Where \\
+\midrule
+RQ1 & \textbf{Smoking.} How much higher are the odds of a lung-cancer history among ever-smokers (current or former) than among never-smokers? How much of that odds ratio remains when ever- and never-smokers are compared within the same age group (Mantel--Haenszel over five age groups), and does its size differ between age groups (Breslow--Day)?
+ & $\chi^2$ test of independence, Cram\'er's $V$; odds ratio with 95\% CI; Mantel--Haenszel odds ratio over five age groups with CMH test; Breslow--Day test
+ & \S\ref{sec:rq1}--\ref{sec:age}, Table~\ref{tab:smoking-age} \\
+\addlinespace
+RQ2a & \textbf{Age.} Are adults with a lung-cancer history older than those without, and by how much (Mann--Whitney $U$, rank-biserial $r$)? How does the survey-weighted rate change across the five age groups, alone and combined with smoking status?
+ & Mann--Whitney $U$ with rank-biserial $r$ (Welch $t$-test as a check); survey-weighted rates by age group and by age group $\times$ smoking status
+ & \S\ref{sec:demo}, \S\ref{sec:age}, Fig.~\ref{fig:age}--\ref{fig:agesmoking} \\
+\addlinespace
+RQ2b & \textbf{Chronic conditions and e-cigarettes.} Which of five doctor-diagnosed conditions (COPD, heart disease, hypertension, diabetes, asthma), and ever using an e-cigarette, are associated with a lung-cancer history (odds ratios with 95\% CIs)? Does the COPD association remain after stratifying by smoking status, and then by smoking status $\times$ age group?
+ & $\chi^2$ tests with odds ratios (95\% CI) and Cram\'er's $V$; Cochran--Mantel--Haenszel and Breslow--Day tests across smoking groups; Mantel--Haenszel odds ratio over smoking status $\times$ age group (15 strata)
+ & \S\ref{sec:conditions}--\ref{sec:copd}, Fig.~\ref{fig:conditions}--\ref{fig:copd}, Tables~\ref{tab:conditions}--\ref{tab:copd-adjusted} \\
+\addlinespace
+RQ2c & \textbf{Socio-demographic and health factors.} Is a lung-cancer history associated with sex, race/ethnicity, education, family income relative to the poverty line, BMI category and self-rated general health ($\chi^2$ tests of independence, Cram\'er's $V$)? For the four ordered factors, how does the survey-weighted rate change from the lowest to the highest level (described from the rates, not tested as a trend)?
+ & $\chi^2$ tests of independence with Cram\'er's $V$ (smallest race groups merged); survey-weighted rates per level, compared from lowest to highest for the four ordered factors (education, income, BMI, self-rated health) -- described, not tested as a trend
+ & \S\ref{sec:sociodemo}, Fig.~\ref{fig:demographics}, Table~\ref{tab:demographics} \\
+\addlinespace
+RQ3 & \textbf{Regional context.} Across the 20 region-years (4 US Census regions $\times$ 2019--2023), does the survey-weighted NHIS lung-cancer rate follow (a) the official US Cancer Statistics incidence, (b) mean EPA PM2.5, and (c) BRFSS adult smoking prevalence? Is any agreement driven by differences between regions or by year-to-year changes within them? As features, how much information do the three regional columns carry about an individual's lung-cancer history compared with personal factors (mutual information against a permutation null)?
+ & Spearman correlation over 20 region-years, split into between-region (4 regional means) and within-region parts; mutual information on training rows with a permutation null
+ & \S\ref{sec:regional}, \S\ref{sec:mi}, Fig.~\ref{fig:regional}--\ref{fig:mi}, Tables~\ref{tab:regional} and~\ref{tab:mi} \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Measurable success criteria}\label{sec:criteria}
+
+We wrote these the way we would write acceptance criteria for software: each one is a pass/fail check fixed before the analysis (Table~\ref{tab:criteria-def}). All eight are verified by the code: criteria 1--4 and 6--8 in \file{eda_results.txt} (section 10) and \file{reports/tables/success_criteria_check.csv}, and criterion 5 by an assertion in \file{supplementary_analysis.py} (section 11), which refits the scaler on training rows and fails the run if the saved parameters differ.
+
+Two further rules apply to the modelling phase and are carried into Section~\ref{sec:next}: the pipeline must rebuild everything from raw files in under five minutes on a fresh clone, and the future model will be judged on recall, precision and PR-AUC, never on accuracy, against the benchmark set by the USPSTF-style rule (recall 63\%, precision 1.2\%; Table~\ref{tab:screening}).
+
+\begin{table}[htbp]
+\centering\small
+\caption{Success criteria fixed before the analysis, with their pass threshold.}\label{tab:criteria-def}
+\begin{tabularx}{\textwidth}{@{}r >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{5cm}@{}}
+\toprule
+\# & Criterion & Target \\
+\midrule
+1 & No duplicate person IDs in the clean dataset & 0 duplicates \\
+2 & No missing values in the model-ready dataset & 0 missing cells \\
+3 & The regional join neither adds nor loses rows & row count identical before and after \\
+4 & Train and test keep the same lung-cancer rate (stratified split) & difference $<$ 0.05 percentage points \\
+5 & No test-set information is used for imputation, selection, scaling or PCA & all fitted on training rows (asserted in code) \\
+6 & Every research question (RQ1, RQ2a, RQ2b, RQ2c, RQ3) has at least one justified test, with assumptions checked, an effect size and a Holm-corrected $p$-value & $\alpha = 0.05$ after Holm correction \\
+7 & Every candidate feature has a written KEEP / DROP reason & 0 missing reasons \\
+8 & No leakage feature: ``ever had any cancer'' (CANEV\_A) is never a feature & absent from every feature set \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Method and scope}\label{sec:method}
+
+We follow CRISP-DM~\cite{crispdm} from business understanding to data preparation, which is the standard process taught in the course~\cite[Chapter~1]{louati}. In scope: data gathering and integration, data understanding, preprocessing, exploratory data analysis, hypothesis testing and feature engineering. Out of scope for the midterm, as the rubric specifies: training or evaluating predictive models, clinical interpretation and causal claims. Modelling is described as planned future work only; the stratified (Mantel--Haenszel) and survey-weighted odds ratios in Section~\ref{sec:eda} are descriptive adjustments of associations, not predictive models.
+
+\subsection{Organisation of the paper}\label{sec:organisation}
+
+The remainder of the paper follows the CRISP-DM phases. Section~\ref{sec:data} describes the data sources, the study population in detail and the data-quality issues; Section~\ref{sec:prep} presents the preprocessing methodology; Section~\ref{sec:eda} reports the exploratory analysis and the hypothesis tests; Section~\ref{sec:fe} describes feature engineering; Section~\ref{sec:discussion} discusses the findings, limitations and ethical considerations; and Section~\ref{sec:conclusion} concludes with the planned modelling phase.

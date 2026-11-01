@@ -1,0 +1,14 @@
+\begin{tabularx}{\textwidth}{r >{\raggedright\arraybackslash}p{5.6cm} >{\raggedright\arraybackslash}X l}
+\toprule
+\# & Criterion & Observed & Met \\
+\midrule
+1 & No duplicate person IDs & 0 & yes \\
+2 & No missing values in the model-ready file & 0 missing cells & yes \\
+3 & Regional join adds no rows & 149,928 $\rightarrow$ 149,928 & yes \\
+4 & Same case rate in train and test & 0.41\% vs 0.41\% & yes \\
+5 & No test information in fitted steps & imputation, selection (incl.\ the VIF step), scaling and PCA fitted on training rows; scaler asserted in code & yes \\
+6 & Every RQ tested, with effect sizes and Holm correction & 18 tests: RQ1 (1), RQ2a (1), RQ2b (7), RQ2c (6), RQ3 (3) & yes \\
+7 & Every feature has a KEEP / DROP reason & 67 of 67 candidates & yes \\
+8 & CANEV\_A never a feature & absent & yes \\
+\bottomrule
+\end{tabularx}

@@ -1,0 +1,178 @@
+\section{Data Description and Sources}\label{sec:data}
+
+Our final dataset has \nAdults adults and 26 columns (Table~\ref{tab:dictionary}). It is built from four public US government sources: one person-level survey stacked over five years, and three regional tables joined on region and year.
+
+\subsection*{Dataset composition at a glance}\label{sec:composition}
+
+Every rate, odds ratio and correlation in this report is computed on a stated subset of the adults below, so we first show what the data are made of (Tables~\ref{tab:comp-years}--\ref{tab:comp-groups}; source: \file{reports/tables/dataset_composition.csv}, produced by \file{supplementary_analysis.py}). Each survey year contributes between 27,594 and 31,925 adults and between 112 and 145 cases, so no single year dominates (Table~\ref{tab:comp-years}). The 26 columns of the clean file are of nine kinds (Table~\ref{tab:comp-columns}): one identifier, one survey weight and the target, which are never features; two numeric columns, four ordinal, three nominal and seven binary survey variables; four engineered columns; and three regional columns joined on region and year. The model-ready file keeps \nFeatures of the \nCandidates candidate features (Section~\ref{sec:selection}), grouped in Table~\ref{tab:comp-groups}. Finally, the stratified 80/20 split keeps the same \sampleRate\% case rate in the \nTrain training rows and the \nTest test rows (Table~\ref{tab:comp-years}, lower part). Unless stated otherwise, descriptive numbers use all \nAdults adults with the variable known, and anything that ranks or fits features uses the training rows only.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Adults and lung-cancer cases per survey year, and in the train / test split (unweighted).}\label{tab:comp-years}
+\input{generated/tab_composition_years}
+\end{table}
+
+\begin{table}[htbp]
+\centering\small
+\caption{The 26 columns of the clean dataset by type.}\label{tab:comp-columns}
+\input{generated/tab_composition_columns}
+\end{table}
+
+\begin{table}[htbp]
+\centering\small
+\caption{The \nFeatures final model features by group (full list in Appendix~\ref{app:features}).}\label{tab:comp-groups}
+\input{generated/tab_feature_groups}
+\end{table}
+
+\subsection{Sources and provenance}\label{sec:sources}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Data sources, publisher, granularity and raw size.}\label{tab:sources}
+\begin{tabularx}{\textwidth}{@{}r >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{2.9cm} >{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}p{2.7cm} >{\raggedright\arraybackslash}p{2.4cm}@{}}
+\toprule
+\# & Source & Publisher & One raw row is & Raw size & Used for \\
+\midrule
+1 & National Health Interview Survey, Sample Adult files 2019--2023~\cite{nhis} & CDC -- National Center for Health Statistics & one adult in one survey year & \nRawRows adults (27,651--31,997 per year) & individual features and the target \\
+2 & EPA AirData, annual concentration by monitor, 2019--2023~\cite{epa} & US Environmental Protection Agency & one monitor $\times$ pollutant $\times$ year & 75,534--107,019 rows per year & regional PM2.5 pollution \\
+3 & BRFSS prevalence data, current smokers, 2019--2023~\cite{brfss} & CDC Behavioral Risk Factor Surveillance System & one state $\times$ year $\times$ answer & 1,644 rows & regional adult smoking rate \\
+4 & US Cancer Statistics, incidence by area~\cite{uscs} & CDC and National Cancer Institute & one area $\times$ year $\times$ sex $\times$ race $\times$ site & 23,796 lung-cancer rows & regional lung-cancer incidence \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+All four sources are public-domain US government data (Table~\ref{tab:sources}), so we can commit them to the repository. The raw files were downloaded on 24--25 October 2026 with \file{scripts/download_data.py}, which fetches them again from the official URLs in the References if they are missing. They sit unchanged in \file{data/raw/}, and we only ever change data through code, never by hand -- the ``never overwrite the original'' rule of the course (Chapter~2). The three regional files were reduced to the rows we need at download time so that every file stays under GitHub's 100~MB limit; the reduction is done in code and is fully reproducible.
+
+\subsection{Granularity and target definition}\label{sec:granularity}
+
+One row is one surveyed adult (18+) in one survey year. NHIS interviews one randomly selected adult per household, so the household number plus the survey year (\file{person_id}) identifies a row. The regional sources are coarser -- a monitor, or a state -- and the public NHIS files only reveal the person's US Census region (Northeast, Midwest, South, West). We therefore aggregated every regional measure to region $\times$ year, so each regional column takes only $4 \times 5 = 20$ distinct values and describes the person's environment, not the person.
+
+\textbf{The target.} \file{lung_cancer} is 1 if the person reports that a doctor ever told them they had lung cancer. NHIS does not ask this in a single question, so we derive it from two: ``ever told you had cancer?'' (\file{CANEV_A}) and, only for people who said yes, ``what kind?'' (\file{LUNGCAN_A}). The target is 0 for people who never had cancer and for people who had a different cancer.
+
+\subsection{Data dictionary}\label{sec:dictionary}
+
+\begin{table}[htbp]
+\centering\small
+\caption{Data dictionary of the final clean dataset (26 columns); the type follows Table~\ref{tab:comp-columns}. Full version: \texttt{data/clean/data\_dictionary.csv}.}\label{tab:dictionary}
+\input{generated/tab_dictionary}
+\end{table}
+
+\subsection{Target distribution}\label{sec:target}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.55\textwidth]{fig01_class_balance}
+\caption{Class balance of the target. Only \nCases of \nAdults adults (\sampleRate\%) report a lung-cancer diagnosis; the population rate after NHIS survey weighting is 0.31\%.}\label{fig:balance}
+\end{figure}
+
+The imbalance is extreme (Fig.~\ref{fig:balance}): a model that always answers ``no'' would be 99.59\% accurate while finding no one. This single number drove our choice of effect sizes (odds ratios rather than accuracy-like measures), of a stratified train/test split, and of the metrics planned for the modelling phase.
+
+\subsection{Who is in the data: a detailed profile of the study population}\label{sec:profile}
+
+Before testing anything, we describe exactly who the \nAdults adults are and where the \nCases cases sit. Tables~\ref{tab:prof-demo}--\ref{tab:prof-conditions} give, for every category of every variable, the number of adults, their share of the sample and of the US adult population (survey-weighted), the number of adults with and without a lung-cancer history, the lung-cancer rate in the sample and in the population, and the mean age of the group. ``Unknown'' rows are people who did not give a usable answer; we keep them so that every block adds up to \nAdults adults and \nCases cases (shares therefore differ slightly from Fig.~\ref{fig:categorical}, which uses known answers only). All numbers come from \file{reports/tables/population_profile.csv}, produced by \file{scripts/supplementary_analysis.py}.
+
+Two reading rules apply throughout. First, the sample rate is what we observe among the people interviewed, while the weighted rate estimates the rate among all US adults: NHIS interviews some groups more than others (for example, 31.1\% of the adults with a known age are 65 or older, against 21.9\% of the population), and the survey weights correct for this. Second, raw counts of cases depend on group size: 507 of the \nCases cases are White adults simply because White adults are 67.5\% of the sample, so groups are compared through their rates, never through their counts.
+
+\subsubsection{Demographics: sex, age and race/ethnicity}\label{sec:demo}
+
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Demographic profile of the \nAdults adults: adults, share of the sample and of the US adult population (weighted, wtd), adults with and without a lung-cancer history, lung-cancer rate and mean age, by sex, age group and race/ethnicity. AIAN = American Indian or Alaska Native.}\label{tab:prof-demo}
+\input{generated/tab_profile_demo}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Sex.} The sample has 81,360 women (54.3\%) and 68,552 men (45.7\%); after weighting the split is 51.5\% / 48.5\%. More cases are women (354, against 265 men), but women are also more numerous and slightly older (mean age 53.6 vs 51.9 years), and the weighted rates are almost equal (0.32\% vs 0.30\%). Section~\ref{sec:sociodemo} confirms that sex is not associated with lung cancer.
+  \item \textbf{Age.} Adults aged 18--44 are the largest group (36.3\% of the sample, 45.8\% of the population) but include only 13 cases (0.02\%). From there the rate climbs steadily: 0.10\% at 45--54, 0.42\% at 55--64, 0.84\% at 65--74 and 1.24\% at 75+. The 46,500 adults aged 65 or older (31.1\% of those with a known age) hold 471 of the \nCases cases (76.1\%; 76.2\% of the 618 cases with a known age, as in Table~\ref{tab:cases}).
+  \item \textbf{Race and ethnicity.} NHIS records Hispanic origin and race in one variable; it is the only measure of cultural background in our variable set. The sample has 101,181 White adults (507 with and 100,674 without a lung-cancer history), 20,411 Hispanic adults (27 with, 20,384 without), 16,138 Black adults (55 with, 16,083 without), 8,453 Asian adults (16 with, 8,437 without), and three small groups -- AIAN (American Indian or Alaska Native, 962 adults, 8 cases), AIAN and another group (1,114 adults, 5 cases) and other or multiple races (1,669 adults, 1 case). The weighted rate is highest among White adults (0.39\%) and lowest among Hispanic adults (0.10\%). The three small groups total only 14 cases, so their rates are unstable and they are merged for testing (\S\ref{sec:sociodemo}).
+\end{itemize}
+
+\textbf{Why the groups differ.} Table~\ref{tab:group-profile} looks inside each sex and race/ethnicity group. White adults are the oldest group (mean age 55.3, 36.5\% aged 65+) and the most likely, after the AIAN groups, to have ever smoked (42.7\%); Hispanic adults are among the youngest (mean 45.0, 15.5\% aged 65+) and smoke much less (25.0\% ever-smokers). Asian adults have the lowest smoking prevalence (18.3\%). Age and smoking -- the two strongest risk factors in this project -- therefore explain a large part of the raw differences between race/ethnicity groups, which is why we do not interpret those differences as an effect of race itself. Men smoke more than women (43.4\% vs 32.9\% ever-smokers), yet women are older on average and report COPD slightly more often (6.2\% vs 5.0\%), which is consistent with the near-equal rates by sex.
+
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Inside each sex and race/ethnicity group: age, sex, smoking and COPD, which explain much of the difference in lung-cancer rates (percentages among adults with a known answer; rate weighted). Source: \texttt{group\_profile.csv}.}\label{tab:group-profile}
+\input{generated/tab_group_profile}
+\end{table}
+
+\subsubsection{Socio-economic position, region and survey year}\label{sec:socio}
+
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Socio-economic, geographic and yearly profile (same columns as Table~\ref{tab:prof-demo}). Income is family income divided by the poverty line.}\label{tab:prof-socio}
+\input{generated/tab_profile_socio}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Education.} The largest groups are ``some college'' (42,452 adults, 28.3\%) and high school / GED (37,368, 24.9\%; Table~\ref{tab:prof-socio}). The rate falls from 0.67\% (sample) among adults without a high-school diploma to 0.19\% among bachelor's graduates; weighted, from 0.49\% to 0.15\%.
+  \item \textbf{Income.} 42.9\% of adults have a family income at least four times the poverty line and 10.1\% live below it. The rate halves from below-poverty (0.46\% weighted) to high income (0.21\%).
+  \item \textbf{Region.} The South is the largest region (54,341 adults, 36.2\%), followed by the West (25.1\%), the Midwest (22.0\%) and the Northeast (16.6\%). The weighted rate is highest in the Midwest (0.42\%) and lowest in the West (0.20\%); the matching sample rates are 0.53\% and 0.26\%. The West is also the youngest region (mean age 51.7).
+  \item \textbf{Survey year.} Each year contributes 27,594--31,925 adults and 112--145 cases. The rate drifts upward from 0.35\% in 2019 to 0.49\% in 2023 (weighted, 0.28\% to 0.34\%), but the difference between years is not statistically significant ($\chi^2(4) = 7.9$, $p = 0.096$; \file{rate_by_year.csv}). This matters because 2019 was the first year of the redesigned NHIS questionnaire and 2020 collection was disrupted by COVID-19 (largely telephone interviews); because the years do not differ significantly, pooling them is reasonable, and we keep year in the data so the modelling phase can check it again.
+\end{itemize}
+
+\subsubsection{Smoking, body weight, self-rated health and chronic conditions}\label{sec:smokingprofile}
+
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Smoking, e-cigarette use, body weight and self-rated health (same columns as Table~\ref{tab:prof-demo}).}\label{tab:prof-smoking}
+\input{generated/tab_profile_smoking}
+\end{table}
+
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Chronic conditions (ever told by a doctor) and the number of the five conditions (same columns as Table~\ref{tab:prof-demo}).}\label{tab:prof-conditions}
+\input{generated/tab_profile_conditions}
+\end{table}
+
+\begin{itemize}
+  \item \textbf{Smoking.} 90,937 adults have never smoked (60.7\% of all adults, 62.3\% of those who answered), 37,452 are former and 17,586 current smokers; 3,953 did not answer. Former smokers have the highest rate (0.98\% sample, 0.81\% weighted) and are much older (mean age \formerSmokerAge, against 51.1 for current and 50.3 for never-smokers), a first hint of the reverse causation discussed in \S\ref{sec:rq1}.
+  \item \textbf{E-cigarettes.} 23,470 adults (15.7\%) have ever used one. They are much younger (mean age 41.0 vs 55.1), which is why their crude rate (0.29\% weighted) is close to that of non-users (0.31\%).
+  \item \textbf{Body weight and self-rated health.} Underweight adults are only 1.6\% of the sample but have the highest rate (1.42\%, 33 cases). Self-rated health shows the steepest gradient in the whole dataset: 0.05\% for ``excellent'' up to 2.73\% for ``poor'' (sample rates), with 149 cases among the 5,457 adults in poor health.
+  \item \textbf{Chronic conditions.} 8,440 adults (5.6\%) report COPD, and 288 of them have a lung-cancer history -- 46.5\% of all cases, at a rate of 3.41\%, fifteen times the 0.23\% of adults without COPD. About half of adults (50.8\%) have none of the five conditions; the rate then rises with every additional condition, from 0.11\% with none to 4.15\% with all five.
+\end{itemize}
+
+\subsubsection{Adults with and without a lung-cancer history, side by side}\label{sec:sidebyside}
+
+Table~\ref{tab:cases} summarises the same information from the other direction: what the \nCases cases look like compared with the 149,309 other adults. Cases are about 18.5 years older on average (71.2 vs 52.7), are more than twice as likely to have ever smoked (82.2\% vs 37.5\%), are eight times as likely to report COPD (46.6\% vs 5.5\%) and almost four times as likely to rate their health as fair or poor (57.4\% vs 15.1\%). They are more often White (81.9\% vs 67.4\%) and less often Hispanic (4.4\% vs 13.7\%) -- a difference that the age and smoking profiles of Table~\ref{tab:group-profile} largely explain -- and the share of women is similar (57.2\% vs 54.3\%).
+
+\begin{table}[htbp]
+\centering\small
+\caption{Characteristics of adults with and without a lung-cancer history (unweighted; percentages among adults with a known answer). Source: \texttt{cases\_vs\_noncases.csv}.}\label{tab:cases}
+\input{generated/tab_cases_vs_noncases}
+\end{table}
+
+\subsection{Initial data-quality issues and limitations}\label{sec:quality}
+
+\begin{itemize}
+  \item \textbf{Severe imbalance:} \nCases cases out of \nAdults adults (\sampleRate\%).
+  \item \textbf{Hidden missing values:} NHIS stores ``refused / not ascertained / don't know'' as numbers (7, 8, 9 or 97, 98, 99) that look like real values; 4,424 such codes sat in just four key columns.
+  \item \textbf{A renamed column:} education is \file{EDUC_A} in 2019--2020 but \file{EDUCP_A} from 2021 (same codes), and code 11 (doctorate) exists only in 2019--2020.
+  \item \textbf{Self-reported, lifetime answers:} someone diagnosed years ago may have quit smoking or lost weight since, so current habits can be a result of the cancer (reverse causation).
+  \item \textbf{No smoking dose:} NHIS has no pack-years or quit dates, so we can only approximate the official screening group.
+  \item \textbf{Survey design:} NHIS is not a simple random sample. It over-samples some groups -- the sample is older than the population (31.1\% aged 65+ vs 21.9\% after weighting) -- so raw rates (\sampleRate\%) differ from population rates (0.31\%).
+  \item \textbf{Year comparability:} the 2019 questionnaire redesign and the 2020 pandemic disruption could affect comparability between years; the year-to-year differences in the case rate are not significant ($p = 0.096$).
+  \item \textbf{Coarse regional data:} each regional variable has only 20 distinct values (4 regions $\times$ 5 years), so it is ecological context, not personal exposure.
+  \item \textbf{Possible repeats across years:} people cannot be linked between survey years, so a few adults may appear in two different years.
+\end{itemize}
+
+\subsection{The dataset we rejected}\label{sec:rejected}
+
+We started the project with a 22,457-row file (\file{lung_cancer_combined_22457.csv}, no documented origin) that has the same columns as the well-known 309-person Kaggle lung-cancer survey~\cite{kaggle}. Before using it we audited it the way we would review an unknown dependency, and it failed review (Table~\ref{tab:audit}). The decisive evidence is the row order and the lineage; duplicates and label conflicts alone would be weak evidence, because a file with about fifteen low-cardinality columns produces repeated answer patterns naturally.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Integrity audit of the supplied file (all numbers recomputed from the file), strongest evidence first.}\label{tab:audit}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{2.6cm} >{\raggedright\arraybackslash}X >{\raggedright\arraybackslash}p{4.6cm}@{}}
+\toprule
+Check & Finding & Why it matters \\
+\midrule
+Row order & the first 1,455 rows are all negative; the first positive label appears at row 1,456 & row position (and \texttt{patient\_id}) predicts the label -- a leakage path \\
+Lineage & only 1,438 rows (6.4\%) match a row of the public 309-person survey (252 of its patterns, one repeated 59 times; labels agree in 99.4\% of matches); the other 21,019 rows match no public source & most of the file has no traceable origin \\
+Signal after deduplication & no feature is associated with the label (all Cram\'er's $V < 0.02$) & the apparent signal came from the duplicates and the ordered block \\
+Exact duplicates & 2,573 rows repeat another row exactly & the same answers counted many times inflate every statistic \\
+Label conflicts & 133 identical answer patterns carry both labels (315 rows) & the label is not a clean function of the answers \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+This pattern is statistically consistent with resampling or programmatic generation; it is not proof that the data are synthetic. We replaced the file with NHIS and kept it in \file{data/raw/other/} so the decision stays auditable. The lineage numbers were recomputed against an identical public copy of the Kaggle survey~\cite{kaggle}.

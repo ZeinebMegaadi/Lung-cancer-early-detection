@@ -1,0 +1,26 @@
+block,item,adults,cases,rate_pct,n_columns,columns
+1. adults per survey year,2019,31925,112,0.350822239624119,,
+1. adults per survey year,2020,31513,131,0.4157014565417447,,
+1. adults per survey year,2021,29430,115,0.39075773020727145,,
+1. adults per survey year,2022,27594,116,0.4203812422990505,,
+1. adults per survey year,2023,29466,145,0.4920925812801195,,
+1. adults per survey year,all years,149928,619,0.4128648417907262,,
+2. columns of the clean file,identifier,,,,1,person_id
+2. columns of the clean file,weight,,,,1,survey_weight
+2. columns of the clean file,target,,,,1,lung_cancer
+2. columns of the clean file,numeric,,,,2,"age, year"
+2. columns of the clean file,ordinal,,,,4,"education, income_group, general_health, bmi_category"
+2. columns of the clean file,nominal,,,,3,"race_ethnicity, region, smoking_status"
+2. columns of the clean file,binary,,,,7,"sex, ever_ecigarette, copd, asthma, hypertension, heart_disease, diabetes"
+2. columns of the clean file,engineered,,,,4,"age_group, ever_smoker, screening_age_smoker, comorbidity_count"
+2. columns of the clean file,regional,,,,3,"pm25_mean, smoking_rate, lung_cancer_incidence"
+2. columns of the clean file,all columns,,,,26,"person_id, year, survey_weight, age, sex, race_ethnicity, region, education, income_group, general_health, bmi_category, smoking_status, ever_ecigarette, copd, asthma, hypertension, heart_disease, diabetes, lung_cancer, age_group, ever_smoker, screening_age_smoker, comorbidity_count, pm25_mean, smoking_rate, lung_cancer_incidence"
+3. final features by group,demographic,,,,8,"age, sex_Female, race_ethnicity_AIAN, race_ethnicity_AIAN and other, race_ethnicity_Asian, race_ethnicity_Black, race_ethnicity_Hispanic, race_ethnicity_Other or multiple"
+3. final features by group,socio-economic,,,,8,"education_Bachelor, education_Graduate, education_Less than high school, education_Some college, education_Unknown, income_group_Below poverty, income_group_Low, income_group_Middle"
+3. final features by group,smoking,,,,6,"screening_age_smoker, screening_age_smoker_unknown, ever_ecigarette, ever_ecigarette_unknown, smoking_status_Current, smoking_status_Former"
+3. final features by group,health,,,,13,"copd, asthma, hypertension, heart_disease, diabetes, general_health_Fair, general_health_Good, general_health_Poor, general_health_Very good, bmi_category_Obese, bmi_category_Overweight, bmi_category_Underweight, bmi_category_Unknown"
+3. final features by group,regional,,,,3,"pm25_mean, smoking_rate, lung_cancer_incidence"
+3. final features by group,all final features,,,,38,"age, screening_age_smoker, screening_age_smoker_unknown, ever_ecigarette, ever_ecigarette_unknown, copd, asthma, hypertension, heart_disease, diabetes, pm25_mean, smoking_rate, lung_cancer_incidence, sex_Female, race_ethnicity_AIAN, race_ethnicity_AIAN and other, race_ethnicity_Asian, race_ethnicity_Black, race_ethnicity_Hispanic, race_ethnicity_Other or multiple, education_Bachelor, education_Graduate, education_Less than high school, education_Some college, education_Unknown, income_group_Below poverty, income_group_Low, income_group_Middle, general_health_Fair, general_health_Good, general_health_Poor, general_health_Very good, bmi_category_Obese, bmi_category_Overweight, bmi_category_Underweight, bmi_category_Unknown, smoking_status_Current, smoking_status_Former"
+4. train / test split,train,119942,495,0.41269947141118213,,
+4. train / test split,test,29986,124,0.41352631227906356,,
+4. train / test split,all,149928,619,0.4128648417907262,,

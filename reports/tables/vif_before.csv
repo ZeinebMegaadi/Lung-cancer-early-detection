@@ -1,0 +1,49 @@
+feature,vif,exact_dependency
+copd,inf,True
+asthma,inf,True
+hypertension,inf,True
+heart_disease,inf,True
+diabetes,inf,True
+comorbidity_count,inf,True
+race_ethnicity_AIAN,inf,True
+race_ethnicity_AIAN and other,inf,True
+race_ethnicity_Asian,inf,True
+race_ethnicity_Black,inf,True
+race_ethnicity_Hispanic,inf,True
+race_ethnicity_Other or multiple,inf,True
+race_ethnicity_White,inf,True
+education_Bachelor,inf,True
+education_Graduate,inf,True
+education_High school / GED,inf,True
+education_Less than high school,inf,True
+education_Some college,inf,True
+education_Unknown,inf,True
+income_group_Below poverty,inf,True
+income_group_High,inf,True
+income_group_Low,inf,True
+income_group_Middle,inf,True
+bmi_category_Healthy,inf,True
+bmi_category_Obese,inf,True
+bmi_category_Overweight,inf,True
+bmi_category_Underweight,inf,True
+bmi_category_Unknown,inf,True
+general_health_Very good,643.1,False
+general_health_Good,585.85,False
+general_health_Excellent,488.88,False
+general_health_Fair,294.82,False
+smoking_status_Never,258.91,False
+smoking_status_Former,203.89,False
+smoking_status_Current,113.44,False
+general_health_Poor,100.85,False
+region_Midwest,39.02,False
+lung_cancer_incidence,33.61,False
+region_South,30.51,False
+region_Northeast,23.98,False
+ever_ecigarette_unknown,15.86,False
+screening_age_smoker_unknown,13.11,False
+smoking_rate,2.74,False
+pm25_mean,2.44,False
+screening_age_smoker,2.18,False
+age,1.7,False
+ever_ecigarette,1.32,False
+sex_Female,1.07,False

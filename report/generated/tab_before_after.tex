@@ -1,0 +1,17 @@
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{3.6cm} r r r >{\raggedright\arraybackslash}X}
+\toprule
+Step & Rows & Columns & Missing cells & What changed \\
+\midrule
+1. Load + stack 5 years & 150,220 & 20 & 131,400 & 5 yearly files stacked; 20 needed columns kept (LUNGCAN\_A is blank by design for people who never had cancer) \\
+2. Remove duplicates & 150,220 & 21 & 131,400 & 0 duplicate person IDs removed \\
+3. Build target & 149,928 & 22 & 131,217 & 292 rows with unknown answer removed \\
+4. Recode codes $\rightarrow$ values & 149,928 & 19 & 13,235 & number codes turned into words; e.g. 4,424 ``unknown'' codes in 4 key columns $\rightarrow$ missing \\
+5. New columns & 149,928 & 23 & 21,805 & added age\_group, ever\_smoker, screening\_age\_smoker, comorbidity\_count \\
+5b. Join regional table & 149,928 & 26 & 21,805 & 3 columns added (pm25\_mean, smoking\_rate, lung\_cancer\_incidence); 0 rows added \\
+5c. Outlier check & 149,928 & 26 & 21,805 & IQR check on 6 numeric columns; all values plausible $\rightarrow$ kept \\
+6. Checks + save clean file & 149,928 & 26 & 21,805 & 0 duplicate IDs, ages 18-85, missing values listed \\
+7. Encode + fill gaps (train only) & 149,928 & 71 & 0 & one-hot encoding, training-median filling, ``unknown'' flags $\rightarrow$ 0 missing \\
+8. Feature selection & 149,928 & 42 & 0 & 29 redundant / near-constant / near-duplicate / linearly dependent features dropped; 38 kept (max VIF 7.5) \\
+9. Scaling (train only) & 149,928 & 42 & 0 & 4 numeric columns standardised \\
+\bottomrule
+\end{tabularx}

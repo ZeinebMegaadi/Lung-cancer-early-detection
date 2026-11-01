@@ -1,0 +1,54 @@
+\section{Discussion}\label{sec:discussion}
+
+\subsection{Answers to the research questions}\label{sec:answers}
+
+Table~\ref{tab:answers} answers the five research questions with the main numbers from Sections~\ref{sec:profile} and~\ref{sec:eda}.
+
+\begin{table}[htbp]
+\centering\small
+\caption{What we found for each research question.}\label{tab:answers}
+\begin{tabularx}{\textwidth}{@{}>{\raggedright\arraybackslash}p{3.3cm} >{\raggedright\arraybackslash}X@{}}
+\toprule
+RQ & Answer \\
+\midrule
+RQ1 -- Smoking & Strong association. Ever-smokers have \orSmoking times the odds of never-smokers (95\% CI \orSmokingLo--\orSmokingHi), and \orSmokingMH times (4.7--7.1) after adjusting for age group; the weighted rate is 0.08\% for never-smokers vs 0.81\% for former and 0.60\% for current smokers. Former smokers ranking above current ones reflects quitting after diagnosis (reverse causation) and age, not a protective effect of smoking. \\
+\addlinespace
+RQ2a -- Age & Median 72 vs 54 years, rank-biserial $r = 0.59$ (a random case is older than a random non-case 79.5\% of the time); age and smoking act together (2.15--2.37\% of ever-smokers aged 75+ vs 0.48\% of never-smokers the same age). \\
+\addlinespace
+RQ2b -- Chronic conditions and e-cigarettes & COPD is the strongest association (odds ratio \orCOPD; among adults with known smoking status the crude \orCOPDcrude falls to \orCOPDsmoking after adjusting for smoking, consistently across smoking groups, and among those whose age is also known to \orCOPDsmokingAge after adjusting for smoking and age group); heart disease, hypertension and diabetes are moderate (2.3--4.6), partly through age; asthma is negligible; e-cigarette use shows nothing. \\
+\addlinespace
+RQ2c -- Socio-demographic and health factors & A clear education and income gradient, partly explained by smoking; the highest rates in underweight adults and those in poor health, most likely reverse causation; no difference by sex; race/ethnicity differences that largely follow age and smoking profiles. \\
+\addlinespace
+RQ3 -- Regional factors & The survey rate agrees with the official registry incidence across regions ($\rho = \rhoRegistry$ over 20 region-years, $p$ = \pRegistry), but the agreement comes from the four regional averages (mainly the low West), not from year-to-year changes within regions ($\rho = 0.03$): consistent with a valid target, not proof of it. PM2.5 and regional smoking rates show no detectable association. Regional features carry far less information than personal ones (0.5--0.6\% vs 10.2\% of the target's information for age), and the three regional columns carry one shared region-year signal, so the data cannot separate the effect of pollution, regional smoking and registry incidence. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+\subsection{Did we meet our success criteria?}\label{sec:criteriamet}
+
+All eight criteria are met (Table~\ref{tab:criteria-met}), and all eight are verified by the code rather than by hand. The pipeline also met its reproducibility rule: on a fresh environment, \texttt{python run\_all.py} rebuilt every dataset, table and figure in about 100 seconds (including the supplementary analysis), well under the five-minute target. The honest-metrics rule carries over into the modelling plan below.
+
+\begin{table}[htbp]
+\centering\small
+\caption{Success criteria (Table~\ref{tab:criteria-def}) and the evidence that each is met (\texttt{success\_criteria\_check.csv}; criterion 5 is asserted in \texttt{supplementary\_analysis.py}).}\label{tab:criteria-met}
+\input{generated/tab_criteria}
+\end{table}
+
+These criteria check that the pipeline is correct; they do not measure how good a future model will be. For that, the modelling phase inherits a concrete benchmark: the USPSTF-style rule (Table~\ref{tab:screening}).
+
+\subsection{Limitations}\label{sec:limitations}
+
+\begin{enumerate}
+  \item \textbf{Associations, not causes.} The data are self-reported and cross-sectional, so we cannot claim causation, and reverse causation affects smoking status, BMI, general health and the ``ever told'' conditions.
+  \item \textbf{No smoking dose.} NHIS has no pack-years or quit dates -- the very variables the real screening rules use -- so \file{screening_age_smoker} is only a proxy.
+  \item \textbf{Survey design only partly used.} Our main tests treat respondents as independent; a weighted, cluster-robust check of the three key odds ratios (Table~\ref{tab:design}) leaves the conclusions unchanged, but the other confidence intervals are still somewhat too narrow (the rates in the figures are weighted).
+  \item \textbf{Rare outcome.} \nCases cases limit subgroup analysis (some race groups had to be merged; the youngest age stratum has 13 cases) and will make model estimates unstable.
+  \item \textbf{Coarse regional data.} Regional variables are ecological, with only 20 distinct values from four regions; the registry rate is crude rather than age-adjusted and states are averaged without population weights.
+  \item \textbf{Lifetime target.} ``Ever told'' mixes recent and old diagnoses and misses people who have died, so long-term survivors are over-represented (survivorship bias), and current pollution cannot explain past diagnoses.
+  \item \textbf{Limited adjustment.} Smoking was adjusted for age and COPD for smoking and age, by stratification; all other associations are crude, and ordered variables were tested as nominal.
+  \item \textbf{Pooled years.} The 2019 questionnaire redesign and the 2020 pandemic disruption could affect comparability, although the case rate does not differ significantly between years.
+\end{enumerate}
+
+\subsection{Ethical considerations}\label{sec:ethics}
+
+NHIS is public, de-identified data, and we never attempt to re-identify anyone; household numbers are only used to check for duplicates. Because lung cancer is rare and our features are self-reported, any future model built on this work is a research prototype. It must not be presented as a screening or diagnostic tool, and false reassurance -- telling someone they are at low risk -- would be the most harmful error. Lung-cancer risk is also unequal across income and race groups, so a model could inherit those gaps; that is why race/ethnicity is kept for a fairness audit and why the fairness check below is part of the plan, not an optional extra.
