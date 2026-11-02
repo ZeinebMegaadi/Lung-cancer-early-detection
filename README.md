@@ -4,6 +4,14 @@ A clean, real-world dataset and exploratory analysis of **which personal and reg
 
 Scope (midterm): CRISP-DM phases 1-6, from business understanding to feature engineering. **No model is trained**; modelling is described as future work.
 
+## Start here
+
+| | |
+|---|---|
+| 📓 **Project notebook** | [`notebooks/lung_cancer_project.ipynb`](notebooks/lung_cancer_project.ipynb): the whole project, section by section, with every output saved (if GitHub cannot display it, open it [on nbviewer](https://nbviewer.org/github/ZeinebMegaadi/Lung-cancer-early-detection/blob/main/notebooks/lung_cancer_project.ipynb)) |
+| 📄 **Report (PDF)** | [`report/Lung_Cancer_Midterm_Report.pdf`](report/Lung_Cancer_Midterm_Report.pdf) |
+| ▶️ **Run everything** | `python run_all.py` (see [How to rebuild everything](#4-how-to-rebuild-everything)) |
+
 ## 1. Business understanding
 
 **Context.** Lung cancer is the leading cause of cancer death in the United States. Screening with low-dose CT is recommended only for a high-risk group (adults aged 50-80 with a heavy smoking history), so knowing which factors go with lung cancer helps decide who should be screened first.
@@ -112,7 +120,7 @@ The raw data is already in `data/raw/`, so step 0 only downloads files that are 
 
 ### The notebook
 
-`notebooks/lung_cancer_project.ipynb` walks through the six CRISP-DM sections (business understanding, data understanding, data preparation, EDA, feature engineering, future steps). Every code cell **calls a function from `scripts/`** (each script is importable: its steps are functions and `main()` runs them, so `python scripts/x.py` and `run_all.py` behave as before); each result is followed by a short interpretation.
+[`notebooks/lung_cancer_project.ipynb`](notebooks/lung_cancer_project.ipynb) walks through the six CRISP-DM sections (business understanding, data understanding, data preparation, EDA, feature engineering, future steps). Every code cell **calls a function from `scripts/`** (each script is importable: its steps are functions and `main()` runs them, so `python scripts/x.py` and `run_all.py` behave as before); each result is followed by a short interpretation.
 
 ```bash
 jupyter notebook notebooks/lung_cancer_project.ipynb            # open it
@@ -125,7 +133,7 @@ The two options keep the saved notebook byte-identical from run to run: no per-c
 
 ### The report
 
-The LaTeX source is in `report/` (`main.tex`, `sections/`, and `generated/`, which `scripts/build_report.py` writes from the pipeline outputs); the compiled report is `report/Lung_Cancer_Midterm_Report.pdf`. To rebuild it, install **MiKTeX** (Windows) or **TeX Live** (Mac / Linux) so that `pdflatex` is on the PATH, then:
+The LaTeX source is in `report/` (`main.tex`, `sections/`, and `generated/`, which `scripts/build_report.py` writes from the pipeline outputs); the compiled report is [`report/Lung_Cancer_Midterm_Report.pdf`](report/Lung_Cancer_Midterm_Report.pdf). To rebuild it, install **MiKTeX** (Windows) or **TeX Live** (Mac / Linux) so that `pdflatex` is on the PATH, then:
 
 ```bash
 python scripts/build_report.py     # writes report/generated/, runs pdflatex twice -> report/build/main.pdf
