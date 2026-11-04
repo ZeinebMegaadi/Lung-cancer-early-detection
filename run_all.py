@@ -10,4 +10,4 @@ for step in STEPS:
     result = subprocess.run([sys.executable, str(Path(__file__).parent / "scripts" / step)])
     if result.returncode != 0:
         sys.exit(f"Stopped: {step} failed. Read the error above.")
-print("\nAll steps finished. See data/clean/ and reports/.")
+print("\nAll steps finished. See data/clean/ and results/.")

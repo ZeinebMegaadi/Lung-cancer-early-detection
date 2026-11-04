@@ -4,21 +4,21 @@ Step 5 - Detailed population profile and supplementary checks.
     python scripts/supplementary_analysis.py
 
 Reads : data/clean/nhis_lung_cancer_clean.csv, data/clean/nhis_lung_cancer_model_ready.csv,
-        data/clean/scaler_parameters.csv, reports/tables/regional_comparison.csv,
-        reports/tables/feature_relevance_mutual_information.csv,
+        data/clean/scaler_parameters.csv, results/tables/regional_comparison.csv,
+        results/tables/feature_relevance_mutual_information.csv,
         data/raw/nhis/adultYYcsv.zip (only for the survey-design variables PSTRAT / PPSU)
-Writes: reports/tables/dataset_composition.csv         rows per year, column types, feature groups, train/test
-        reports/tables/population_profile.csv          every category: adults, cases, rates
-        reports/tables/cases_vs_noncases.csv           characteristics of cases vs other adults
-        reports/tables/group_profile.csv               age, sex and smoking inside each sex / race group
-        reports/tables/rate_by_year.csv                cases and rates per survey year
-        reports/tables/smoking_by_age_group.csv        RQ1: smoking odds ratio inside each age group (MH + Breslow-Day)
-        reports/tables/copd_adjusted.csv               RQ2b: COPD odds ratio adjusted for smoking, then smoking x age
-        reports/tables/regional_within_between.csv     RQ3: correlations split into between- and within-region
-        reports/tables/screening_rule_baseline.csv     the USPSTF-style rule as a benchmark
-        reports/tables/mutual_information_checked.csv  RQ3: normalised MI and a permutation null
-        reports/tables/design_based_odds_ratios.csv    survey-weighted, cluster-robust odds ratios
-        reports/supplementary_results.txt              everything above in plain words
+Writes: results/tables/dataset_composition.csv         rows per year, column types, feature groups, train/test
+        results/tables/population_profile.csv          every category: adults, cases, rates
+        results/tables/cases_vs_noncases.csv           characteristics of cases vs other adults
+        results/tables/group_profile.csv               age, sex and smoking inside each sex / race group
+        results/tables/rate_by_year.csv                cases and rates per survey year
+        results/tables/smoking_by_age_group.csv        RQ1: smoking odds ratio inside each age group (MH + Breslow-Day)
+        results/tables/copd_adjusted.csv               RQ2b: COPD odds ratio adjusted for smoking, then smoking x age
+        results/tables/regional_within_between.csv     RQ3: correlations split into between- and within-region
+        results/tables/screening_rule_baseline.csv     the USPSTF-style rule as a benchmark
+        results/tables/mutual_information_checked.csv  RQ3: normalised MI and a permutation null
+        results/tables/design_based_odds_ratios.csv    survey-weighted, cluster-robust odds ratios
+        results/supplementary_results.txt              everything above in plain words
 
 Outcome and research questions: see eda_analysis.py (OUTCOME, RESEARCH_QUESTIONS). This script adds the
 age-adjusted smoking odds ratio (RQ1), the COPD odds ratio adjusted for smoking x age group (RQ2b), the
@@ -42,7 +42,7 @@ from statsmodels.stats.contingency_tables import StratifiedTable
 ROOT = Path(__file__).resolve().parents[1]
 CLEAN = ROOT / "data" / "clean"
 RAW = ROOT / "data" / "raw" / "nhis"
-TAB = ROOT / "reports" / "tables"
+TAB = ROOT / "results" / "tables"
 TAB.mkdir(parents=True, exist_ok=True)
 RANDOM_STATE = 42
 YEARS = [2019, 2020, 2021, 2022, 2023]
@@ -434,7 +434,7 @@ def mi_checked(mr):
     say(f"into the same groups. pm25_mean has {int(ri.loc['pm25_mean', 'distinct_values'])} values (ties: "
         f"{ri.loc['pm25_mean', 'cells_sharing_a_value']}),")
     say("so its MI is slightly lower. The three regional MI values measure one thing - region-year identity - not")
-    say("three independent signals (reports/tables/regional_mi_identity.csv). They are above the shuffled-target")
+    say("three independent signals (results/tables/regional_mi_identity.csv). They are above the shuffled-target")
     say("null, but tiny next to the personal factors.")
     return mic
 
@@ -525,8 +525,8 @@ def main():
     mi_checked(mr)
     survey_design(df)
     criterion5(mr)
-    (ROOT / "reports" / "supplementary_results.txt").write_text("\n".join(out), encoding="utf-8")
-    print("\nDone. Results in reports/supplementary_results.txt")
+    (ROOT / "results" / "supplementary_results.txt").write_text("\n".join(out), encoding="utf-8")
+    print("\nDone. Results in results/supplementary_results.txt")
 
 
 if __name__ == "__main__":

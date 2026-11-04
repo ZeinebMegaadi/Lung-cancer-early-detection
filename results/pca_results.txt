@@ -28,7 +28,7 @@ Components with almost zero variance (eigenvalue < 0.01): 0
   each complete one-hot group (race, education, income, BMI) summed to 1, general health and smoking
   status almost did, comorbidity_count was the sum of the 5 condition flags, and the region dummies almost
   determined lung_cancer_incidence. Rule 4 removed comorbidity_count, one reference category per group and
-  the region dummies, so no dependency is left (reports/tables/vif_after.csv). An exact dependency is a
+  the region dummies, so no dependency is left (results/tables/vif_after.csv). An exact dependency is a
   zero-variance direction that carries no information, so removing it loses nothing; the region dummies
   added almost nothing beyond the 3 regional columns, which take 20 region-year values.
 

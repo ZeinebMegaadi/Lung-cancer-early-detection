@@ -7,7 +7,7 @@ This project studies which personal and regional factors are associated with a l
 - Report (PDF): [report/Lung_Cancer_Midterm_Report.pdf](report/Lung_Cancer_Midterm_Report.pdf)
 - Notebook: [notebooks/lung_cancer_project.ipynb](notebooks/lung_cancer_project.ipynb), saved with all outputs, so it renders directly on GitHub. If GitHub cannot display it, open it on nbviewer: <https://nbviewer.org/github/ZeinebMegaadi/Lung-cancer-early-detection/blob/main/notebooks/lung_cancer_project.ipynb>
 - LaTeX source of the report: [report/](report/)
-- Results (figures, tables, text results): [reports/](reports/)
+- Results (figures, tables, text results): [results/](results/)
 
 ## Key results
 
@@ -38,8 +38,8 @@ data/raw/                  original NHIS, EPA, BRFSS and US Cancer Statistics fi
 data/clean/                clean dataset, model-ready (and scaled) dataset, data dictionary, cleaning reports
 scripts/                   pipeline steps: download, regional data, cleaning, EDA, PCA, supplementary checks, report build
 notebooks/                 project notebook, calling the functions in scripts/
-reports/                   figures, tables and text results written by the pipeline (index in reports/README.md)
-reports/REPORT_UPDATES.md  record of how the midterm feedback was addressed
+results/                   figures, tables and text results written by the pipeline (index in results/README.md)
+results/REPORT_UPDATES.md  record of how the midterm feedback was addressed
 report/                    LaTeX source and compiled PDF of the report (see report/README.md)
 run_all.py                 runs the whole pipeline in order
 requirements.txt           Python dependencies
@@ -65,7 +65,7 @@ Notebook (re-executes in place; the options keep the saved file byte-identical b
 jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.record_timing=False --NotebookExporter.preprocessors=nbconvert.preprocessors.CoalesceStreamsPreprocessor notebooks/lung_cancer_project.ipynb
 ```
 
-`REBUILD = False` in the first cell reuses `data/clean/` and `reports/`; `REBUILD = True` reruns the pipeline from `data/raw/` first.
+`REBUILD = False` in the first cell reuses `data/clean/` and `results/`; `REBUILD = True` reruns the pipeline from `data/raw/` first.
 
 Report: install MiKTeX (Windows) or TeX Live (macOS / Linux) so that `pdflatex` is on the PATH, then run
 

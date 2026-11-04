@@ -8,12 +8,12 @@ main.tex                         preamble, title page, \input of every section
 sections/                        the prose, one file per section (00-titlepage ... 08-appendix, references)
 generated/                       written by scripts/build_report.py - never edit by hand
   numbers.tex                    \newcommand macros for the key numbers (\nFeatures, \maxVIF, \pcaNinetyFive, ...)
-  tab_*.tex                      the body (tabular) of every table built from reports/tables/*.csv and data/clean/*.csv
+  tab_*.tex                      the body (tabular) of every table built from results/tables/*.csv and data/clean/*.csv
 Lung_Cancer_Midterm_Report.pdf   the compiled report (copy of build/main.pdf)
 build/                           pdflatex output (git-ignored)
 ```
 
-The figures are read directly from `../reports/figures/` (`\graphicspath` in `main.tex`); there is no copy here.
+The figures are read directly from `../results/figures/` (`\graphicspath` in `main.tex`); there is no copy here.
 
 ## Build
 

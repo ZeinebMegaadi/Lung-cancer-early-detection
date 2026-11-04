@@ -3,7 +3,7 @@ Step 6 (optional) - Build the LaTeX report from the pipeline outputs.
 
     python scripts/build_report.py          (after python run_all.py)
 
-Reads : reports/tables/*.csv, data/clean/*.csv, reports/*.txt (main.tex reads the figures from reports/figures/)
+Reads : results/tables/*.csv, data/clean/*.csv, results/*.txt (main.tex reads the figures from results/figures/)
 Writes: report/generated/numbers.tex   \\newcommand macros for the key numbers used in the prose
         report/generated/tab_*.tex     the body (tabular) of every table that comes from a CSV
         report/build/main.pdf          pdflatex run twice (build/ is git-ignored)
@@ -21,7 +21,7 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
 CLEAN = ROOT / "data" / "clean"
-TAB = ROOT / "reports" / "tables"
+TAB = ROOT / "results" / "tables"
 REPORT = ROOT / "report"
 GEN = REPORT / "generated"
 
@@ -583,8 +583,8 @@ def numbers():
     holm, t = holm_lookup()
     rw = csv("regional_within_between.csv").set_index("regional_measure")
     cells = df.groupby(["region", "year"]).size()
-    test_kept, = text_value("reports/pca_results.txt", r"keep ([\d.]+)% of the TEST variance")
-    case_mean, = text_value("reports/pca_results.txt", r"mean PC1 score = ([+-][\d.]+) for lung cancer cases")
+    test_kept, = text_value("results/pca_results.txt", r"keep ([\d.]+)% of the TEST variance")
+    case_mean, = text_value("results/pca_results.txt", r"mean PC1 score = ([+-][\d.]+) for lung cancer cases")
     m = {
         "nAdults": n(len(df)), "nCases": str(int(df.lung_cancer.sum())),
         "sampleRate": f"{100 * df.lung_cancer.mean():.2f}",
@@ -617,7 +617,7 @@ def numbers():
     m["orCOPD"] = f"{csv('conditions_odds_ratios.csv').set_index('condition').loc['copd', 'odds_ratio']:.1f}"
     sa = csv("smoking_by_age_group.csv").set_index("group")
     m["orSmokingMH"] = f"{sa.loc['Mantel-Haenszel (adjusted for age group)', 'odds_ratio']:.1f}"
-    o, lo, hi = map(float, text_value("reports/eda_results.txt",
+    o, lo, hi = map(float, text_value("results/eda_results.txt",
                                       r"ever vs never smokers: ([\d.]+) \(95% CI ([\d.]+) - ([\d.]+)\)"))
     m.update(orSmoking=f"{o:.1f}", orSmokingLo=f"{lo:.1f}", orSmokingHi=f"{hi:.1f}", orSmokingExact=f"{o:.2f}")
     assert len(or_s) == 3

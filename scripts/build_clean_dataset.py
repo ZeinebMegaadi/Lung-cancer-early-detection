@@ -35,7 +35,7 @@ CLEAN.mkdir(parents=True, exist_ok=True)
 YEARS = [2019, 2020, 2021, 2022, 2023]
 RANDOM_STATE = 42
 COMORB = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
-TAB = ROOT / "reports" / "tables"
+TAB = ROOT / "results" / "tables"
 TAB.mkdir(parents=True, exist_ok=True)
 # Reference category of every one-hot group: dropped from the model-ready file (Rule 4), so the other
 # dummies of the group are read relative to it and the group no longer sums to 1 (no exact collinearity)
@@ -48,7 +48,7 @@ RAW_COLS = ["SRVY_YR", "HHX", "WTFA_A", "AGEP_A", "SEX_A", "HISPALLP_A", "REGION
             "RATCAT_A", "PHSTAT_A", "BMICAT_A", "SMKCIGST_A", "ECIGEV_A", "COPDEV_A", "ASEV_A",
             "HYPEV_A", "CHDEV_A", "DIBEV_A", "CANEV_A", "LUNGCAN_A"]
 
-FIG = ROOT / "reports" / "figures"
+FIG = ROOT / "results" / "figures"
 FIG.mkdir(parents=True, exist_ok=True)
 
 report = []
@@ -257,7 +257,7 @@ def outlier_check(clean):
             ax.set_title(f"{c}\n{n_out:,} beyond 1.5 x IQR", fontsize=13); ax.set_xticks([]); ax.set_ylabel(UNITS[c], fontsize=12)
         fig.suptitle("Fig 3. Outlier check (IQR rule): every flagged value is plausible, so all values are kept", y=1.01, fontsize=14)
         plt.tight_layout(); plt.savefig(FIG / "fig03_outlier_boxplots.png", dpi=150, bbox_inches="tight"); plt.close()
-    log("  Box plots saved to reports/figures/fig03_outlier_boxplots.png")
+    log("  Box plots saved to results/figures/fig03_outlier_boxplots.png")
     track("5c. Outlier check", clean, "IQR check on 6 numeric columns; all values plausible -> kept")
     return pd.DataFrame(rows)
 
@@ -437,7 +437,7 @@ def select_features(m, split):
             decisions[c] = ("KEEP", decisions[c][1] + f"; VIF {v:.1f} (below 10)")
     log(f"    VIF of the {len(after)} final features: max {vif_after.vif.max():.2f} ({vif_after.feature[0]}), "
         f"{int((vif_after.vif > 10).sum())} above 10; near-zero eigenvalues: {near_zero_eigenvalues(tr[after])}")
-    log("    Saved reports/tables/vif_before.csv and vif_after.csv")
+    log("    Saved results/tables/vif_before.csv and vif_after.csv")
 
     ff = pd.DataFrame([(c, *decisions[c]) for c in candidates] + [(c, "NOT A FEATURE", r) for c, r in NOT_FEATURES.items()],
                       columns=["column", "decision", "reason"])

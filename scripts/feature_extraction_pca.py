@@ -4,11 +4,11 @@ Step 4 - Feature extraction with Principal Component Analysis (PCA).
     python scripts/feature_extraction_pca.py
 
 Reads : data/clean/nhis_lung_cancer_model_ready.csv   (final selected features, train/test split)
-Writes: reports/figures/fig15_pca_scree.png             explained variance per component
-        reports/figures/fig16_pca_projection.png        adults projected on the first 2 components
-        reports/tables/pca_explained_variance.csv
-        reports/tables/pca_loadings.csv                 weight of every feature in PC1-PC3
-        reports/pca_results.txt                         results and decision in plain words
+Writes: results/figures/fig15_pca_scree.png             explained variance per component
+        results/figures/fig16_pca_projection.png        adults projected on the first 2 components
+        results/tables/pca_explained_variance.csv
+        results/tables/pca_loadings.csv                 weight of every feature in PC1-PC3
+        results/pca_results.txt                         results and decision in plain words
 
 Question: can the selected features be compressed into a few components without losing much
 information? If yes, PCA would be a useful extraction step; if not, we keep the original
@@ -31,8 +31,8 @@ from sklearn.preprocessing import StandardScaler
 
 ROOT = Path(__file__).resolve().parents[1]
 CLEAN = ROOT / "data" / "clean"
-FIG = ROOT / "reports" / "figures"
-TAB = ROOT / "reports" / "tables"
+FIG = ROOT / "results" / "figures"
+TAB = ROOT / "results" / "tables"
 FIG.mkdir(parents=True, exist_ok=True)
 TAB.mkdir(parents=True, exist_ok=True)
 RANDOM_STATE = 42
@@ -93,7 +93,7 @@ def pca_analysis(m):
     say("  each complete one-hot group (race, education, income, BMI) summed to 1, general health and smoking")
     say("  status almost did, comorbidity_count was the sum of the 5 condition flags, and the region dummies almost")
     say("  determined lung_cancer_incidence. Rule 4 removed comorbidity_count, one reference category per group and")
-    say("  the region dummies, so no dependency is left (reports/tables/vif_after.csv). An exact dependency is a")
+    say("  the region dummies, so no dependency is left (results/tables/vif_after.csv). An exact dependency is a")
     say("  zero-variance direction that carries no information, so removing it loses nothing; the region dummies")
     say("  added almost nothing beyond the 3 regional columns, which take 20 region-year values.")
 
@@ -186,8 +186,8 @@ def main():
     m = pd.read_csv(CLEAN / "nhis_lung_cancer_model_ready.csv")
     ev, loadings, pca, Z_train, k = pca_analysis(m)
     pca_figures(m, pca, Z_train, k)
-    (ROOT / "reports" / "pca_results.txt").write_text("\n".join(out), encoding="utf-8")
-    print("\nDone. Results in reports/pca_results.txt")
+    (ROOT / "results" / "pca_results.txt").write_text("\n".join(out), encoding="utf-8")
+    print("\nDone. Results in results/pca_results.txt")
 
 
 if __name__ == "__main__":

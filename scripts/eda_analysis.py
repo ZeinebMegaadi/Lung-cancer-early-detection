@@ -6,9 +6,9 @@ Step 3 - Exploratory Data Analysis (EDA) and hypothesis tests.
 Reads : data/clean/nhis_lung_cancer_clean.csv, data/clean/nhis_lung_cancer_model_ready.csv,
         data/clean/regional_context.csv, data/clean/before_after_summary.csv,
         data/clean/final_features.csv
-Writes: reports/figures/*.png      every chart, numbered like the slides
-        reports/eda_results.txt    every number and test result, in plain words
-        reports/tables/*.csv       the tables behind the charts
+Writes: results/figures/*.png      every chart, numbered like the slides
+        results/eda_results.txt    every number and test result, in plain words
+        results/tables/*.csv       the tables behind the charts
 
 Outcome: having ever been told by a doctor that one had lung cancer, self-reported by US adults in
 NHIS 2019-2023 (149,928 adults, 619 cases).
@@ -54,8 +54,8 @@ from statsmodels.stats.contingency_tables import StratifiedTable
 
 ROOT = Path(__file__).resolve().parents[1]
 CLEAN = ROOT / "data" / "clean"
-FIG = ROOT / "reports" / "figures"
-TAB = ROOT / "reports" / "tables"
+FIG = ROOT / "results" / "figures"
+TAB = ROOT / "results" / "tables"
 FIG.mkdir(parents=True, exist_ok=True)
 TAB.mkdir(parents=True, exist_ok=True)
 
@@ -296,7 +296,7 @@ def univariate(df):
                  f"out of {len(df):,})", y=1.02)
     save("fig05_categorical_distributions")
     pd.DataFrame(uni_rows).to_csv(TAB / "categorical_distributions.csv", index=False)
-    say("\nCategorical distributions saved (reports/tables/categorical_distributions.csv). Largest groups:")
+    say("\nCategorical distributions saved (results/tables/categorical_distributions.csv). Largest groups:")
     for c in ORDER:
         top = df[c].value_counts(normalize=True)
         say(f"  {LABEL[c]:<32} {top.index[0]} ({100 * top.iloc[0]:.1f}%)")
@@ -736,7 +736,7 @@ def high_correlation_pairs(var_pairs, feat_corr, n_train):
     hp["type"] = [k[0] for k in kind]
     hp["explanation"] = [k[1] for k in kind]
     hp.round({"value": 3}).to_csv(TAB / "high_correlation_pairs.csv", index=False)
-    say("\nPairs above 0.5 (reports/tables/high_correlation_pairs.csv):")
+    say("\nPairs above 0.5 (results/tables/high_correlation_pairs.csv):")
     say(hp.assign(value=hp.value.round(2)).drop(columns=["n", "explanation"]).to_string(index=False))
     genuine = hp[hp.type == "genuine association"]
     say("Reading - redundancy:")
@@ -750,7 +750,7 @@ def high_correlation_pairs(var_pairs, feat_corr, n_train):
     say("  model features (rules 1 and 4). The two high pairs left among the final features are kept on purpose:")
     say("  the two 'unknown' flags (both mark adults who skipped the smoking questions) and screening_age_smoker vs")
     say("  former smoking (the rule needs smoking status and age together); their VIFs are below 10")
-    say("  (reports/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1")
+    say("  (results/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1")
     say("  columns, so dependencies spread over several columns (a one-hot group, or region vs the regional")
     say("  columns) were invisible to a pairwise check; the VIF step catches them.")
     return hp
@@ -973,8 +973,8 @@ def main():
     feature_relevance(mr)
     regional_mi_identity(mr, df)
     success_criteria(df, mr, tt)
-    (ROOT / "reports" / "eda_results.txt").write_text("\n".join(out), encoding="utf-8")
-    print(f"\nDone. {len(list(FIG.glob('*.png')))} figures in reports/figures, results in reports/eda_results.txt")
+    (ROOT / "results" / "eda_results.txt").write_text("\n".join(out), encoding="utf-8")
+    print(f"\nDone. {len(list(FIG.glob('*.png')))} figures in results/figures, results in results/eda_results.txt")
 
 
 if __name__ == "__main__":
