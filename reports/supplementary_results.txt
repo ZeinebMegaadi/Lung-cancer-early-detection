@@ -1,5 +1,48 @@
 
 ======================================================================
+0. DATASET COMPOSITION AT A GLANCE
+======================================================================
+
+1. adults per survey year
+     item  adults  cases  rate_pct
+     2019   31925    112      0.35
+     2020   31513    131      0.42
+     2021   29430    115      0.39
+     2022   27594    116      0.42
+     2023   29466    145      0.49
+all years  149928    619      0.41
+
+2. columns of the clean file
+       item  n_columns                                                                                    columns
+ identifier          1                                                                                  person_id
+     weight          1                                                                              survey_weight
+     target          1                                                                                lung_cancer
+    numeric          2                                                                                  age, year
+    ordinal          4                                      education, income_group, general_health, bmi_category
+    nominal          3                                                     race_ethnicity, region, smoking_status
+     binary          7                  sex, ever_ecigarette, copd, asthma, hypertension, heart_disease, diabetes
+ engineered          4                            age_group, ever_smoker, screening_age_smoker, comorbidity_count
+   regional          3                                             pm25_mean, smoking_rate, lung_cancer_incidence
+all columns         26 person_id, year, survey_weight, age, sex, race_ethnicity, region, education, income_gro...
+
+3. final features by group
+              item  n_columns                                                                                    columns
+       demographic          8 age, sex_Female, race_ethnicity_AIAN, race_ethnicity_AIAN and other, race_ethnicity_Asi...
+    socio-economic          8 education_Bachelor, education_Graduate, education_Less than high school, education_Some...
+           smoking          6 screening_age_smoker, screening_age_smoker_unknown, ever_ecigarette, ever_ecigarette_un...
+            health         13 copd, asthma, hypertension, heart_disease, diabetes, general_health_Fair, general_healt...
+          regional          3                                             pm25_mean, smoking_rate, lung_cancer_incidence
+all final features         38 age, screening_age_smoker, screening_age_smoker_unknown, ever_ecigarette, ever_ecigaret...
+
+4. train / test split
+ item  adults  cases  rate_pct
+train  119942    495      0.41
+ test   29986    124      0.41
+  all  149928    619      0.41
+
+Rates are unweighted sample rates (cases / adults). Every later table states its own subset.
+
+======================================================================
 1. WHO IS IN THE DATA? Every category: adults, share, cases, rates
 ======================================================================
 149,928 adults, 619 with a lung-cancer history. 'Weighted' = NHIS survey weights (US adult population).
@@ -7,128 +50,128 @@ Unknown = the person did not give a usable answer (kept as its own row so the co
 
 sex
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-  Female   81360          54.27                       51.52    354      81006             0.44               0.32     53.55
-    Male   68552          45.72                       48.47    265      68287             0.39               0.30     51.91
- Unknown      16           0.01                        0.01      0         16             0.00               0.00     37.60
+  Female   81360          54.27                       51.52    354      81006             0.44               0.32      53.6
+    Male   68552          45.72                       48.47    265      68287             0.39               0.30      51.9
+ Unknown      16           0.01                        0.01      0         16             0.00               0.00      37.6
 
 age_group
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-   18-44   54481          36.34                       45.77     13      54468             0.02               0.02     32.44
-   45-54   21574          14.39                       15.71     21      21553             0.10               0.08     49.62
-   55-64   27020          18.02                       16.48    113      26907             0.42               0.45     59.67
-   65-74   26445          17.64                       12.98    222      26223             0.84               0.81     69.29
-     75+   20055          13.38                        8.86    249      19806             1.24               1.25     80.53
+   18-44   54481          36.34                       45.77     13      54468             0.02               0.02      32.4
+   45-54   21574          14.39                       15.71     21      21553             0.10               0.08      49.6
+   55-64   27020          18.02                       16.48    113      26907             0.42               0.45      59.7
+   65-74   26445          17.64                       12.98    222      26223             0.84               0.81      69.3
+     75+   20055          13.38                        8.86    249      19806             1.24               1.25      80.5
  Unknown     353           0.24                        0.21      1        352             0.28               0.11       NaN
 
 race_ethnicity
          category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-            White  101181          67.49                       62.55    507     100674             0.50               0.39     55.34
-         Hispanic   20411          13.61                       17.02     27      20384             0.13               0.10     44.96
-            Black   16138          10.76                       11.76     55      16083             0.34               0.22     51.28
-            Asian    8453           5.64                        6.02     16       8437             0.19               0.22     46.87
-             AIAN     962           0.64                        0.71      8        954             0.83               0.60     50.53
-   AIAN and other    1114           0.74                        0.68      5       1109             0.45               0.43     52.18
-Other or multiple    1669           1.11                        1.26      1       1668             0.06               0.02     41.18
+            White  101181          67.49                       62.55    507     100674             0.50               0.39      55.3
+         Hispanic   20411          13.61                       17.02     27      20384             0.13               0.10      45.0
+            Black   16138          10.76                       11.76     55      16083             0.34               0.22      51.3
+            Asian    8453           5.64                        6.02     16       8437             0.19               0.22      46.9
+             AIAN     962           0.64                        0.71      8        954             0.83               0.60      50.5
+   AIAN and other    1114           0.74                        0.68      5       1109             0.45               0.43      52.2
+Other or multiple    1669           1.11                        1.26      1       1668             0.06               0.02      41.2
 
 region
  category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-Northeast   24963          16.65                       17.57    117      24846             0.47               0.37     53.77
-  Midwest   33049          22.04                       20.79    174      32875             0.53               0.42     53.21
-    South   54341          36.24                       38.00    229      54112             0.42               0.29     52.86
-     West   37575          25.06                       23.65     99      37476             0.26               0.20     51.72
+Northeast   24963          16.65                       17.57    117      24846             0.47               0.37      53.8
+  Midwest   33049          22.04                       20.79    174      32875             0.53               0.42      53.2
+    South   54341          36.24                       38.00    229      54112             0.42               0.29      52.9
+     West   37575          25.06                       23.65     99      37476             0.26               0.20      51.7
 
 year
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-    2019   31925          21.29                       19.75    112      31813             0.35               0.28     51.99
-    2020   31513          21.02                       19.86    131      31382             0.42               0.31     53.49
-    2021   29430          19.63                       19.94    115      29315             0.39               0.28     52.48
-    2022   27594          18.40                       20.11    116      27478             0.42               0.34     52.93
-    2023   29466          19.65                       20.34    145      29321             0.49               0.34     53.16
+    2019   31925          21.29                       19.75    112      31813             0.35               0.28      52.0
+    2020   31513          21.02                       19.86    131      31382             0.42               0.31      53.5
+    2021   29430          19.63                       19.94    115      29315             0.39               0.28      52.5
+    2022   27594          18.40                       20.11    116      27478             0.42               0.34      52.9
+    2023   29466          19.65                       20.34    145      29321             0.49               0.34      53.2
 
 education
              category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-Less than high school   12809           8.54                       10.91     86      12723             0.67               0.49     56.78
-    High school / GED   37368          24.92                       27.54    219      37149             0.59               0.40     53.75
-         Some college   42452          28.31                       29.15    195      42257             0.46               0.32     52.44
-             Bachelor   34364          22.92                       19.82     64      34300             0.19               0.15     50.27
-             Graduate   22175          14.79                       11.91     48      22127             0.22               0.16     53.46
-              Unknown     760           0.51                        0.67      7        753             0.92               0.59     54.51
+Less than high school   12809           8.54                       10.91     86      12723             0.67               0.49      56.8
+    High school / GED   37368          24.92                       27.54    219      37149             0.59               0.40      53.7
+         Some college   42452          28.31                       29.15    195      42257             0.46               0.32      52.4
+             Bachelor   34364          22.92                       19.82     64      34300             0.19               0.15      50.3
+             Graduate   22175          14.79                       11.91     48      22127             0.22               0.16      53.5
+              Unknown     760           0.51                        0.67      7        753             0.92               0.59      54.5
 
 income_group
      category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-Below poverty   15119          10.08                       10.17     95      15024             0.63               0.46     50.48
-          Low   26307          17.55                       18.03    164      26143             0.62               0.43     54.19
-       Middle   44165          29.46                       30.06    187      43978             0.42               0.32     53.17
-         High   64337          42.91                       41.75    173      64164             0.27               0.21     52.52
+Below poverty   15119          10.08                       10.17     95      15024             0.63               0.46      50.5
+          Low   26307          17.55                       18.03    164      26143             0.62               0.43      54.2
+       Middle   44165          29.46                       30.06    187      43978             0.42               0.32      53.2
+         High   64337          42.91                       41.75    173      64164             0.27               0.21      52.5
 
 smoking_status
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-   Never   90937          60.65                       63.48    107      90830             0.12               0.08     50.25
-  Former   37452          24.98                       21.96    367      37085             0.98               0.81     59.75
- Current   17586          11.73                       11.73    127      17459             0.72               0.60     51.14
- Unknown    3953           2.64                        2.83     18       3935             0.46               0.32     52.93
+   Never   90937          60.65                       63.48    107      90830             0.12               0.08      50.3
+  Former   37452          24.98                       21.96    367      37085             0.98               0.81      59.7
+ Current   17586          11.73                       11.73    127      17459             0.72               0.60      51.1
+ Unknown    3953           2.64                        2.83     18       3935             0.46               0.32      52.9
 
 ever_ecigarette
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-      No  122606          81.78                       79.40    497     122109             0.41               0.31     55.06
-     Yes   23470          15.65                       17.84    105      23365             0.45               0.29     41.02
- Unknown    3852           2.57                        2.77     17       3835             0.44               0.32     52.67
+      No  122606          81.78                       79.40    497     122109             0.41               0.31      55.1
+     Yes   23470          15.65                       17.84    105      23365             0.45               0.29      41.0
+ Unknown    3852           2.57                        2.77     17       3835             0.44               0.32      52.7
 
 bmi_category
    category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-Underweight    2324           1.55                        1.62     33       2291             1.42               1.14     51.73
-    Healthy   46153          30.78                       30.66    221      45932             0.48               0.35     51.55
- Overweight   50466          33.66                       33.18    187      50279             0.37               0.29     54.20
-      Obese   47471          31.66                       32.23    165      47306             0.35               0.24     52.45
-    Unknown    3514           2.34                        2.31     13       3501             0.37               0.28     54.58
+Underweight    2324           1.55                        1.62     33       2291             1.42               1.14      51.7
+    Healthy   46153          30.78                       30.66    221      45932             0.48               0.35      51.6
+ Overweight   50466          33.66                       33.18    187      50279             0.37               0.29      54.2
+      Obese   47471          31.66                       32.23    165      47306             0.35               0.24      52.4
+    Unknown    3514           2.34                        2.31     13       3501             0.37               0.28      54.6
 
 general_health
  category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-Excellent   32824          21.89                       23.37     18      32806             0.05               0.03     46.48
-Very good   51131          34.10                       33.91     73      51058             0.14               0.10     51.14
-     Good   42973          28.66                       28.26    173      42800             0.40               0.28     55.39
-     Fair   17483          11.66                       11.14    206      17277             1.18               0.96     59.81
-     Poor    5457           3.64                        3.29    149       5308             2.73               2.47     63.39
-  Unknown      60           0.04                        0.03      0         60             0.00               0.00     61.47
+Excellent   32824          21.89                       23.37     18      32806             0.05               0.03      46.5
+Very good   51131          34.10                       33.91     73      51058             0.14               0.10      51.1
+     Good   42973          28.66                       28.26    173      42800             0.40               0.28      55.4
+     Fair   17483          11.66                       11.14    206      17277             1.18               0.96      59.8
+     Poor    5457           3.64                        3.29    149       5308             2.73               2.47      63.4
+  Unknown      60           0.04                        0.03      0         60             0.00               0.00      61.5
 
 copd
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-      No  141386          94.30                       95.34    330     141056             0.23               0.17     52.04
-     Yes    8440           5.63                        4.61    288       8152             3.41               3.13     65.36
- Unknown     102           0.07                        0.06      1        101             0.98               0.32     64.77
+      No  141386          94.30                       95.34    330     141056             0.23               0.17      52.0
+     Yes    8440           5.63                        4.61    288       8152             3.41               3.13      65.4
+ Unknown     102           0.07                        0.06      1        101             0.98               0.32      64.8
 
 asthma
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-      No  129025          86.06                       85.78    502     128523             0.39               0.29     53.22
-     Yes   20839          13.90                       14.17    116      20723             0.56               0.41     50.18
- Unknown      64           0.04                        0.04      1         63             1.56               2.55     57.44
+      No  129025          86.06                       85.78    502     128523             0.39               0.29      53.2
+     Yes   20839          13.90                       14.17    116      20723             0.56               0.41      50.2
+ Unknown      64           0.04                        0.04      1         63             1.56               2.55      57.4
 
 hypertension
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-      No   94990          63.36                       68.24    215      94775             0.23               0.16     46.71
-     Yes   54776          36.53                       31.66    404      54372             0.74               0.63     63.34
- Unknown     162           0.11                        0.10      0        162             0.00               0.00     58.73
+      No   94990          63.36                       68.24    215      94775             0.23               0.16      46.7
+     Yes   54776          36.53                       31.66    404      54372             0.74               0.63      63.3
+ Unknown     162           0.11                        0.10      0        162             0.00               0.00      58.7
 
 heart_disease
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-      No  140524          93.73                       95.05    475     140049             0.34               0.25     51.60
-     Yes    9073           6.05                        4.77    139       8934             1.53               1.52     70.73
- Unknown     331           0.22                        0.18      5        326             1.51               1.34     69.89
+      No  140524          93.73                       95.05    475     140049             0.34               0.25      51.6
+     Yes    9073           6.05                        4.77    139       8934             1.53               1.52      70.7
+ Unknown     331           0.22                        0.18      5        326             1.51               1.34      69.9
 
 diabetes
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-      No  133796          89.24                       90.43    488     133308             0.36               0.26     51.39
-     Yes   16064          10.71                        9.52    131      15933             0.82               0.74     64.48
- Unknown      68           0.05                        0.04      0         68             0.00               0.00     59.68
+      No  133796          89.24                       90.43    488     133308             0.36               0.26      51.4
+     Yes   16064          10.71                        9.52    131      15933             0.82               0.74      64.5
+ Unknown      68           0.05                        0.04      0         68             0.00               0.00      59.7
 
 comorbidity_count
 category  adults  pct_of_sample  pct_of_population_weighted  cases  non_cases  rate_sample_pct  rate_weighted_pct  mean_age
-       0   76217          50.84                       55.19     87      76130             0.11               0.08     45.94
-       1   47541          31.71                       29.94    203      47338             0.43               0.33     57.02
-       2   18719          12.49                       10.80    166      18553             0.89               0.74     64.23
-       3    5808           3.87                        3.21    118       5690             2.03               2.05     67.05
-       4    1426           0.95                        0.76     36       1390             2.52               2.24     67.96
-       5     217           0.14                        0.11      9        208             4.15               3.79     66.70
+       0   76217          50.84                       55.19     87      76130             0.11               0.08      45.9
+       1   47541          31.71                       29.94    203      47338             0.43               0.33      57.0
+       2   18719          12.49                       10.80    166      18553             0.89               0.74      64.2
+       3    5808           3.87                        3.21    118       5690             2.03               2.05      67.1
+       4    1426           0.95                        0.76     36       1390             2.52               2.24      68.0
+       5     217           0.14                        0.11      9        208             4.15               3.79      66.7
 
 ======================================================================
 2. CHARACTERISTICS OF ADULTS WITH AND WITHOUT A LUNG-CANCER HISTORY
@@ -189,17 +232,17 @@ Aged 65+: 31.1% of the sample vs 21.9% of the population (weighted)
 4. CASES AND RATES PER SURVEY YEAR (comparability check)
 ======================================================================
  year  adults  cases  rate_sample_pct  rate_weighted_pct  mean_age  pct_ever_smoked  pct_missing_smoking
- 2019   31925    112             0.35               0.28     51.99            39.33                 2.42
- 2020   31513    131             0.42               0.31     53.49            37.95                 1.83
- 2021   29430    115             0.39               0.28     52.48            37.87                 2.99
- 2022   27594    116             0.42               0.34     52.93            36.72                 2.53
- 2023   29466    145             0.49               0.34     53.16            36.42                 3.48
+ 2019   31925    112             0.35               0.28      52.0            39.33                 2.42
+ 2020   31513    131             0.42               0.31      53.5            37.95                 1.83
+ 2021   29430    115             0.39               0.28      52.5            37.87                 2.99
+ 2022   27594    116             0.42               0.34      52.9            36.72                 2.53
+ 2023   29466    145             0.49               0.34      53.2            36.42                 3.48
 Chi-square test, survey year x lung cancer: chi2(4) = 7.9, p = 0.096
 Note: 2019 was the first year of the redesigned NHIS questionnaire, and 2020 data collection was
 disrupted by COVID-19 (telephone interviews). Rates are compared across years for that reason.
 
 ======================================================================
-5. IS THE SMOKING EFFECT JUST AGE? Smoking odds ratio inside each age group (CMH)
+5. RQ1: IS THE SMOKING EFFECT JUST AGE? Smoking odds ratio inside each age group (CMH)
 ======================================================================
                                    group  adults  cases_ever_smokers  cases_never_smokers  odds_ratio  ci_low  ci_high
                                    18-44   53022                10.0                  3.0        7.73    2.31    25.92
@@ -216,7 +259,7 @@ effect was age, but a strong association remains. Breslow-Day < 0.05 means the s
 between age groups, so the pooled value is an average (the 18-44 stratum has very few cases).
 
 ======================================================================
-6. COPD ADJUSTED FOR SMOKING, THEN FOR SMOKING x AGE GROUP
+6. RQ2b: COPD ADJUSTED FOR SMOKING, THEN FOR SMOKING x AGE GROUP
 ======================================================================
 Adults with known COPD, smoking status and age: 145,587 (599 cases)
                 adjustment  odds_ratio  ci_low  ci_high  strata
@@ -236,10 +279,23 @@ Midwest          0.416      7.636        15.396                  79.44          
 Northeast        0.368      6.402        12.510                  73.98                   0.368                 0.469
 South            0.292      7.782        15.878                  71.22                   0.292                 0.421
 West             0.198      6.876        12.734                  46.74                   0.198                 0.263
-     regional_measure  rho_all_20  p_all_20  rho_between_4_regions  rho_within_region  p_within_region
-            pm25_mean      -0.115     0.629                    0.0              0.032            0.895
-         smoking_rate       0.087     0.715                    0.0             -0.347            0.133
-lung_cancer_incidence       0.789     0.000                    1.0              0.033            0.890
+     regional_measure  rho_all_20 p_all_20  rho_between_4_regions  rho_within_region p_within_region
+            pm25_mean      -0.115     0.63                    0.0              0.032            0.89
+         smoking_rate       0.087     0.71                    0.0             -0.347            0.13
+lung_cancer_incidence       0.789  3.5e-05                    1.0              0.033            0.89
+
+Ranks of the 4 region means (1 = lowest), used by rho_between_4_regions:
+           nhis_rate_%  pm25_mean  smoking_rate  lung_cancer_incidence
+region                                                                
+Midwest              4          3             3                      4
+Northeast            3          1             1                      3
+South                2          4             4                      2
+West                 1          2             2                      1
+  pm25_mean              sum of squared rank differences = 10 -> rho = 1 - 6 x 10 / (4 x 15) = 0.0
+  smoking_rate           sum of squared rank differences = 10 -> rho = 1 - 6 x 10 / (4 x 15) = 0.0
+  lung_cancer_incidence  sum of squared rank differences =  0 -> rho = 1 - 6 x 0 / (4 x 15) = 1.0
+With n = 4, Spearman rho can only take the values 0, +-0.2, +-0.4, ..., +-1, so a between-region rho of
+exactly 0 is a real value (not a computation error); with 4 points it is not evidence either way.
 Reading: the registry agreement comes from differences BETWEEN regions (the West is low on both measures);
 year-to-year changes within a region do not move together. With effectively 4 independent regions, the
 agreement is descriptive support for the target, not a formal validation, and its p-value is optimistic.
@@ -253,19 +309,25 @@ all adults  149928    32373        21.59    619            389       62.84      
  test rows   29986     6579        21.94    124             82       66.13           1.25               3.01
 
 ======================================================================
-9. MUTUAL INFORMATION: NORMALISED, AND COMPARED WITH A PERMUTATION NULL (training rows)
+9. RQ3: MUTUAL INFORMATION, NORMALISED AND COMPARED WITH A PERMUTATION NULL (training rows)
 ======================================================================
 Entropy of the target (0.41% positive): 0.0268 nats. MI / entropy = share of the available information.
 Null: the target shuffled 100 times (same features), MI recomputed each time.
               feature      mi  mi_pct_of_target_entropy  null_mean  null_95th_percentile  permutation_p
                   age 0.00274                  10.23285    0.00047               0.00080         0.0099
                  copd 0.00263                   9.82204    0.00000               0.00002         0.0099
-    comorbidity_count 0.00197                   7.35719    0.00002               0.00005         0.0099
+         hypertension 0.00072                   2.68892    0.00000               0.00002         0.0099
  screening_age_smoker 0.00158                   5.90069    0.00000               0.00001         0.0099
- smoking_status_Never 0.00158                   5.90069    0.00000               0.00002         0.0099
+smoking_status_Former 0.00109                   4.07073    0.00000               0.00001         0.0099
             pm25_mean 0.00014                   0.52285    0.00007               0.00012         0.0198
          smoking_rate 0.00017                   0.63488    0.00008               0.00013         0.0099
 lung_cancer_incidence 0.00017                   0.63488    0.00008               0.00013         0.0099
+Regional rows: smoking_rate and lung_cancer_incidence have identical MI and null percentiles because each
+takes one value per region-year cell (20 and 20 values for 20 cells): as discrete columns they split the adults
+into the same groups. pm25_mean has 18 values (ties: 6.31 = West 2019 & West 2023; 7.43 = South 2022 & West 2021),
+so its MI is slightly lower. The three regional MI values measure one thing - region-year identity - not
+three independent signals (reports/tables/regional_mi_identity.csv). They are above the shuffled-target
+null, but tiny next to the personal factors.
 
 ======================================================================
 10. SURVEY-DESIGN SENSITIVITY: weighted odds ratios with cluster-robust confidence intervals

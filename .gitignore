@@ -10,3 +10,21 @@ data/raw/brfss/_full_brfss_prevalence.csv
 # Python virtual environment (created on each computer, never uploaded)
 .venv/
 venv/
+
+# Editor settings (local to each computer)
+.vscode/
+
+# LaTeX build output (report/build/ holds main.pdf; only report/Lung_Cancer_Midterm_Report.pdf is committed)
+report/build/
+report_overleaf.zip
+*.aux
+*.log
+*.out
+*.toc
+*.lot
+*.lof
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.bbl
+*.blg

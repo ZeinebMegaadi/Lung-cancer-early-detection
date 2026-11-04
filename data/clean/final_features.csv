@@ -4,9 +4,9 @@ age_missing,DROP,near-constant: 99.76% of training rows have the same value (lim
 ever_smoker,DROP,redundant: same information as the smoking_status columns (Current/Former/Never)
 ever_smoker_unknown,DROP,redundant: same as smoking_status_Unknown
 screening_age_smoker,KEEP,official high-risk group (age 50-80 and ever smoked)
-screening_age_smoker_unknown,KEEP,'unknown' flag: tells the model the value was missing
+screening_age_smoker_unknown,KEEP,"'unknown' flag: smoking status unknown (with ever_ecigarette_unknown it marks adults who skipped the smoking questions); the ONLY marker of unknown smoking status, because those adults fall into the Never reference; VIF 7.5 (below 10)"
 ever_ecigarette,KEEP,health or lifestyle factor linked to lung cancer
-ever_ecigarette_unknown,KEEP,'unknown' flag: tells the model the value was missing
+ever_ecigarette_unknown,KEEP,'unknown' flag: e-cigarette use unknown (mostly the same adults as screening_age_smoker_unknown); VIF 7.5 (below 10)
 copd,KEEP,"lung disease, strongly linked to lung cancer"
 copd_unknown,DROP,near-constant: 99.94% of training rows have the same value (limit 99.5%)
 asthma,KEEP,health or lifestyle factor linked to lung cancer
@@ -17,48 +17,48 @@ heart_disease,KEEP,health or lifestyle factor linked to lung cancer
 heart_disease_unknown,DROP,near-constant: 99.79% of training rows have the same value (limit 99.5%)
 diabetes,KEEP,health or lifestyle factor linked to lung cancer
 diabetes_unknown,DROP,near-constant: 99.96% of training rows have the same value (limit 99.5%)
-comorbidity_count,KEEP,summary of 5 conditions (overall health)
+comorbidity_count,DROP,exact linear combination of the 5 condition flags; Spearman 0.79 with hypertension; infinite VIF (kept in the clean dataset and the EDA as a descriptive variable)
 pm25_mean,KEEP,regional air pollution (joined)
 smoking_rate,KEEP,regional smoking level (joined)
 lung_cancer_incidence,KEEP,regional baseline risk (joined)
-sex_Female,KEEP,category of sex
-sex_Male,DROP,near-duplicate of sex_Female (|r| = 1.00 on training rows)
+sex_Female,KEEP,category of sex (reference: Male)
+sex_Male,DROP,near-duplicate of sex_Female (|r| = 1.00 on training rows); it is also the reference category of sex (Male): the other sex dummies are read relative to it
 sex_Unknown,DROP,near-constant: 99.99% of training rows have the same value (limit 99.5%)
-race_ethnicity_AIAN,KEEP,category of race_ethnicity
-race_ethnicity_AIAN and other,KEEP,category of race_ethnicity
-race_ethnicity_Asian,KEEP,category of race_ethnicity
-race_ethnicity_Black,KEEP,category of race_ethnicity
-race_ethnicity_Hispanic,KEEP,category of race_ethnicity
-race_ethnicity_Other or multiple,KEEP,category of race_ethnicity
-race_ethnicity_White,KEEP,category of race_ethnicity
-region_Midwest,KEEP,category of region
-region_Northeast,KEEP,category of region
-region_South,KEEP,category of region
-region_West,DROP,near-duplicate of lung_cancer_incidence (|r| = 0.95 on training rows)
-education_Bachelor,KEEP,category of education
-education_Graduate,KEEP,category of education
-education_High school / GED,KEEP,category of education
-education_Less than high school,KEEP,category of education
-education_Some college,KEEP,category of education
-education_Unknown,KEEP,category of education
-income_group_Below poverty,KEEP,category of income_group
-income_group_High,KEEP,category of income_group
-income_group_Low,KEEP,category of income_group
-income_group_Middle,KEEP,category of income_group
-general_health_Excellent,KEEP,category of general_health
-general_health_Fair,KEEP,category of general_health
-general_health_Good,KEEP,category of general_health
-general_health_Poor,KEEP,category of general_health
+race_ethnicity_AIAN,KEEP,category of race_ethnicity (reference: White)
+race_ethnicity_AIAN and other,KEEP,category of race_ethnicity (reference: White)
+race_ethnicity_Asian,KEEP,category of race_ethnicity (reference: White)
+race_ethnicity_Black,KEEP,category of race_ethnicity (reference: White)
+race_ethnicity_Hispanic,KEEP,category of race_ethnicity (reference: White)
+race_ethnicity_Other or multiple,KEEP,category of race_ethnicity (reference: White)
+race_ethnicity_White,DROP,reference category of race_ethnicity (White): the other race_ethnicity dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+region_Midwest,DROP,"the 3 regional columns already encode region x year; region dummies + lung_cancer_incidence were near-collinear (VIF 24-39, 1 near-zero PCA eigenvalue)"
+region_Northeast,DROP,"the 3 regional columns already encode region x year; region dummies + lung_cancer_incidence were near-collinear (VIF 24-39, 1 near-zero PCA eigenvalue)"
+region_South,DROP,"the 3 regional columns already encode region x year; region dummies + lung_cancer_incidence were near-collinear (VIF 24-39, 1 near-zero PCA eigenvalue)"
+region_West,DROP,near-duplicate of lung_cancer_incidence (|r| = 0.95 on training rows); it is also the reference category of region (West): the other region dummies are read relative to it
+education_Bachelor,KEEP,category of education (reference: High school / GED)
+education_Graduate,KEEP,category of education (reference: High school / GED)
+education_High school / GED,DROP,reference category of education (High school / GED): the other education dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+education_Less than high school,KEEP,category of education (reference: High school / GED)
+education_Some college,KEEP,category of education (reference: High school / GED)
+education_Unknown,KEEP,category of education (reference: High school / GED)
+income_group_Below poverty,KEEP,category of income_group (reference: High)
+income_group_High,DROP,reference category of income_group (High): the other income_group dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+income_group_Low,KEEP,category of income_group (reference: High)
+income_group_Middle,KEEP,category of income_group (reference: High)
+general_health_Excellent,DROP,"reference category of general_health (Excellent): the other general_health dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF); the 0.04% with unknown general health (general_health_Unknown, dropped by rule 2b) also fall into this reference"
+general_health_Fair,KEEP,category of general_health (reference: Excellent)
+general_health_Good,KEEP,category of general_health (reference: Excellent)
+general_health_Poor,KEEP,category of general_health (reference: Excellent)
 general_health_Unknown,DROP,near-constant: 99.96% of training rows have the same value (limit 99.5%)
-general_health_Very good,KEEP,category of general_health
-bmi_category_Healthy,KEEP,category of bmi_category
-bmi_category_Obese,KEEP,category of bmi_category
-bmi_category_Overweight,KEEP,category of bmi_category
-bmi_category_Underweight,KEEP,category of bmi_category
-bmi_category_Unknown,KEEP,category of bmi_category
-smoking_status_Current,KEEP,category of smoking_status
-smoking_status_Former,KEEP,category of smoking_status
-smoking_status_Never,KEEP,category of smoking_status
+general_health_Very good,KEEP,category of general_health (reference: Excellent)
+bmi_category_Healthy,DROP,reference category of bmi_category (Healthy): the other bmi_category dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF)
+bmi_category_Obese,KEEP,category of bmi_category (reference: Healthy)
+bmi_category_Overweight,KEEP,category of bmi_category (reference: Healthy)
+bmi_category_Underweight,KEEP,category of bmi_category (reference: Healthy)
+bmi_category_Unknown,KEEP,category of bmi_category (reference: Healthy)
+smoking_status_Current,KEEP,category of smoking_status (reference: Never)
+smoking_status_Former,KEEP,category of smoking_status (reference: Never)
+smoking_status_Never,DROP,"reference category of smoking_status (Never): the other smoking_status dummies are read relative to it; dropping one dummy per group removes the exact sum-to-1 dependency (infinite VIF); adults with unknown smoking status (smoking_status_Unknown, dropped by rule 3) also fall into this reference and are identified only by screening_age_smoker_unknown"
 smoking_status_Unknown,DROP,near-duplicate of screening_age_smoker_unknown (|r| = 0.96 on training rows)
 age_group_18-44,DROP,redundant: age bands duplicate the exact age column (kept: age)
 age_group_45-54,DROP,redundant: age bands duplicate the exact age column (kept: age)

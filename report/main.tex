@@ -1,0 +1,96 @@
+% Lung Cancer Risk Factors in US Adults - CS434 midterm report (revised after midterm feedback)
+% Build: python scripts/build_report.py   (writes generated/, then pdflatex x2 into build/)
+% Never edit generated/ by hand: it is rewritten from the pipeline outputs.
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.2cm,headheight=14pt]{geometry}
+\usepackage{microtype}
+\usepackage{amsmath,amssymb}
+\usepackage{textcomp}
+\usepackage{graphicx}
+\usepackage{booktabs,tabularx,array,makecell}
+\usepackage[font=small,labelfont=bf,labelsep=period,skip=4pt]{caption}
+\usepackage{float}
+\usepackage{enumitem}
+\usepackage{xspace}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\usepackage{newunicodechar}
+
+% Safety net: Unicode characters typed directly in the text compile under pdflatex too
+\newunicodechar{ρ}{\ensuremath{\rho}}
+\newunicodechar{χ}{\ensuremath{\chi}}
+\newunicodechar{η}{\ensuremath{\eta}}
+\newunicodechar{φ}{\ensuremath{\varphi}}
+\newunicodechar{α}{\ensuremath{\alpha}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{×}{\ensuremath{\times}}
+\newunicodechar{−}{\ensuremath{-}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{∞}{\ensuremath{\infty}}
+\newunicodechar{µ}{\textmu}
+\newunicodechar{§}{\S}
+
+\graphicspath{{../reports/figures/}}
+\setlength{\tabcolsep}{4.5pt}
+\renewcommand{\arraystretch}{1.12}
+\setlist{itemsep=2pt,topsep=4pt}
+\setcounter{tocdepth}{3}
+
+% Section headings "1. Introduction" / "1.1 Context", as in the original
+\titleformat{\section}{\Large\bfseries}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\large\bfseries}{\thesubsection}{0.8em}{}
+\titleformat{\subsubsection}{\normalsize\bfseries}{\thesubsubsection}{0.8em}{}
+
+% Running header
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[C]{\small Lung Cancer Risk Factors in US Adults}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0pt}
+
+% Figures 12b and 12c keep the numbers printed in their image titles: use inside the figure, before \caption
+\newcommand{\figsuffix}[1]{\addtocounter{figure}{-1}%
+  \renewcommand{\thefigure}{\arabic{figure}#1}\renewcommand{\theHfigure}{\arabic{figure}#1}}
+
+% File and column names in body text (may break after _ / . -); not for captions or headings,
+% where \texttt{...\_...} is used instead (url commands are fragile in moving arguments)
+\DeclareUrlCommand\file{\urlstyle{tt}}
+\renewcommand{\UrlBreaks}{\do\_\do\/\do\.\do\-}
+
+\xspaceaddexceptions{\%}% "\sampleRate\%" prints 0.41%, not 0.41 %
+\input{generated/numbers}
+
+\begin{document}
+
+% Front matter in roman numerals, so the length of the table of contents never shifts the body's page
+% numbers: two pdflatex runs are then enough for every reference
+\pagenumbering{alph}% titlepage resets the counter: a separate scheme keeps its PDF anchor unique
+\input{sections/00-titlepage}
+\pagenumbering{roman}
+\input{sections/00-abstract}
+
+\tableofcontents
+\clearpage
+\pagenumbering{arabic}
+
+\input{sections/01-introduction}
+\input{sections/02-data}
+\input{sections/03-preprocessing}
+\input{sections/04-eda}
+\input{sections/05-feature-engineering}
+\input{sections/06-discussion}
+\input{sections/07-conclusion}
+\input{sections/references}
+
+\appendix
+\input{sections/08-appendix}
+
+\end{document}

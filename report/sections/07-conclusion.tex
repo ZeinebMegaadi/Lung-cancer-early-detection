@@ -1,0 +1,22 @@
+\section{Conclusion and Future Work}\label{sec:conclusion}
+
+In US adults, a lung-cancer history concentrates in older people who have ever smoked and in people with COPD -- even after accounting for smoking and age. The detailed profile of the population shows where the \nCases cases are: three in four are aged 65 or older, four in five have ever smoked, and almost half have COPD. Regional pollution and smoking levels add little at the resolution available.
+
+\subsection{Next steps: the modelling phase (planned, not implemented)}\label{sec:next}
+
+\begin{enumerate}
+  \item \textbf{Baselines first.} An ``always no'' model and the USPSTF-style rule (\file{screening_age_smoker}). On the test rows the rule flags 21.9\% of adults, finds 66\% of the cases, and 1.25\% of the people it flags have a lung-cancer history -- three times the base rate (Table~\ref{tab:screening}). Any real model has to beat both.
+  \item \textbf{Models.} Class-weighted logistic regression on the \nFeatures features -- the reference categories are already dropped and documented, and no feature has a VIF above \maxVIFshort{} -- for interpretable adjusted odds ratios, then tree-based models such as random forest and gradient boosting. Train on the fixed 80/20 split and tune with stratified 5-fold cross-validation on training rows only.
+  \item \textbf{Metrics.} Recall, precision, F1 and PR-AUC, with a threshold tuned for high recall, because missing a real case costs more than a false alarm; calibration checked on the untouched test set. No accuracy.
+  \item \textbf{Ablation tests.} Retrain without the reverse-causation-prone features and without the regional features, to measure what each group really contributes; compare original features with PCA components for distance-based models.
+  \item \textbf{Close the survey-design gap.} Extend the weighted, cluster-robust analysis (\file{PSTRAT}, \file{PPSU}) from the three key odds ratios to every association and to the model's evaluation.
+  \item \textbf{Use more of NHIS.} The raw files contain variables we did not use: age at lung-cancer diagnosis (\file{LUNGAGETC_A}, to separate recent from old diagnoses), family history of cancer and current smoking intensity.
+  \item \textbf{Fairness check.} Compare recall across sex, race/ethnicity and income groups before anyone relies on the model.
+  \item \textbf{Reporting standard.} Write up the model with the TRIPOD+AI checklist~\cite{tripod} and a leakage information sheet~\cite{kapoor}.
+\end{enumerate}
+
+\begin{table}[htbp]
+\centering\small
+\caption{The USPSTF-style rule (\texttt{screening\_age\_smoker}: aged 50--80 and ever smoked) as a benchmark: recall = share of cases flagged; precision = share of flagged adults who are cases; lift = precision divided by the base rate. Source: \texttt{screening\_rule\_baseline.csv}.}\label{tab:screening}
+\input{generated/tab_screening}
+\end{table}

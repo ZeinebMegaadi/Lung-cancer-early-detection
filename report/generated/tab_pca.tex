@@ -1,0 +1,14 @@
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{5.2cm} >{\raggedright\arraybackslash}X}
+\toprule
+Quantity & Value \\
+\midrule
+Variance explained by PC1 / PC2 / PC3 & 7.3\% / 5.4\% / 4.9\% (2.6\% expected per component if all features were unrelated) \\
+Components needed for 80\% / 90\% / 95\% of the variance & 24 / 29 / 32 of 38 \\
+Kaiser rule (eigenvalue $>$ 1) & 19 components \\
+Components with almost zero variance (eigenvalue $<$ 0.01) & 0 (there were 8 with the previous 48 features: the dependencies removed by rule 4, \S\ref{sec:selection}) \\
+Variance of the test rows kept by the first 32 components & 95.8\% (the PCA generalises; it never saw the test rows) \\
+PC1 -- ``age and chronic-disease burden'' & hypertension +0.59, screening\_age\_smoker +0.57, age +0.57, diabetes +0.46, copd +0.45, heart\_disease +0.42 \\
+PC2 -- ``skipped the smoking questions'' & screening\_age\_smoker\_unknown +0.86, ever\_ecigarette\_unknown +0.86 \\
+PC3 -- ``older age vs current smoking and regional smoking level'' (mixed) & age +0.50, smoking\_rate $-$0.42 (next below 0.40: smoking\_status\_Current $-$0.39, ever\_ecigarette $-$0.38, lung\_cancer\_incidence $-$0.36, pm25\_mean $-$0.35) \\
+\bottomrule
+\end{tabularx}

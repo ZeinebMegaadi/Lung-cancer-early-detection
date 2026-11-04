@@ -1,0 +1,30 @@
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{5.5cm} r >{\raggedright\arraybackslash}X}
+\toprule
+Feature & VIF after rules 1--3 & VIF after rule 4 \\
+\midrule
+asthma & $\infty$ & 1.06 \\
+bmi\_category\_* (5 dummies) & $\infty$ & 1.04--1.59 (Healthy dropped, 4b) \\
+comorbidity\_count & $\infty$ & dropped (4a) \\
+copd & $\infty$ & 1.18 \\
+diabetes & $\infty$ & 1.17 \\
+education\_* (6 dummies) & $\infty$ & 1.02--1.67 (High school / GED dropped, 4b) \\
+heart\_disease & $\infty$ & 1.14 \\
+hypertension & $\infty$ & 1.41 \\
+income\_group\_* (4 dummies) & $\infty$ & 1.32--1.42 (High dropped, 4b) \\
+race\_ethnicity\_* (7 dummies) & $\infty$ & 1.01--1.24 (White dropped, 4b) \\
+age & 1.70 & 1.70 \\
+ever\_ecigarette & 1.32 & 1.32 \\
+ever\_ecigarette\_unknown & 15.86 & 7.45 \\
+general\_health\_* (5 dummies) & 100.85--643.10 & 1.34--1.91 (Excellent dropped, 4b) \\
+lung\_cancer\_incidence & 33.61 & 1.38 \\
+pm25\_mean & 2.44 & 1.14 \\
+region\_* (3 dummies) & 23.98--39.02 & dropped (Midwest, South, Northeast dropped, 4c) \\
+screening\_age\_smoker & 2.18 & 2.18 \\
+screening\_age\_smoker\_unknown & 13.11 & 7.49 \\
+sex\_Female & 1.07 & 1.07 \\
+smoking\_rate & 2.74 & 1.34 \\
+smoking\_status\_* (3 dummies) & 113.44--258.91 & 1.72--2.03 (Never dropped, 4b) \\
+\midrule
+\textbf{Maximum (finite)} & 643.10 & \textbf{7.49} \\
+\bottomrule
+\end{tabularx}

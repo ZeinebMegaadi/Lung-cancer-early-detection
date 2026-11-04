@@ -1,184 +1,93 @@
-# Lung-cancer-early-detection
+# Lung Cancer Risk Factors in US Adults
 
-A clean, real-world dataset and exploratory analysis of **which personal and regional factors are associated with lung cancer** in US adults. Each adult's personal health information is combined with the air pollution, smoking level and lung-cancer rate of the region where they live.
+This project studies which personal and regional factors are associated with a lung-cancer history in US adults. It combines the National Health Interview Survey (NHIS) 2019–2023 (149,928 adults, 619 cases) with regional air-quality, smoking-prevalence and cancer-registry data. The scope is CRISP-DM phases 1–6, from business understanding to feature engineering; no predictive model is trained.
 
-Scope (midterm): CRISP-DM phases 1-6, from business understanding to feature engineering. **No model is trained**; modelling is described as future work.
+## Quick access
 
-## 1. Business understanding
+- Report (PDF): [report/Lung_Cancer_Midterm_Report.pdf](report/Lung_Cancer_Midterm_Report.pdf)
+- Notebook: [notebooks/lung_cancer_project.ipynb](notebooks/lung_cancer_project.ipynb), saved with all outputs, so it renders directly on GitHub. If GitHub cannot display it, open it on nbviewer: <https://nbviewer.org/github/ZeinebMegaadi/Lung-cancer-early-detection/blob/main/notebooks/lung_cancer_project.ipynb>
+- LaTeX source of the report: [report/](report/)
+- Results (figures, tables, text results): [reports/](reports/)
 
-**Context.** Lung cancer is the leading cause of cancer death in the United States. Screening with low-dose CT is recommended only for a high-risk group (adults aged 50-80 with a heavy smoking history), so knowing which factors go with lung cancer helps decide who should be screened first.
+## Key results
 
-**Problem statement.** Using national survey data from 2019-2023, describe how smoking, age, chronic conditions, socio-demographic factors and regional environment relate to having had lung cancer, and prepare a clean, leakage-free dataset for a future risk model.
+- RQ1, smoking: ever-smokers have 7.7 times the odds of a lung-cancer history (95% CI 6.2–9.4); within the same age group the odds ratio is still 5.8 (Mantel–Haenszel, 95% CI 4.7–7.1), and it differs between age groups (Breslow–Day p = 0.005).
+- RQ2a, age: median age 72 for cases vs 54 for other adults (Mann–Whitney p = 3.1e-141, rank-biserial r = 0.59); the weighted rate rises from 0.02% at 18–44 to 1.25% at 75+.
+- RQ2b, chronic conditions: COPD has the strongest association (odds ratio 15.1); the crude 14.8 falls to 9.3 after adjusting for smoking and to 5.7 after adjusting for smoking × age group. Heart disease, hypertension and diabetes are moderate (2.3–4.6); e-cigarette use is not significant.
+- RQ2c, socio-demographic factors: sex is not associated; race/ethnicity, education, income, BMI and self-rated health are (Holm p < 1e-12), all with small Cramér's V.
+- RQ3, regional context: the NHIS regional rate follows the official registry incidence (Spearman ρ = 0.79 over 20 region-years, p = 3.5e-05), driven by differences between the 4 regions; PM2.5 and regional smoking prevalence show no detectable link.
+- Testing: 14 of the 18 hypothesis tests remain significant after Holm correction.
+- Feature set: 67 candidates reduced to 38 features with no leakage and a maximum VIF of 7.49; PCA needs 32 of 38 components for 95% of the variance, so the original features are kept.
 
-**Research questions**
+## Research questions
 
-| # | Question | Where it is answered |
-|---|---|---|
-| RQ1 | Is smoking status associated with having had lung cancer? | `eda_results.txt` section 2, Fig 6, Fig 8 |
-| RQ2 | Are age, chronic conditions (COPD, heart disease...) and socio-demographic / health factors (sex, race, education, income, BMI, self-rated health) associated with lung cancer? Does the COPD link survive once smoking is taken into account? | sections 3, 4, 4b, 4c, Fig 7, 9, 10, 11 |
-| RQ3 | Do regional factors (PM2.5 air pollution, regional smoking rate, registry incidence) add information beyond the personal factors? | section 7 and 9, Fig 13, Fig 14 |
+Outcome: having ever been told by a doctor that one had lung cancer, self-reported by US adults in NHIS 2019–2023. The full wording is in §1.3 of the [report](report/Lung_Cancer_Midterm_Report.pdf).
 
-**Measurable success criteria** (criteria 1-4 and 6-8 are checked automatically in `eda_results.txt` section 10 and `reports/tables/success_criteria_check.csv`; criterion 5 is checked by an assertion in `supplementary_analysis.py`, section 11: the saved scaler must equal a refit on training rows only)
+| RQ | Question | Where answered |
+| --- | --- | --- |
+| RQ1 | How much higher are the odds for ever-smokers, and how much remains within age groups? | Report §4; `eda_results.txt` §2; Fig. 6 |
+| RQ2a | Are adults with a lung-cancer history older, and how does the rate change with age and smoking? | Report §4; `eda_results.txt` §3, §5; Fig. 7–8 |
+| RQ2b | Which chronic conditions (and e-cigarette use) are associated, and does COPD remain after adjusting for smoking? | Report §4; `eda_results.txt` §4, §4b; Fig. 9–10 |
+| RQ2c | Are sex, race/ethnicity, education, income, BMI and self-rated health associated? | Report §4; `eda_results.txt` §4c; Fig. 11 |
+| RQ3 | Does the regional NHIS rate follow registry incidence, PM2.5 and regional smoking, and how informative are regional features? | Report §4–5; `eda_results.txt` §7, §9; Fig. 13–14 |
 
-1. 0 duplicate person IDs in the clean dataset.
-2. 0 missing values in the model-ready dataset.
-3. The regional join adds 0 rows (row count identical before and after).
-4. Train and test sets keep the same lung cancer rate (stratified split, difference < 0.05 percentage points).
-5. No information from the test rows is used for filling missing values, feature selection, scaling or PCA.
-6. Every research question is answered with at least one justified hypothesis test, reported with an effect size and a Holm-corrected p-value (alpha = 0.05).
-7. Every candidate feature has a written KEEP / DROP reason.
-8. No leakage feature: "ever had any cancer" (`CANEV_A`) is never a feature.
+## Repository structure
 
-## 2. The datasets (data understanding)
-
-| # | Dataset | Source | Granularity (one row =) | What it gives | How it is combined |
-|---|---|---|---|---|---|
-| 1 | **NHIS 2019–2023** (5 adult files) | CDC – National Health Interview Survey, https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/ | one adult in one survey year | ~30,000 real adults per year: age, sex, smoking, COPD… and **lung cancer yes/no** | **Stacked** (rows of the 5 years put together) |
-| 2 | **EPA air quality** 2019–2023 | US EPA – AirData annual concentration by monitor, https://aqs.epa.gov/aqsweb/airdata/ | one monitor, pollutant and year | Fine-particle pollution (PM2.5, µg/m³) | Averaged per state, then per region; **joined** on region + year |
-| 3 | **BRFSS smoking rates** | CDC – Behavioral Risk Factor Surveillance System, https://data.cdc.gov/resource/dttw-5yxu | one state and year | % of adults who currently smoke | Averaged per region; **joined** on region + year |
-| 4 | **US Cancer Statistics** | CDC + National Cancer Institute, https://www.cdc.gov/cancer/uscs/ | one state and year | New lung cancer cases and population | Region rate = cases ÷ population × 100,000; **joined** on region + year |
-| – | `lung_cancer_combined_22457.csv` | Supplied to the team; copies the Kaggle "Lung Cancer" survey (309 people) | – | – | **Audited, not used** (see the end) |
-
-- All are free US government data and may be shared. Raw files were downloaded on 24-25 October 2026 with `scripts/download_data.py`.
-- **Granularity:** the final table has one row per adult. Regional values are the same for every adult of the same region and year (4 regions × 5 years = 20 distinct values), because NHIS only tells us the person's region, not the state.
-- **Final clean dataset:** 149,928 adults × 26 columns, 619 lung cancer cases (0.41% of the sample, 0.31% of the population after survey weighting).
-- Variable meanings, units and the raw NHIS column each one comes from: `data/clean/data_dictionary.csv`.
-
-## 3. Folder structure
-
-```
-data/
-  raw/                       original data, unchanged (or reduced to the rows we need)
-    nhis/   adult19csv.zip ... adult23csv.zip
-    epa/    annual_conc_by_monitor_2019.zip ... _2023.zip
-    brfss/  brfss_current_smoker_by_state_2019_2023.csv
-    uscs/   uscs_lung_incidence_by_area.csv
-    other/  lung_cancer_combined_22457.csv
-  clean/
-    regional_context.csv              4 regions x 5 years: pollution, smoking rate, lung cancer rate
-    nhis_lung_cancer_clean.csv        FINAL dataset, readable values, one row per adult
-    nhis_lung_cancer_model_ready.csv  final selected features, numbers only, no missing values, train/test split
-    nhis_lung_cancer_model_ready_scaled.csv  same, numeric columns standardised (fitted on training rows)
-    final_features.csv                every candidate feature: KEEP or DROP, and why
-    outlier_check.csv                 IQR outlier check and the decision for each numeric column
-    before_after_summary.csv          one table: rows, columns and missing cells after each step
-    scaler_parameters.csv             training means / SDs used for scaling
-    data_dictionary.csv               meaning of every column
-    cleaning_report.txt               every cleaning step with before/after counts
-    regional_report.txt               cleaning steps of the 3 regional datasets
-scripts/
-  download_data.py            step 0: download all raw data
-  build_regional_data.py      step 1: clean the 3 regional datasets -> regional_context.csv
-  build_clean_dataset.py      step 2: clean NHIS, join the regional table, select and scale features
-  eda_analysis.py             step 3: charts, statistics, hypothesis tests, success-criteria check
-  feature_extraction_pca.py   step 4: PCA feature extraction (fitted on training rows only)
-  supplementary_analysis.py   step 5: detailed population profile and supplementary checks
-reports/
-  figures/                    16 charts (fig01 ... fig16), numbered in the order of the report
-  tables/                     the numbers behind every chart and test
-  eda_results.txt             all EDA results and tests explained in plain words
-  pca_results.txt             PCA results and the keep / reject decision
-  supplementary_results.txt   population profile, per-year rates, age-adjusted odds ratios, survey-design check
-run_all.py                    runs steps 0-5 in order
+```text
+data/raw/                  original NHIS, EPA, BRFSS and US Cancer Statistics files
+data/clean/                clean dataset, model-ready (and scaled) dataset, data dictionary, cleaning reports
+scripts/                   pipeline steps: download, regional data, cleaning, EDA, PCA, supplementary checks, report build
+notebooks/                 project notebook, calling the functions in scripts/
+reports/                   figures, tables and text results written by the pipeline (index in reports/README.md)
+reports/REPORT_UPDATES.md  record of how the midterm feedback was addressed
+report/                    LaTeX source and compiled PDF of the report (see report/README.md)
+run_all.py                 runs the whole pipeline in order
+requirements.txt           Python dependencies
 ```
 
-## 4. How to rebuild everything
+## Reproduce
 
-Requirements: Python 3.11, 3.12 or 3.13. From the repository root:
+Requirements: Python 3.11–3.13. From the repository root:
 
 ```bash
 python -m venv .venv
-# Windows PowerShell:  .venv\Scripts\Activate.ps1
-# Mac / Linux:         source .venv/bin/activate
+# Windows PowerShell: .venv\Scripts\Activate.ps1
+# macOS / Linux:      source .venv/bin/activate
 pip install -r requirements.txt
 python run_all.py
 ```
 
-The raw data is already in `data/raw/`, so step 0 only downloads files that are missing. A full run takes about two minutes. All paths are relative to the repository, and every random step uses seed 42, so the results are identical on every computer.
+The raw data is already in `data/raw/`, so only missing files are downloaded. A full run takes about three minutes. Every random step uses seed 42, so the outputs are identical on every machine.
 
-## 5. What the scripts do (simple version)
+Notebook (re-executes in place; the options keep the saved file byte-identical between runs, about two minutes):
 
-**Regional datasets (`build_regional_data.py`)**
-1. **EPA:** keep only PM2.5 monitors, one official yearly value per monitor, remove impossible values → average per state → average per region.
-2. **BRFSS:** keep the "current smoker = yes" rate per state and year → average per region.
-3. **US Cancer Statistics:** keep lung cancer, both sexes, all races, single years → region rate = all cases ÷ all people × 100,000.
-4. Map every state to its **US Census region** (Northeast, Midwest, South, West – the same regions NHIS uses). Territories are dropped.
-5. Combine into **one table: 4 regions × 5 years = 20 rows**. A missing year is filled from the same region's nearest year.
+```bash
+jupyter nbconvert --to notebook --execute --inplace --ExecutePreprocessor.record_timing=False --NotebookExporter.preprocessors=nbconvert.preprocessors.CoalesceStreamsPreprocessor notebooks/lung_cancer_project.ipynb
+```
 
-**Main dataset (`build_clean_dataset.py`)**
-1. **Stack** the 5 NHIS years.
-2. **Duplicates:** ID = year + household number; duplicates removed.
-3. **Target `lung_cancer`:** 1 = ever told lung cancer; 0 = no cancer or another cancer; "don't know/refused" rows removed.
-4. **Recode** NHIS number codes into words; codes 7/8/9 (don't know) → missing.
-5. **New columns:** `age_group`, `ever_smoker`, `screening_age_smoker`, `comorbidity_count`.
-6. **Join** the regional table on **region + year** → adds `pm25_mean`, `smoking_rate`, `lung_cancer_incidence`. Check: same number of rows before and after.
-7. **Outliers:** IQR rule + box plots (Fig 3) on every numeric column; each value is checked for plausibility and the decision is written in `outlier_check.csv` (all real values kept).
-8. **Checks:** row counts, duplicates, ranges, missing values.
-9. **Model-ready file:** fixed 80/20 train/test split (seed 42, stratified on the target); missing values filled using **training rows only** + "unknown" flags; categories one-hot encoded.
-10. **Feature selection (training rows only):** drop redundant columns (e.g. age bands when exact age is kept), constant columns, **near-constant columns (more than 99.5% of rows with the same value)** and near-duplicates (|r| > 0.95). Result: 67 candidates → 48 kept. Every decision is in `final_features.csv`.
-11. **Scaling:** StandardScaler on the numeric columns, fitted on training rows only → `nhis_lung_cancer_model_ready_scaled.csv`.
-12. **Summary:** `before_after_summary.csv` shows what every step changed.
+`REBUILD = False` in the first cell reuses `data/clean/` and `reports/`; `REBUILD = True` reruns the pipeline from `data/raw/` first.
 
-**Feature extraction (`feature_extraction_pca.py`)**
-1. Standardise all 48 selected features and fit a PCA on **training rows only** (equivalent to a PCA on the correlation matrix).
-2. Scree plot (Fig 15), projection (Fig 16), number of components for 80 / 90 / 95% of the variance, Kaiser rule, loadings of PC1-PC3.
-3. Check on the test rows that the kept components generalise.
-4. Decision: 34 of 48 components are needed for 95% of the variance (no dominant component), so the **original, interpretable features are kept**; PCA stays an option for distance-based models later.
+Report: install MiKTeX (Windows) or TeX Live (macOS / Linux) so that `pdflatex` is on the PATH, then run
 
-**Population profile and supplementary checks (`supplementary_analysis.py`)**
-1. **Who is in the data:** for every category of every variable (sex, age group, race/ethnicity, region, year, education, income, smoking, e-cigarettes, BMI, health, each condition): adults, share of the sample and of the population (weighted), cases, non-cases and lung-cancer rate (`population_profile.csv`); cases vs other adults side by side (`cases_vs_noncases.csv`); age, sex and smoking inside each sex and race group (`group_profile.csv`); cases and rates per survey year (`rate_by_year.csv`).
-2. **Confounding:** smoking odds ratio inside each age group and adjusted for age (CMH); COPD adjusted for smoking and for smoking × age group.
-3. **RQ3:** the regional correlations split into between-region and within-region parts (the 20 region-years are 4 regions × 5 years).
-4. **Benchmark:** recall and precision of the USPSTF-style rule (`screening_age_smoker`), the baseline a future model must beat.
-5. **Mutual information** as a share of the target's entropy, compared with a permutation null (training rows).
-6. **Survey design:** survey-weighted odds ratios with cluster-robust intervals (NHIS strata and PSUs read from the raw files).
-7. **Criterion 5 check:** asserts that the saved scaler equals a refit on training rows only.
+```bash
+python scripts/build_report.py
+```
 
-## 6. EDA and hypothesis tests (`eda_analysis.py`)
+This writes `report/generated/` from the pipeline outputs and runs pdflatex twice into `report/build/main.pdf` (about ten seconds). In VS Code, the LaTeX Workshop recipe "pdflatex x2" does the same compile (setup in [report/README.md](report/README.md)). Copy `report/build/main.pdf` to `report/Lung_Cancer_Midterm_Report.pdf` to update the committed PDF.
 
-| Figure | Question | Method / test |
-|---|---|---|
-| fig01 | How rare is lung cancer? | Class balance |
-| fig02 | What is still missing? Is missingness linked to the target? | Missing-value chart + chi-square on missing yes/no |
-| fig03 | Are there outliers? | IQR rule + box plots (made by `build_clean_dataset.py`) |
-| fig04 | How are the numeric variables distributed? Is age normal? | Histogram, Q-Q plot, skewness / kurtosis, Shapiro-Wilk, D'Agostino |
-| fig05 | Who is in the data? | Bar charts of every categorical variable |
-| fig06 | RQ1 – Is smoking linked to lung cancer? | Chi-square + Cramér's V + odds ratio (95% CI) |
-| fig07 | RQ2 – Is age linked to lung cancer? | Mann–Whitney U (age is not normal) + Welch t-test as a check |
-| fig08 | Combined effect of age and smoking | Heatmap of weighted rates |
-| fig09 | RQ2 – Which conditions go with lung cancer? | Chi-square + odds ratios (95% CI) |
-| fig10 | RQ2 – Is the COPD link only due to smoking? | Odds ratios within each smoking group + Cochran-Mantel-Haenszel test + Breslow-Day test |
-| fig11 | RQ2 – Socio-demographic and health factors | Weighted rates + chi-square + Cramér's V |
-| fig12 | Which variables move together? | Spearman correlation |
-| fig13 | RQ3 – Do regional factors matter? Does NHIS agree with official cancer statistics? | Spearman (20 region-years) |
-| fig14 | Which features carry the most information? | Mutual information on training rows only |
-| fig15, fig16 | Can the features be compressed? | PCA scree plot and projection (`feature_extraction_pca.py`) |
+## Data sources
 
-All rates are **weighted with NHIS survey weights** (population estimates). All 18 hypothesis tests are **Holm-corrected** together for multiple testing; 14 stay significant.
+| Source | Content | Link |
+| --- | --- | --- |
+| NHIS 2019–2023 (CDC) | one row per adult: demographics, smoking, chronic conditions, lung-cancer history | <https://ftp.cdc.gov/pub/Health_Statistics/NCHS/Datasets/NHIS/> |
+| EPA AirData | annual PM2.5 concentration by monitor, averaged per region and year | <https://aqs.epa.gov/aqsweb/airdata/> |
+| BRFSS (CDC) | adult current-smoking prevalence by state and year | <https://data.cdc.gov/resource/dttw-5yxu> |
+| US Cancer Statistics (CDC, NCI) | lung-cancer incidence by state and year | <https://www.cdc.gov/cancer/uscs/> |
 
-**Key findings**
-- **RQ1:** ever-smokers have **7.7 times** the odds of having had lung cancer (95% CI 6.2–9.4). Former smokers have a higher rate than current smokers, most likely because people stop smoking after diagnosis.
-- **RQ2:** median age 72 vs 54 (Mann–Whitney p < 1e-140). COPD has the strongest link (odds ratio 15.1; on adults with known smoking status the crude 14.8 falls to **9.3 after adjusting for smoking**, and to 5.7 after adjusting for smoking and age group). Smoking itself stays strong after adjusting for age (odds ratio 5.8). Lower education and income go with higher rates; underweight and poor self-rated health have the highest rates (most likely reverse causation). Sex and e-cigarette use are not significant.
-- **RQ3:** the NHIS regional rate follows the official registry rate (ρ = 0.79 over 20 region-years). The agreement comes from differences between the 4 regions (the West is low on both; within a region, ρ ≈ 0.03), so it is consistent with the official data rather than a formal validation. PM2.5 and the regional smoking rate show no detectable link. Personal factors carry far more information than regional ones.
+The regional sources are joined to NHIS on US Census region and survey year. A dataset supplied earlier (`data/raw/other/lung_cancer_combined_22457.csv`) was rejected: it repeats a 309-person Kaggle survey, and once the repeats are removed no question is associated with lung cancer.
 
-## 7. Limitations and notes for modelling
+## Authors
 
-- **Very imbalanced:** well under 1% of adults have had lung cancer → use recall, precision, F1, PR-AUC, class weights; accuracy is useless (99.59% for "always no").
-- **Leakage avoided:** "ever had any cancer" (`CANEV_A`) is not a feature; every fitted step (filling, selection, scaling, PCA) uses training rows only.
-- **Regional columns have only 20 different values** (4 regions × 5 years), so they add context, not personal detail. Registry rates are crude (not age-adjusted), and state values are averaged without population weights.
-- `lung_cancer_incidence` describes the region's population, not the person, so it is not leakage.
-- **Timing:** NHIS asks about *current* habits and health; some people quit smoking or lose weight after diagnosis (reverse causation). 2019–2023 pollution cannot explain cancers diagnosed many years earlier.
-- **Survey design:** rates use the survey weights, but the hypothesis tests treat adults as independent draws (no strata / clusters).
-- **Self-reported** answers; no pack-years or medical tests.
-- **Associations, not causes:** only COPD was adjusted for a confounder (smoking).
+Maether Guennichi, Israa Daasi, Mayssa Gloulou, Zeineb Megaadi, Hiba Allah Msallem, Nouha Aouinti, Aicha Lassoued.
 
-## 8. Next steps:
-
-1. Logistic regression with class weights as an interpretable baseline (adjusted odds ratios for all factors at once).
-2. Tree-based models (random forest, gradient boosting) compared with stratified cross-validation on the training rows only.
-3. Evaluate on the untouched test set with PR-AUC, recall at a fixed precision and calibration.
-4. Compare original features vs PCA components for distance-based models.
-
-## 9. Why the earlier survey file is not used
-
-`lung_cancer_combined_22457.csv` copies the 309-person Kaggle "Lung Cancer" survey: 2,573 rows are exact repeats, the first 1,455 rows are all negative, and 1,438 rows copy original answers. Without the repeats, no question is linked to lung cancer (all Cramér's V < 0.02). It is kept in `data/raw/other/` only for transparency.
+CS434 Data Science, instructor Dr. Dorra Louati, MedTech – Mediterranean Institute of Technology (SMU).

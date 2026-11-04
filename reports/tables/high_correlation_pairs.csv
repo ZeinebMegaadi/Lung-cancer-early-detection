@@ -1,0 +1,13 @@
+matrix,var_a,var_b,measure,value,n,type,explanation
+"Fig 12b (variables, all adults)",year,smoking_rate,eta,0.669,149928,built-from,"smoking_rate is joined on region + year, and BRFSS smoking fell every year 2019-2023"
+"Fig 12b (variables, all adults)",age,age_group,eta,0.962,149575,built-from,age_group is age cut into bands
+"Fig 12b (variables, all adults)",region,pm25_mean,eta,0.707,149928,built-from,pm25_mean is joined on region + year (20 values)
+"Fig 12b (variables, all adults)",region,smoking_rate,eta,0.729,149928,built-from,smoking_rate is joined on region + year (20 values)
+"Fig 12b (variables, all adults)",region,lung_cancer_incidence,eta,0.984,149928,built-from,lung_cancer_incidence is joined on region + year; the West is far lower than the other regions
+"Fig 12b (variables, all adults)",smoking_status,ever_smoker,Cramer's V,1.0,145975,built-from,ever_smoker = Current or Former smoking_status
+"Fig 12b (variables, all adults)",smoking_status,screening_age_smoker,Cramer's V,0.688,145664,built-from,screening_age_smoker = aged 50-80 AND ever smoked
+"Fig 12b (variables, all adults)",ever_smoker,screening_age_smoker,Cramer's V,0.687,145664,built-from,screening_age_smoker = aged 50-80 AND ever smoked
+"Fig 12b (variables, all adults)",hypertension,comorbidity_count,eta,0.728,149766,built-from,"comorbidity_count is the sum of the 5 condition flags, hypertension the most common (36.5%)"
+"Fig 12b (variables, all adults)",diabetes,comorbidity_count,eta,0.568,149860,built-from,comorbidity_count is the sum of the 5 condition flags
+"Fig 12c (features, training rows)",screening_age_smoker_unknown,ever_ecigarette_unknown,Spearman,0.93,119942,same-concept,both flag the same ~2.8% of adults who skipped the smoking / tobacco questions
+"Fig 12c (features, training rows)",screening_age_smoker,smoking_status_Former,Spearman,0.553,119942,built-from,"screening_age_smoker is built from smoking status, and most former smokers are aged 50-80"
