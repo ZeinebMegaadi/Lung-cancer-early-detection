@@ -11,15 +11,10 @@ Each source is reported by STATE. NHIS only tells us the person's REGION, so we
 group states into the 4 US Census regions (the same regions NHIS uses).
 """
 import zipfile
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw"
-CLEAN = ROOT / "data" / "clean"
-CLEAN.mkdir(parents=True, exist_ok=True)
-YEARS = [2019, 2020, 2021, 2022, 2023]
+from common import CLEAN, RAW, REGIONAL, YEARS
 
 report = []
 def log(msg=""):
@@ -137,7 +132,7 @@ def combine(pm25, smoke, inc):
     assert len(ctx) == 20
 
     # A missing year (e.g. a survey year not collected) is filled with the same region's nearest year
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         n_miss = ctx[c].isna().sum()
         if n_miss:
             ctx[c] = ctx.groupby("region")[c].transform(lambda s: s.interpolate(limit_direction="both"))

@@ -38,7 +38,6 @@ Research questions (Phase 1 - Business understanding); the same text is printed 
         factors (mutual information against a permutation null)?
 """
 import textwrap
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")                       # draw charts without opening windows
@@ -52,12 +51,7 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import mutual_info_score
 from statsmodels.stats.contingency_tables import StratifiedTable
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-FIG = ROOT / "results" / "figures"
-TAB = ROOT / "results" / "tables"
-FIG.mkdir(parents=True, exist_ok=True)
-TAB.mkdir(parents=True, exist_ok=True)
+from common import CLEAN, FIG, NON_FEATURES, RANDOM_STATE, REGIONAL, RESULTS, TAB
 
 sns.set_theme(style="whitegrid", context="talk")
 BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
@@ -252,7 +246,7 @@ def overview(df):
 def univariate(df):
     header("1b. UNIVARIATE ANALYSIS (one variable at a time)")
     a_all = df["age"].dropna()
-    sample = a_all.sample(min(5000, len(a_all)), random_state=42)
+    sample = a_all.sample(min(5000, len(a_all)), random_state=RANDOM_STATE)
     sw = stats.shapiro(sample)
     dag = stats.normaltest(a_all)
     say(f"Age: mean {a_all.mean():.1f}, median {a_all.median():.0f}, SD {a_all.std():.1f}, "
@@ -679,7 +673,7 @@ def feature_correlations(mr):
     """Fig 12c - feature-level Spearman matrix of all final model features + the target, training rows only."""
     header("6c. CORRELATIONS BETWEEN THE FINAL MODEL FEATURES (Fig 12c, training rows)")
     train = mr[mr["split"] == "train"]
-    feats = [c for c in mr.columns if c not in ("person_id", "split", "survey_weight", "lung_cancer")]
+    feats = [c for c in mr.columns if c not in NON_FEATURES]
     corr = train[feats + ["lung_cancer"]].corr(method="spearman")
     corr.round(3).to_csv(TAB / "correlation_matrix_features.csv")
     # ".36" not "0.36": at 5 pt a 39-column matrix at text width has cells only ~7.6 pt wide
@@ -803,7 +797,7 @@ def regional(df, ctx):
         f"{int(df.lung_cancer.sum())} cases in total).")
     say(f"  Spearman rho (20 region-years) = {rho:.2f}, p = {p:.2g}")
     say("  (Not the same measure: NHIS = people EVER diagnosed; registry = NEW cases per year.)")
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         rr, pp = stats.spearmanr(reg[c], reg["nhis_rate_%"])
         say(f"  {c:<22} vs NHIS rate: rho = {rr:.2f}, p = {pp:.2g}")
         tests.append((f"{c} vs NHIS regional rate (Spearman, 20 region-years)", "RQ3", pp))
@@ -813,7 +807,7 @@ def regional(df, ctx):
     say("Limits: registry rates are crude (not age-adjusted), state values are averaged without population")
     say("weights, and 2019-2023 pollution cannot explain cancers diagnosed many years earlier.")
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
-    for ax, c, lab in zip(axes, ["pm25_mean", "smoking_rate", "lung_cancer_incidence"],
+    for ax, c, lab in zip(axes, REGIONAL,
                           ["PM2.5 (µg/m³)", "Adult smoking rate (%)", "Registry incidence /100k"]):
         sns.scatterplot(data=reg, x=c, y="nhis_rate_%", hue="region", s=120, ax=ax, legend=(c == "lung_cancer_incidence"))
         if ax.get_legend():
@@ -846,7 +840,7 @@ def multiple_testing():
 def feature_relevance(mr):
     header("9. FEATURE RELEVANCE (training rows only - no leakage; RQ3: regional vs personal)")
     train = mr[mr["split"] == "train"]
-    X = train.drop(columns=["person_id", "split", "survey_weight", "lung_cancer"])
+    X = train.drop(columns=list(NON_FEATURES))
     # A column with few distinct values must be treated as DISCRETE: the continuous (k-nearest-neighbour)
     # estimator is biased upwards on heavily tied values. Regional columns have only 20 values, so they
     # are discrete; only age (68 values) is treated as continuous.
@@ -855,7 +849,7 @@ def feature_relevance(mr):
     for c, d in zip(X.columns, discrete):
         if d:                                    # give discrete values integer codes (MI does not depend on the labels)
             X_mi[c] = pd.factorize(X[c], sort=True)[0]
-    mi = mutual_info_classif(X_mi, train["lung_cancer"], discrete_features=discrete, random_state=42)
+    mi = mutual_info_classif(X_mi, train["lung_cancer"], discrete_features=discrete, random_state=RANDOM_STATE)
     rank = pd.Series(mi, index=X.columns).sort_values(ascending=False)
     rank.round(5).to_csv(TAB / "feature_relevance_mutual_information.csv", header=["mutual_information"])
     say(f"Training rows only: n = {len(train):,} adults ({int(train.lung_cancer.sum())} cases), unweighted; "
@@ -870,7 +864,7 @@ def feature_relevance(mr):
     say("and the three values measure the same thing (see below).")
     fig, ax = plt.subplots(figsize=(9, 7))
     top = rank.head(15)[::-1]
-    colors = [ORANGE if c in ("pm25_mean", "smoking_rate", "lung_cancer_incidence") else BLUE for c in top.index]
+    colors = [ORANGE if c in REGIONAL else BLUE for c in top.index]
     ax.barh(top.index, top.values, color=colors)
     ax.set_xlabel("Mutual information with lung cancer (nats)")
     ax.set_title(f"Fig 14. Most informative of the {X.shape[1]} final features\n(training rows: n = {len(train):,}, "
@@ -878,8 +872,6 @@ def feature_relevance(mr):
     save("fig14_feature_relevance")
     return rank
 
-
-REGIONAL = ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]
 
 
 def regional_mi_identity(mr, df):
@@ -973,7 +965,7 @@ def main():
     feature_relevance(mr)
     regional_mi_identity(mr, df)
     success_criteria(df, mr, tt)
-    (ROOT / "results" / "eda_results.txt").write_text("\n".join(out), encoding="utf-8")
+    (RESULTS / "eda_results.txt").write_text("\n".join(out), encoding="utf-8")
     print(f"\nDone. {len(list(FIG.glob('*.png')))} figures in results/figures, results in results/eda_results.txt")
 
 

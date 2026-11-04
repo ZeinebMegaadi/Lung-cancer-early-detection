@@ -18,7 +18,6 @@ Leakage: the scaler and the PCA are fitted on TRAINING rows only; test rows are 
 Scale: features have different units (years, %, µg/m³, 0/1), so every feature is standardised first.
 This is the same as running PCA on the correlation matrix (course, Chapter 5).
 """
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
@@ -29,13 +28,8 @@ import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-FIG = ROOT / "results" / "figures"
-TAB = ROOT / "results" / "tables"
-FIG.mkdir(parents=True, exist_ok=True)
-TAB.mkdir(parents=True, exist_ok=True)
-RANDOM_STATE = 42
+from common import CLEAN, FIG, NON_FEATURES, RANDOM_STATE, RESULTS, TAB
+
 LOADING_THRESHOLD = 0.40          # course rule: a loading above 0.40 (absolute) is a meaningful contribution
 
 sns.set_theme(style="whitegrid", context="talk")
@@ -46,14 +40,12 @@ def say(msg=""):
     print(msg)
     out.append(str(msg))
 
-FEATURE_EXCLUDE = ("person_id", "split", "survey_weight", "lung_cancer")
-
 
 def pca_analysis(m):
     """Steps 1-4: standardise + PCA on training rows, loadings, test-set check, decision.
     Returns the explained-variance table, the loadings, the fitted PCA, the scaled training matrix
     and the number of components for 80/90/95% of the variance."""
-    features = [c for c in m.columns if c not in FEATURE_EXCLUDE]
+    features = [c for c in m.columns if c not in NON_FEATURES]
     train, test = m[m.split == "train"], m[m.split == "test"]
 
     say("=" * 70)
@@ -143,7 +135,7 @@ def pca_analysis(m):
 # 5. Figures
 def pca_figures(m, pca, Z_train, k):
     """Step 5: scree plot (Fig 15) and projection on PC1-PC2 (Fig 16)."""
-    features = [c for c in m.columns if c not in FEATURE_EXCLUDE]
+    features = [c for c in m.columns if c not in NON_FEATURES]
     train = m[m.split == "train"]
     ratio = pca.explained_variance_ratio_
     cum = np.cumsum(ratio)
@@ -186,7 +178,7 @@ def main():
     m = pd.read_csv(CLEAN / "nhis_lung_cancer_model_ready.csv")
     ev, loadings, pca, Z_train, k = pca_analysis(m)
     pca_figures(m, pca, Z_train, k)
-    (ROOT / "results" / "pca_results.txt").write_text("\n".join(out), encoding="utf-8")
+    (RESULTS / "pca_results.txt").write_text("\n".join(out), encoding="utf-8")
     print("\nDone. Results in results/pca_results.txt")
 
 

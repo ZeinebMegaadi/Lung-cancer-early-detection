@@ -29,7 +29,6 @@ Nothing here changes the clean or model-ready files. Descriptive tables use all 
 population and fit nothing); the mutual-information check uses training rows only.
 """
 import zipfile
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -39,13 +38,7 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.contingency_tables import StratifiedTable
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-RAW = ROOT / "data" / "raw" / "nhis"
-TAB = ROOT / "results" / "tables"
-TAB.mkdir(parents=True, exist_ok=True)
-RANDOM_STATE = 42
-YEARS = [2019, 2020, 2021, 2022, 2023]
+from common import CLEAN, NON_FEATURES, RANDOM_STATE, RAW, REGIONAL, RESULTS, TAB, YEARS
 
 out = []
 def say(msg=""):
@@ -125,7 +118,7 @@ def dataset_composition(df, mr):
     for kind, cols in COLUMN_TYPES.items():
         add("2. columns of the clean file", kind, columns=cols)
     add("2. columns of the clean file", "all columns", columns=list(df.columns))
-    feats = [c for c in mr.columns if c not in ("person_id", "split", "survey_weight", "lung_cancer")]
+    feats = [c for c in mr.columns if c not in NON_FEATURES]
     group = {c: next(g for g, pre in FEATURE_GROUPS.items() if c.startswith(pre)) for c in feats}
     for g in FEATURE_GROUPS:
         add("3. final features by group", g, columns=[c for c in feats if group[c] == g])
@@ -354,7 +347,7 @@ def regional_within_between(df):
     say("Region means over 2019-2023:")
     say(means.round(3).to_string())
     rw = []
-    for cvar in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for cvar in REGIONAL:
         rho20, p20 = stats.spearmanr(r[cvar], r["nhis_rate_%"])
         rho4, _ = stats.spearmanr(means[cvar], means["nhis_rate_%"])
         x = r[cvar] - r.groupby("region")[cvar].transform("mean")
@@ -370,7 +363,7 @@ def regional_within_between(df):
     ranks = means[["nhis_rate_%", "pm25_mean", "smoking_rate", "lung_cancer_incidence"]].rank().astype(int)
     say("\nRanks of the 4 region means (1 = lowest), used by rho_between_4_regions:")
     say(ranks.to_string())
-    for cvar in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for cvar in REGIONAL:
         d2 = int(((ranks[cvar] - ranks["nhis_rate_%"]) ** 2).sum())
         say(f"  {cvar:<22} sum of squared rank differences = {d2:>2} -> rho = 1 - 6 x {d2} / (4 x 15) = {1 - d2 / 10:.1f}")
     say("With n = 4, Spearman rho can only take the values 0, +-0.2, +-0.4, ..., +-1, so a between-region rho of")
@@ -444,7 +437,7 @@ def survey_design(df):
     header("10. SURVEY-DESIGN SENSITIVITY: weighted odds ratios with cluster-robust confidence intervals")
     design = []
     for y in YEARS:
-        with zipfile.ZipFile(RAW / f"adult{str(y)[-2:]}csv.zip") as z:
+        with zipfile.ZipFile(RAW / "nhis" / f"adult{str(y)[-2:]}csv.zip") as z:
             member = [n for n in z.namelist() if n.lower().endswith(".csv")][0]
             with z.open(member) as f:
                 dd = pd.read_csv(f, usecols=lambda c: c.upper() in ("HHX", "PSTRAT", "PPSU"), low_memory=False)
@@ -525,7 +518,7 @@ def main():
     mi_checked(mr)
     survey_design(df)
     criterion5(mr)
-    (ROOT / "results" / "supplementary_results.txt").write_text("\n".join(out), encoding="utf-8")
+    (RESULTS / "supplementary_results.txt").write_text("\n".join(out), encoding="utf-8")
     print("\nDone. Results in results/supplementary_results.txt")
 
 

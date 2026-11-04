@@ -14,21 +14,16 @@ Not part of run_all.py: the report is built after the analysis, not as part of i
 import re
 import shutil
 import subprocess
-import sys
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-TAB = ROOT / "results" / "tables"
+from build_clean_dataset import REFERENCE                      # reference category of every group
+from common import CLEAN, NON_FEATURES, ROOT, TAB
+from eda_analysis import RESEARCH_QUESTIONS
+from supplementary_analysis import COLUMN_TYPES, FEATURE_GROUPS
+
 REPORT = ROOT / "report"
 GEN = REPORT / "generated"
-
-sys.path.insert(0, str(ROOT / "scripts"))
-from build_clean_dataset import REFERENCE                      # noqa: E402  reference category of every group
-from eda_analysis import RESEARCH_QUESTIONS                   # noqa: E402
-from supplementary_analysis import COLUMN_TYPES, FEATURE_GROUPS  # noqa: E402
 
 
 # ---------------------------------------------------------------- formatting helpers
@@ -145,7 +140,7 @@ def composition_tables():
 
 def feature_group_table():
     feats = [x for x in csv("nhis_lung_cancer_model_ready.csv", CLEAN, nrows=0).columns
-             if x not in ("person_id", "split", "survey_weight", "lung_cancer")]
+             if x not in NON_FEATURES]
     scaled = set(csv("scaler_parameters.csv", CLEAN).column)
     group_of = {f: next(g for g, pre in FEATURE_GROUPS.items() if f.startswith(pre)) for f in feats}
     labels = {"demographic": "Demographic", "socio-economic": "Socio-economic", "smoking": "Smoking and nicotine",
@@ -558,7 +553,7 @@ def screening_table():
 
 def feature_list_table():
     feats = [x for x in csv("nhis_lung_cancer_model_ready.csv", CLEAN, nrows=0).columns
-             if x not in ("person_id", "split", "survey_weight", "lung_cancer")]
+             if x not in NON_FEATURES]
     scaled = set(csv("scaler_parameters.csv", CLEAN).column)
     cells = [(str(i + 1), tex(f) + (" (scaled)" if f in scaled else "")) for i, f in enumerate(feats)]
     half = (len(cells) + 1) // 2

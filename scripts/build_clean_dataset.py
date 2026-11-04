@@ -17,7 +17,6 @@ Run from the repository root (after download_data.py and build_regional_data.py)
 """
 import warnings
 import zipfile
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -28,15 +27,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw" / "nhis"
-CLEAN = ROOT / "data" / "clean"
-CLEAN.mkdir(parents=True, exist_ok=True)
-YEARS = [2019, 2020, 2021, 2022, 2023]
-RANDOM_STATE = 42
+from common import CLEAN, FIG, RANDOM_STATE, RAW, REGIONAL, TAB, YEARS
+
 COMORB = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
-TAB = ROOT / "results" / "tables"
-TAB.mkdir(parents=True, exist_ok=True)
 # Reference category of every one-hot group: dropped from the model-ready file (Rule 4), so the other
 # dummies of the group are read relative to it and the group no longer sums to 1 (no exact collinearity)
 REFERENCE = {"race_ethnicity": "White", "education": "High school / GED", "income_group": "High",
@@ -47,9 +40,6 @@ REFERENCE = {"race_ethnicity": "White", "education": "High school / GED", "incom
 RAW_COLS = ["SRVY_YR", "HHX", "WTFA_A", "AGEP_A", "SEX_A", "HISPALLP_A", "REGION", "EDUC_A",
             "RATCAT_A", "PHSTAT_A", "BMICAT_A", "SMKCIGST_A", "ECIGEV_A", "COPDEV_A", "ASEV_A",
             "HYPEV_A", "CHDEV_A", "DIBEV_A", "CANEV_A", "LUNGCAN_A"]
-
-FIG = ROOT / "results" / "figures"
-FIG.mkdir(parents=True, exist_ok=True)
 
 report = []
 def log(msg=""):
@@ -85,7 +75,7 @@ def near_zero_eigenvalues(X, limit=0.01):
 
 # ---------------------------------------------------------------- 1. load and stack
 def load_year(year):
-    path = RAW / f"adult{str(year)[-2:]}csv.zip"
+    path = RAW / "nhis" / f"adult{str(year)[-2:]}csv.zip"
     with zipfile.ZipFile(path) as z:
         member = [n for n in z.namelist() if n.lower().endswith(".csv")][0]
         with z.open(member) as f:
@@ -216,7 +206,7 @@ def join_regional(clean):
     clean = clean.merge(ctx, on=["region", "year"], how="left", validate="many_to_one")
     assert len(clean) == n_before, "The join must add columns, never rows"
     log(f"  Rows before / after join: {n_before:,} / {len(clean):,}  (join key: region + year)")
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         log(f"  {c}: {clean[c].isna().sum()} rows without a match (only if region is unknown)")
     track("5b. Join regional table", clean, "3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added")
     return clean
@@ -304,7 +294,7 @@ def encode_and_fill(clean):
     m["comorbidity_count"] = clean["comorbidity_count"].fillna(0).astype(int)
 
     # Regional columns: filled with the training median if a person's region is unknown
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         m[c] = clean[c].fillna(clean.loc[train_idx, c].median())
 
     # Categorical columns: one-hot encoding, missing becomes its own 'Unknown' category
