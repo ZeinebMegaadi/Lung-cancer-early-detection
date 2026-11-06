@@ -643,7 +643,6 @@ def main():
     outlier_table(); before_after_table(); numeric_shape_table(); smoking_table(); smoking_age_table()
     conditions_table(); copd_tables(); demographics_table(); correlation_tables(); regional_table()
     tests_table(); design_table(); scaler_table(); selection_table(); vif_table(); mi_table(); pca_table(m)
-    write("tab_feature_groups_final.tex", feature_group_table())
     criteria_table(); screening_table(); feature_list_table()
     print(f"Wrote {len(list(GEN.glob('*.tex')))} files to report/generated/.")
     compile_pdf()

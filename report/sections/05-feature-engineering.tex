@@ -108,11 +108,7 @@ Lung-cancer cases sit on the high side of PC1 (Fig.~\ref{fig:projection}; mean s
 
 \subsection{The final feature set and how it serves the objectives}\label{sec:final}
 
-\begin{table}[htbp]
-\centering\small
-\caption{The \nFeatures final features, by group (full list in Appendix~\ref{app:features}).}\label{tab:final-groups}
-\input{generated/tab_feature_groups_final}
-\end{table}
+The \nFeatures final features are listed by group, with the reference category of every one-hot group, in Table~\ref{tab:comp-groups} (Section~\ref{sec:data}; full list in Appendix~\ref{app:features}).
 
 \begin{itemize}
   \item It carries what the EDA found to matter -- age, smoking, COPD and the other chronic conditions (whose sum, \file{comorbidity_count}, stays in the clean dataset for the EDA only) -- in model-ready form, with no missing values and no exact or near-exact multicollinearity (maximum VIF \maxVIFshort).
@@ -123,4 +119,4 @@ Lung-cancer cases sit on the high side of PC1 (Fig.~\ref{fig:projection}; mean s
 
 \textbf{Features we are cautious about.} \file{general_health}, BMI, current smoking status and the ``ever told'' conditions may partly be consequences of a cancer diagnosis (\S\ref{sec:sociodemo}). A model leaning on them would mostly recognise people who are already sick rather than give an early risk indication. We keep them, but plan to compare models with and without them. Race/ethnicity is kept to describe the population and to allow a fairness audit of any future model, not because race is a cause of lung cancer.
 
-\textbf{Reading the dummies.} Every dummy is read against its group's reference category (Table~\ref{tab:final-groups}). For smoking, the reference group \emph{Never} also contains the 2.6\% of adults whose smoking status is unknown. Their own dummy was dropped as a near-duplicate of \file{screening_age_smoker_unknown} ($r = 0.96$, rule 3), so that flag is the \textbf{only} feature that tells a model these adults are not known never-smokers. It must stay in any model that uses the smoking dummies, and an adjusted odds ratio for \emph{Current} or \emph{Former} smoking should be described as ``vs never or unknown, holding the unknown flag fixed''.
+\textbf{Reading the dummies.} Every dummy is read against its group's reference category (Table~\ref{tab:comp-groups}). For smoking, the reference group \emph{Never} also contains the 2.6\% of adults whose smoking status is unknown. Their own dummy was dropped as a near-duplicate of \file{screening_age_smoker_unknown} ($r = 0.96$, rule 3), so that flag is the \textbf{only} feature that tells a model these adults are not known never-smokers. It must stay in any model that uses the smoking dummies, and an adjusted odds ratio for \emph{Current} or \emph{Former} smoking should be described as ``vs never or unknown, holding the unknown flag fixed''.
