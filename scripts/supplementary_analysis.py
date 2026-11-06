@@ -38,7 +38,8 @@ from sklearn.feature_selection import mutual_info_classif
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.contingency_tables import StratifiedTable
 
-from common import CLEAN, NON_FEATURES, RANDOM_STATE, RAW, REGIONAL, RESULTS, TAB, YEARS
+from common import (CLEAN, COLUMN_TYPES, FEATURE_GROUPS, NON_FEATURES, RANDOM_STATE, RAW, REGIONAL, RESULTS,
+                    TAB, YEARS)
 
 out = []
 def say(msg=""):
@@ -78,24 +79,6 @@ ORDER = {
 }
 LABEL = {0.0: "No", 1.0: "Yes"}
 
-# Column type of every column of the 26-column clean file (decision D5 of CHANGES_PLAN.md)
-COLUMN_TYPES = {
-    "identifier": ["person_id"], "weight": ["survey_weight"], "target": ["lung_cancer"],
-    "numeric": ["age", "year"],
-    "ordinal": ["education", "income_group", "general_health", "bmi_category"],
-    "nominal": ["race_ethnicity", "region", "smoking_status"],
-    "binary": ["sex", "ever_ecigarette", "copd", "asthma", "hypertension", "heart_disease", "diabetes"],
-    "engineered": ["age_group", "ever_smoker", "screening_age_smoker", "comorbidity_count"],
-    "regional": ["pm25_mean", "smoking_rate", "lung_cancer_incidence"],
-}
-# Group of every final feature, by column-name prefix
-FEATURE_GROUPS = {
-    "demographic": ("age", "sex_", "race_ethnicity_"),
-    "socio-economic": ("education_", "income_group_"),
-    "smoking": ("smoking_status_", "screening_age_smoker", "ever_ecigarette"),
-    "health": ("copd", "asthma", "hypertension", "heart_disease", "diabetes", "general_health_", "bmi_category_"),
-    "regional": ("pm25_mean", "smoking_rate", "lung_cancer_incidence"),
-}
 
 
 # ======================================================================= 0. dataset composition

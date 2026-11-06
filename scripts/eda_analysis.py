@@ -127,7 +127,7 @@ def load_data():
 
 
 OUTCOME = ("Having ever been told by a doctor that one had lung cancer, self-reported by US adults in "
-           "NHIS 2019-2023 (149,928 adults, 619 cases).")
+           "NHIS 2019-2023 ({adults:,} adults, {cases} cases).")
 RESEARCH_QUESTIONS = {
     "RQ1": "Smoking. How much higher are the odds of a lung-cancer history among ever-smokers (current or former) "
            "than among never-smokers? How much of that odds ratio remains when ever- and never-smokers are compared "
@@ -154,9 +154,10 @@ RESEARCH_QUESTIONS = {
 }
 
 
-def research_questions():
+def research_questions(df):
     say("OUTCOME")
-    say(textwrap.fill(OUTCOME, 105, initial_indent="  ", subsequent_indent="  ", break_on_hyphens=False))
+    outcome = OUTCOME.format(adults=len(df), cases=int(df.lung_cancer.sum()))
+    say(textwrap.fill(outcome, 105, initial_indent="  ", subsequent_indent="  ", break_on_hyphens=False))
     say("RESEARCH QUESTIONS")
     for rq, text in RESEARCH_QUESTIONS.items():
         say(textwrap.fill(text, 105, initial_indent=f"  {rq:<5} ", subsequent_indent=" " * 8, break_on_hyphens=False))
@@ -946,7 +947,7 @@ def main():
     out.clear()
     tests.clear()
     df, mr, ctx = load_data()
-    research_questions()
+    research_questions(df)
     overview(df)
     sw = univariate(df)
     smoking(df)

@@ -27,14 +27,9 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-from common import CLEAN, FIG, RANDOM_STATE, RAW, REGIONAL, TAB, YEARS
+from common import CLEAN, FIG, RANDOM_STATE, RAW, REFERENCE, REGIONAL, TAB, YEARS
 
 COMORB = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
-# Reference category of every one-hot group: dropped from the model-ready file (Rule 4), so the other
-# dummies of the group are read relative to it and the group no longer sums to 1 (no exact collinearity)
-REFERENCE = {"race_ethnicity": "White", "education": "High school / GED", "income_group": "High",
-             "bmi_category": "Healthy", "general_health": "Excellent", "smoking_status": "Never",
-             "sex": "Male", "region": "West"}
 
 # Raw NHIS columns we need (same names in all 2019-2023 adult files)
 RAW_COLS = ["SRVY_YR", "HHX", "WTFA_A", "AGEP_A", "SEX_A", "HISPALLP_A", "REGION", "EDUC_A",

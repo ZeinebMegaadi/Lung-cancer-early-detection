@@ -17,10 +17,8 @@ import subprocess
 
 import pandas as pd
 
-from build_clean_dataset import REFERENCE                      # reference category of every group
-from common import CLEAN, NON_FEATURES, ROOT, TAB
+from common import CLEAN, COLUMN_TYPES, FEATURE_GROUPS, NON_FEATURES, REFERENCE, ROOT, TAB
 from eda_analysis import RESEARCH_QUESTIONS
-from supplementary_analysis import COLUMN_TYPES, FEATURE_GROUPS
 
 REPORT = ROOT / "report"
 GEN = REPORT / "generated"
