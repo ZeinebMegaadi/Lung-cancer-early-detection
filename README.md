@@ -57,7 +57,7 @@ pip install -r requirements.txt
 python run_all.py
 ```
 
-The raw data is already in `data/raw/`, so only missing files are downloaded. A full run takes about three minutes. Every random step uses seed 42, so the outputs are identical on every machine.
+The raw data is already in `data/raw/`, so only missing files are downloaded. A full run takes about two minutes. Every random step uses seed 42, so the outputs are identical on every machine.
 
 Notebook (re-executes in place; the options keep the saved file byte-identical between runs, about two minutes):
 

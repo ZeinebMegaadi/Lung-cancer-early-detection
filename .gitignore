@@ -2,6 +2,8 @@ __pycache__/
 *.pyc
 .ipynb_checkpoints/
 .DS_Store
+Thumbs.db
+desktop.ini
 # Unzipped or temporary big files are not uploaded (GitHub limit: 100 MB per file)
 data/raw/nhis/*.csv
 data/raw/uscs/_uscs.zip
@@ -16,7 +18,6 @@ venv/
 
 # LaTeX build output (report/build/ holds main.pdf; only report/Lung_Cancer_Midterm_Report.pdf is committed)
 report/build/
-report_overleaf.zip
 *.aux
 *.log
 *.out

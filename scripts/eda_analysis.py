@@ -6,7 +6,7 @@ Step 3 - Exploratory Data Analysis (EDA) and hypothesis tests.
 Reads : data/clean/nhis_lung_cancer_clean.csv, data/clean/nhis_lung_cancer_model_ready.csv,
         data/clean/regional_context.csv, data/clean/before_after_summary.csv,
         data/clean/final_features.csv
-Writes: results/figures/*.png      every chart, numbered like the slides
+Writes: results/figures/*.png      every chart, numbered as in the report
         results/eda_results.txt    every number and test result, in plain words
         results/tables/*.csv       the tables behind the charts
 

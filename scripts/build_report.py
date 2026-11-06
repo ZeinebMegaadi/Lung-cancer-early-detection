@@ -624,7 +624,7 @@ def numbers():
 
 # ---------------------------------------------------------------- main
 def compile_pdf():
-    # ponytail: plain pdflatex x2, not latexmk (MiKTeX's latexmk needs Perl); no bibtex, references are hand-written
+    # plain pdflatex x2, not latexmk (MiKTeX's latexmk needs Perl); no bibtex, references are hand-written
     pdflatex = shutil.which("pdflatex")
     if not pdflatex:
         raise SystemExit("pdflatex not found: install MiKTeX or TeX Live. Generated files were written.")

@@ -10,6 +10,9 @@ Output: data/clean/nhis_lung_cancer_clean.csv               readable, one row pe
         data/clean/outlier_check.csv                        IQR outlier check and the decision for each column
         data/clean/before_after_summary.csv                 one table: what each step changed
         data/clean/data_dictionary.csv                      what every column means
+        data/clean/scaler_parameters.csv                    training means / SDs of the scaled columns
+        results/tables/vif_before.csv, vif_after.csv        variance inflation factors before / after Rule 4
+        results/figures/fig03_outlier_boxplots.png          outlier box plots
         data/clean/cleaning_report.txt                      every cleaning step with before/after counts
 
 Run from the repository root (after download_data.py and build_regional_data.py):
@@ -377,7 +380,7 @@ def select_features(m, split):
         else:
             decisions[c] = ("DROP", why + "; dropping one dummy per group removes the exact sum-to-1 dependency "
                                           "(infinite VIF)" + NOTE.get(group, ""))
-    # 4c. region dummies vs the 3 regional columns (decision D3 of CHANGES_PLAN.md)
+    # 4c. region dummies vs the 3 regional columns
     mid = [c for c in candidates if c not in decisions]
     vif_mid = vif_table(tr[mid]).set_index("feature")["vif"]
     REGION = [c for c in mid if c.startswith("region_")]

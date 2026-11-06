@@ -1,0 +1,5 @@
+# Store every text file with LF line endings, whatever the local core.autocrlf setting
+* text=auto eol=lf
+*.png binary
+*.zip binary
+*.pdf binary
