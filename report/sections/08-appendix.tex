@@ -14,6 +14,8 @@ python run_all.py
 python scripts/build_report.py   (this report)
 \end{verbatim}
 
+The repository has five top-level folders: \texttt{data/raw/} (original files), \texttt{data/clean/} (datasets and cleaning logs), \texttt{results/} (figures, tables and plain-text results), \texttt{report/} (this report) and \texttt{docs/} (how the midterm feedback was addressed). Paths, constants and the statistical helpers shared by the scripts live in \file{scripts/common.py}.
+
 \begin{table}[htbp]
 \centering\small
 \caption{The six pipeline steps run by \texttt{run\_all.py}, the notebook, and the report build.}\label{tab:pipeline-steps}
@@ -27,6 +29,7 @@ Step & Script & Output \\
 3 & \texttt{eda\_analysis.py} & Figures~\ref{fig:balance}--\ref{fig:missing} and \ref{fig:numeric}--\ref{fig:mi}, including Figures~\ref{fig:assoc} and~\ref{fig:featcorr}; test, correlation and association tables in \texttt{results/tables/}; \texttt{results/eda\_results.txt} with every test (with its denominator) and the success-criteria check \\
 4 & \texttt{feature\_extraction\_pca.py} & Figures~\ref{fig:scree}--\ref{fig:projection}; \texttt{results/pca\_results.txt}; PCA tables \\
 5 & \texttt{supplementary\_analysis.py} & dataset composition (Tables~\ref{tab:comp-years}--\ref{tab:comp-groups}), population profile (Tables~\ref{tab:prof-demo}--\ref{tab:cases}), per-year rates, age-adjusted odds ratios, regional within/between check, screening-rule baseline, mutual-information check, survey-design check and the criterion-5 assertion; \texttt{results/supplementary\_results.txt} \\
+-- & \texttt{common.py} & shared paths, constants and statistical helpers (weighted rate, odds ratio, Mantel--Haenszel, mutual-information inputs), imported by every step, the notebook and \texttt{build\_report.py} \\
 -- & \file{notebooks/lung_cancer_project.ipynb} & the whole project section by section; every code cell calls a function of the scripts above (not run by \texttt{run\_all.py}) \\
 -- & \texttt{build\_report.py} & this report's generated tables and numbers (\texttt{report/generated/}); compiles \texttt{report/main.tex} with pdflatex (run twice) (not run by \texttt{run\_all.py}) \\
 \bottomrule

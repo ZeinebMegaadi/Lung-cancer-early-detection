@@ -2,6 +2,7 @@
 
 LaTeX source of the midterm report (revised version after midterm feedback). The tables that hold numbers and the
 key numbers in the prose are **generated from the pipeline outputs**, so the report cannot drift from the analysis.
+It reads the pipeline outputs in `../results/` and `../data/clean/`.
 
 ```
 main.tex                         preamble, title page, \input of every section

@@ -35,12 +35,13 @@ Outcome: having ever been told by a doctor that one had lung cancer, self-report
 
 ```text
 data/raw/                  original NHIS, EPA, BRFSS and US Cancer Statistics files
-data/clean/                clean dataset, model-ready (and scaled) dataset, data dictionary, cleaning reports
+data/clean/                clean dataset, model-ready (and scaled) dataset, data dictionary, cleaning logs
 scripts/                   pipeline steps: download, regional data, cleaning, EDA, PCA, supplementary checks, report build
+scripts/common.py          shared paths, constants and statistics helpers imported by every script and the notebook
 notebooks/                 project notebook, calling the functions in scripts/
-results/                   figures, tables and text results written by the pipeline (index in results/README.md)
-docs/                      record of how the midterm feedback was addressed (midterm-feedback-changelog.md)
-report/                    LaTeX source and compiled PDF of the report (see report/README.md)
+results/                   pipeline outputs: figures/, tables/ and text results (index in results/README.md)
+report/                    LaTeX source and compiled PDF of the report, built from results/ (see report/README.md)
+docs/                      midterm-feedback-changelog.md: record of how the midterm feedback was addressed
 run_all.py                 runs the whole pipeline in order
 requirements.txt           Python dependencies
 ```
