@@ -39,7 +39,7 @@ data/clean/                clean dataset, model-ready (and scaled) dataset, data
 scripts/                   pipeline steps: download, regional data, cleaning, EDA, PCA, supplementary checks, report build
 notebooks/                 project notebook, calling the functions in scripts/
 results/                   figures, tables and text results written by the pipeline (index in results/README.md)
-results/REPORT_UPDATES.md  record of how the midterm feedback was addressed
+docs/                      record of how the midterm feedback was addressed (midterm-feedback-changelog.md)
 report/                    LaTeX source and compiled PDF of the report (see report/README.md)
 run_all.py                 runs the whole pipeline in order
 requirements.txt           Python dependencies
