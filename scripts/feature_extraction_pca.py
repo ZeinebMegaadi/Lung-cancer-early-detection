@@ -24,21 +24,16 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-from common import CLEAN, FIG, NON_FEATURES, RANDOM_STATE, RESULTS, TAB
+from common import BLUE, CLEAN, GREY, NON_FEATURES, ORANGE, RANDOM_STATE, RESULTS, TAB, save_fig, set_style, text_log
 
 LOADING_THRESHOLD = 0.40          # course rule: a loading above 0.40 (absolute) is a meaningful contribution
 
-sns.set_theme(style="whitegrid", context="talk")
-BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
+set_style()
 
-out = []
-def say(msg=""):
-    print(msg)
-    out.append(str(msg))
+out, say, _ = text_log()
 
 
 def pca_analysis(m):
@@ -153,7 +148,7 @@ def pca_figures(m, pca, Z_train, k):
                  f"(fitted on the {len(train):,} training rows)", fontsize=16)
     h1, l1 = ax.get_legend_handles_labels(); h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="center right", fontsize=12)
-    plt.tight_layout(); plt.savefig(FIG / "fig15_pca_scree.png", dpi=150, bbox_inches="tight"); plt.close()
+    save_fig("fig15_pca_scree")
 
     P = pca.transform(Z_train)[:, :2]
     proj = pd.DataFrame({"PC1": P[:, 0], "PC2": P[:, 1], "lung_cancer": train["lung_cancer"].values})
@@ -166,7 +161,7 @@ def pca_figures(m, pca, Z_train, k):
     ax.set_title(f"Fig 16. Training adults on the first two principal components\n"
                  f"(n = {len(train):,} training rows; all {len(pos)} cases and a random 8,000 non-cases shown)", fontsize=16)
     ax.legend(fontsize=12, loc="center right")
-    plt.tight_layout(); plt.savefig(FIG / "fig16_pca_projection.png", dpi=150, bbox_inches="tight"); plt.close()
+    save_fig("fig16_pca_projection")
     m_pos, m_neg = proj.loc[proj.lung_cancer == 1, "PC1"].mean(), proj.loc[proj.lung_cancer == 0, "PC1"].mean()
     say(f"\nFig 16 reading: mean PC1 score = {m_pos:+.2f} for lung cancer cases vs {m_neg:+.2f} for the other adults.")
     say("PC1 is the 'age and chronic-disease burden' axis (see loadings), so cases sit on its high side,")

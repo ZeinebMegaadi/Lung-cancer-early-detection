@@ -27,7 +27,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-from common import CLEAN, FIG, RANDOM_STATE, RAW, REFERENCE, REGIONAL, TAB, YEARS
+from common import CLEAN, RANDOM_STATE, RAW, REFERENCE, REGIONAL, TAB, YEARS, save_fig, text_log
 
 COMORB = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
 
@@ -36,10 +36,7 @@ RAW_COLS = ["SRVY_YR", "HHX", "WTFA_A", "AGEP_A", "SEX_A", "HISPALLP_A", "REGION
             "RATCAT_A", "PHSTAT_A", "BMICAT_A", "SMKCIGST_A", "ECIGEV_A", "COPDEV_A", "ASEV_A",
             "HYPEV_A", "CHDEV_A", "DIBEV_A", "CANEV_A", "LUNGCAN_A"]
 
-report = []
-def log(msg=""):
-    print(msg)
-    report.append(str(msg))
+report, log, _ = text_log()
 
 summary = []        # before/after table: one row per step
 def track(step, df, change):
@@ -241,7 +238,7 @@ def outlier_check(clean):
             n_out = int(pd.DataFrame(rows).set_index("column").loc[c, "n_outliers"])
             ax.set_title(f"{c}\n{n_out:,} beyond 1.5 x IQR", fontsize=13); ax.set_xticks([]); ax.set_ylabel(UNITS[c], fontsize=12)
         fig.suptitle("Fig 3. Outlier check (IQR rule): every flagged value is plausible, so all values are kept", y=1.01, fontsize=14)
-        plt.tight_layout(); plt.savefig(FIG / "fig03_outlier_boxplots.png", dpi=150, bbox_inches="tight"); plt.close()
+        save_fig("fig03_outlier_boxplots")
     log("  Box plots saved to results/figures/fig03_outlier_boxplots.png")
     track("5c. Outlier check", clean, "IQR check on 6 numeric columns; all values plausible -> kept")
     return pd.DataFrame(rows)

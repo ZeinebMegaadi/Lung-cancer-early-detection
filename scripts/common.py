@@ -5,8 +5,12 @@ Shared paths and constants used by every pipeline script, build_report.py and th
 """
 from pathlib import Path
 
+import matplotlib
+matplotlib.use("Agg")                       # draw charts without opening windows
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from scipy import stats
 from statsmodels.stats.contingency_tables import StratifiedTable
 
@@ -21,6 +25,9 @@ for _folder in (CLEAN, FIG, TAB):
 
 YEARS = [2019, 2020, 2021, 2022, 2023]      # NHIS survey years
 RANDOM_STATE = 42                           # every random step (split, sampling, MI, permutations)
+
+# Chart colours: blue = personal factors / main series, orange = regional or highlighted, grey = reference
+BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
 
 # Columns of the model-ready file that are not features
 NON_FEATURES = ("person_id", "split", "survey_weight", "lung_cancer")
@@ -51,6 +58,34 @@ FEATURE_GROUPS = {
     "health": ("copd", "asthma", "hypertension", "heart_disease", "diabetes", "general_health_", "bmi_category_"),
     "regional": tuple(REGIONAL),
 }
+
+
+# ---------------------------------------------------------------- text results and figures
+def text_log():
+    """(lines, say, header) for a script's plain-text results: say() prints a line and keeps it,
+    header() prints a section title between two rules; the caller writes "\n".join(lines) to a file."""
+    lines = []
+
+    def say(msg=""):
+        print(msg)
+        lines.append(str(msg))
+
+    def header(title):
+        say("\n" + "=" * 70 + f"\n{title}\n" + "=" * 70)
+
+    return lines, say, header
+
+
+def set_style():
+    """Chart style of the EDA and PCA figures (fig03 deliberately keeps matplotlib's defaults)."""
+    sns.set_theme(style="whitegrid", context="talk")
+
+
+def save_fig(name, dpi=150):
+    """Save the current figure as results/figures/<name>.png and close it."""
+    plt.tight_layout()
+    plt.savefig(FIG / f"{name}.png", dpi=dpi, bbox_inches="tight")
+    plt.close()
 
 
 # ---------------------------------------------------------------- statistics shared by the EDA scripts

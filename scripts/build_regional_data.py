@@ -14,12 +14,9 @@ import zipfile
 
 import pandas as pd
 
-from common import CLEAN, RAW, REGIONAL, YEARS
+from common import CLEAN, RAW, REGIONAL, YEARS, text_log
 
-report = []
-def log(msg=""):
-    print(msg)
-    report.append(str(msg))
+report, log, _ = text_log()
 
 # US Census regions (the same 4 regions used by NHIS)
 REGIONS = {

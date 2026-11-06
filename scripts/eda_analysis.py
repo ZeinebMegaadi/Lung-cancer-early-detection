@@ -50,11 +50,11 @@ from scipy import stats
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import mutual_info_score
 
-from common import (CLEAN, FIG, NON_FEATURES, RANDOM_STATE, REGIONAL, RESULTS, TAB, mantel_haenszel, mi_inputs,
-                    odds_ratio_ci, two_by_two, weighted_rate as wrate)
+from common import (BLUE, CLEAN, FIG, GREY, NON_FEATURES, ORANGE, RANDOM_STATE, REGIONAL, RESULTS, TAB,
+                    mantel_haenszel, mi_inputs, odds_ratio_ci, save_fig as save, set_style, text_log,
+                    two_by_two, weighted_rate as wrate)
 
-sns.set_theme(style="whitegrid", context="talk")
-BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
+set_style()
 SMOKE_ORDER = ["Never", "Former", "Current"]
 AGE_ORDER = ["18-44", "45-54", "55-64", "65-74", "75+"]
 
@@ -75,20 +75,7 @@ LABEL = {
     "general_health": "Self-rated general health", "smoking_status": "Smoking status", "region": "US region",
 }
 
-out = []
-def say(msg=""):
-    print(msg)
-    out.append(str(msg))
-
-def header(title):
-    say("\n" + "=" * 70)
-    say(title)
-    say("=" * 70)
-
-def save(name, dpi=150):
-    plt.tight_layout()
-    plt.savefig(FIG / f"{name}.png", dpi=dpi, bbox_inches="tight")
-    plt.close()
+out, say, header = text_log()
 
 def cramers_v(t):
     chi2 = stats.chi2_contingency(t, correction=False)[0]

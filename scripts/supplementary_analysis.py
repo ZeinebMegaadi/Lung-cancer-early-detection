@@ -39,15 +39,9 @@ from sklearn.preprocessing import StandardScaler
 
 from common import (CLEAN, COLUMN_TYPES, FEATURE_GROUPS, NON_FEATURES, RANDOM_STATE, RAW, REGIONAL, RESULTS,
                     TAB, YEARS, mantel_haenszel, mi_inputs, odds_ratio_ci, two_by_two, weighted_mean as wmean,
-                    weighted_rate)
+                    weighted_rate, text_log)
 
-out = []
-def say(msg=""):
-    print(msg)
-    out.append(str(msg))
-
-def header(title):
-    say("\n" + "=" * 70 + f"\n{title}\n" + "=" * 70)
+out, say, header = text_log()
 
 ORDER = {
     "sex": ["Female", "Male"],
