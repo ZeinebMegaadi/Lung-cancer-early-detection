@@ -184,7 +184,7 @@ Smokers develop COPD more often and lung cancer more often, so smoking alone cou
 \caption{Spearman correlation of the \nFeatures final model features and the target, on the training rows only ($n$ = \nTrain adults, \nTrainCases cases; unweighted; lower triangle; values printed where $|r| \geq 0.3$).}\label{fig:featcorr}
 \end{figure}
 
-Fig.~\ref{fig:corr} only holds the numeric and 0/1 columns, so it cannot show how the categorical variables relate to each other or to the target. Fig.~\ref{fig:assoc} therefore covers \emph{all} 24 analysis variables, with the measure that suits each pair of types, and Fig.~\ref{fig:featcorr} covers \emph{all} \nFeatures features handed to the modelling phase. Every pair above 0.5 in either matrix is listed in Table~\ref{tab:high-pairs} with the reason it is high (\file{reports/tables/high_correlation_pairs.csv}).
+Fig.~\ref{fig:corr} only holds the numeric and 0/1 columns, so it cannot show how the categorical variables relate to each other or to the target. Fig.~\ref{fig:assoc} therefore covers \emph{all} 24 analysis variables, with the measure that suits each pair of types, and Fig.~\ref{fig:featcorr} covers \emph{all} \nFeatures features handed to the modelling phase. Every pair above 0.5 in either matrix is listed in Table~\ref{tab:high-pairs} with the reason it is high (\file{results/tables/high_correlation_pairs.csv}).
 
 \begin{table}[htbp]
 \centering\footnotesize
@@ -231,7 +231,7 @@ Running eighteen tests raises the chance of a false positive, so we corrected al
 
 \begin{table}[htbp]
 \centering\small
-\caption{All \nTests hypothesis tests with raw and Holm-adjusted $p$-values, labelled with the research question each one answers (\texttt{reports/tables/all\_tests\_holm.csv}). $^{a}$The 20 region-years are not independent (4 regions $\times$ 5 years), so this $p$-value is optimistic; see \S\ref{sec:regional} and Table~\ref{tab:regional}.}\label{tab:all-tests}
+\caption{All \nTests hypothesis tests with raw and Holm-adjusted $p$-values, labelled with the research question each one answers (\texttt{results/tables/all\_tests\_holm.csv}). $^{a}$The 20 region-years are not independent (4 regions $\times$ 5 years), so this $p$-value is optimistic; see \S\ref{sec:regional} and Table~\ref{tab:regional}.}\label{tab:all-tests}
 \input{generated/tab_all_tests}
 \end{table}
 

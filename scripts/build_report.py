@@ -3,7 +3,7 @@ Step 6 (optional) - Build the LaTeX report from the pipeline outputs.
 
     python scripts/build_report.py          (after python run_all.py)
 
-Reads : reports/tables/*.csv, data/clean/*.csv, reports/*.txt (main.tex reads the figures from reports/figures/)
+Reads : results/tables/*.csv, data/clean/*.csv, results/*.txt (main.tex reads the figures from results/figures/)
 Writes: report/generated/numbers.tex   \\newcommand macros for the key numbers used in the prose
         report/generated/tab_*.tex     the body (tabular) of every table that comes from a CSV
         report/build/main.pdf          pdflatex run twice (build/ is git-ignored)
@@ -14,21 +14,14 @@ Not part of run_all.py: the report is built after the analysis, not as part of i
 import re
 import shutil
 import subprocess
-import sys
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-TAB = ROOT / "reports" / "tables"
+from common import CLEAN, COLUMN_TYPES, FEATURE_GROUPS, NON_FEATURES, REFERENCE, ROOT, TAB
+from eda_analysis import RESEARCH_QUESTIONS
+
 REPORT = ROOT / "report"
 GEN = REPORT / "generated"
-
-sys.path.insert(0, str(ROOT / "scripts"))
-from build_clean_dataset import REFERENCE                      # noqa: E402  reference category of every group
-from eda_analysis import RESEARCH_QUESTIONS                   # noqa: E402
-from supplementary_analysis import COLUMN_TYPES, FEATURE_GROUPS  # noqa: E402
 
 
 # ---------------------------------------------------------------- formatting helpers
@@ -145,7 +138,7 @@ def composition_tables():
 
 def feature_group_table():
     feats = [x for x in csv("nhis_lung_cancer_model_ready.csv", CLEAN, nrows=0).columns
-             if x not in ("person_id", "split", "survey_weight", "lung_cancer")]
+             if x not in NON_FEATURES]
     scaled = set(csv("scaler_parameters.csv", CLEAN).column)
     group_of = {f: next(g for g, pre in FEATURE_GROUPS.items() if f.startswith(pre)) for f in feats}
     labels = {"demographic": "Demographic", "socio-economic": "Socio-economic", "smoking": "Smoking and nicotine",
@@ -558,7 +551,7 @@ def screening_table():
 
 def feature_list_table():
     feats = [x for x in csv("nhis_lung_cancer_model_ready.csv", CLEAN, nrows=0).columns
-             if x not in ("person_id", "split", "survey_weight", "lung_cancer")]
+             if x not in NON_FEATURES]
     scaled = set(csv("scaler_parameters.csv", CLEAN).column)
     cells = [(str(i + 1), tex(f) + (" (scaled)" if f in scaled else "")) for i, f in enumerate(feats)]
     half = (len(cells) + 1) // 2
@@ -583,8 +576,8 @@ def numbers():
     holm, t = holm_lookup()
     rw = csv("regional_within_between.csv").set_index("regional_measure")
     cells = df.groupby(["region", "year"]).size()
-    test_kept, = text_value("reports/pca_results.txt", r"keep ([\d.]+)% of the TEST variance")
-    case_mean, = text_value("reports/pca_results.txt", r"mean PC1 score = ([+-][\d.]+) for lung cancer cases")
+    test_kept, = text_value("results/pca_results.txt", r"keep ([\d.]+)% of the TEST variance")
+    case_mean, = text_value("results/pca_results.txt", r"mean PC1 score = ([+-][\d.]+) for lung cancer cases")
     m = {
         "nAdults": n(len(df)), "nCases": str(int(df.lung_cancer.sum())),
         "sampleRate": f"{100 * df.lung_cancer.mean():.2f}",
@@ -617,7 +610,7 @@ def numbers():
     m["orCOPD"] = f"{csv('conditions_odds_ratios.csv').set_index('condition').loc['copd', 'odds_ratio']:.1f}"
     sa = csv("smoking_by_age_group.csv").set_index("group")
     m["orSmokingMH"] = f"{sa.loc['Mantel-Haenszel (adjusted for age group)', 'odds_ratio']:.1f}"
-    o, lo, hi = map(float, text_value("reports/eda_results.txt",
+    o, lo, hi = map(float, text_value("results/eda_results.txt",
                                       r"ever vs never smokers: ([\d.]+) \(95% CI ([\d.]+) - ([\d.]+)\)"))
     m.update(orSmoking=f"{o:.1f}", orSmokingLo=f"{lo:.1f}", orSmokingHi=f"{hi:.1f}", orSmokingExact=f"{o:.2f}")
     assert len(or_s) == 3
@@ -631,7 +624,7 @@ def numbers():
 
 # ---------------------------------------------------------------- main
 def compile_pdf():
-    # ponytail: plain pdflatex x2, not latexmk (MiKTeX's latexmk needs Perl); no bibtex, references are hand-written
+    # plain pdflatex x2, not latexmk (MiKTeX's latexmk needs Perl); no bibtex, references are hand-written
     pdflatex = shutil.which("pdflatex")
     if not pdflatex:
         raise SystemExit("pdflatex not found: install MiKTeX or TeX Live. Generated files were written.")
@@ -650,7 +643,6 @@ def main():
     outlier_table(); before_after_table(); numeric_shape_table(); smoking_table(); smoking_age_table()
     conditions_table(); copd_tables(); demographics_table(); correlation_tables(); regional_table()
     tests_table(); design_table(); scaler_table(); selection_table(); vif_table(); mi_table(); pca_table(m)
-    write("tab_feature_groups_final.tex", feature_group_table())
     criteria_table(); screening_table(); feature_list_table()
     print(f"Wrote {len(list(GEN.glob('*.tex')))} files to report/generated/.")
     compile_pdf()

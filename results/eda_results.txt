@@ -73,7 +73,7 @@ Normality tests on age: Shapiro-Wilk (5,000-person sample) p = 5.71e-33; D'Agost
 Reading: age is NOT normal (flat with two humps, and a pile-up at 85 = '85 or older'); the Q-Q plot in Fig 4 shows
 the S-shape of a flat distribution. -> use rank-based tests (Mann-Whitney, Spearman) for age.
 
-Categorical distributions saved (reports/tables/categorical_distributions.csv). Largest groups:
+Categorical distributions saved (results/tables/categorical_distributions.csv). Largest groups:
   Sex                              Female (54.3%)
   Race / ethnicity                 White (67.5%)
   Education                        Some college (28.5%)
@@ -241,7 +241,7 @@ Data: 38 final features + the target on the 119,942 training rows (495 cases), u
 Feature pairs with |r| >= 0.3: 9; with |r| > 0.5: 2
 Largest: ever_ecigarette_unknown-screening_age_smoker_unknown +0.93; smoking_status_Former-screening_age_smoker +0.55; bmi_category_Overweight-bmi_category_Obese -0.49; general_health_Very good-general_health_Good -0.46; hypertension-age +0.44; lung_cancer_incidence-smoking_rate +0.43
 
-Pairs above 0.5 (reports/tables/high_correlation_pairs.csv):
+Pairs above 0.5 (results/tables/high_correlation_pairs.csv):
                            matrix                        var_a                   var_b    measure  value         type
   Fig 12b (variables, all adults)                         year            smoking_rate        eta   0.67   built-from
   Fig 12b (variables, all adults)                          age               age_group        eta   0.96   built-from
@@ -263,7 +263,7 @@ Reading - redundancy:
   model features (rules 1 and 4). The two high pairs left among the final features are kept on purpose:
   the two 'unknown' flags (both mark adults who skipped the smoking questions) and screening_age_smoker vs
   former smoking (the rule needs smoking status and age together); their VIFs are below 10
-  (reports/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1
+  (results/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1
   columns, so dependencies spread over several columns (a one-hot group, or region vs the regional
   columns) were invisible to a pairwise check; the VIF step catches them.
 

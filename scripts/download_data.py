@@ -16,13 +16,11 @@ import shutil
 import urllib.parse
 import urllib.request
 import zipfile
-from pathlib import Path
 
 import pandas as pd
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw"
-YEARS = [2019, 2020, 2021, 2022, 2023]
+from common import RAW, ROOT, YEARS
+
 HEADERS = {"User-Agent": "Mozilla/5.0 (student data project)"}
 
 

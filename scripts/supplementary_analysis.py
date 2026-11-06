@@ -4,21 +4,21 @@ Step 5 - Detailed population profile and supplementary checks.
     python scripts/supplementary_analysis.py
 
 Reads : data/clean/nhis_lung_cancer_clean.csv, data/clean/nhis_lung_cancer_model_ready.csv,
-        data/clean/scaler_parameters.csv, reports/tables/regional_comparison.csv,
-        reports/tables/feature_relevance_mutual_information.csv,
+        data/clean/scaler_parameters.csv, results/tables/regional_comparison.csv,
+        results/tables/feature_relevance_mutual_information.csv,
         data/raw/nhis/adultYYcsv.zip (only for the survey-design variables PSTRAT / PPSU)
-Writes: reports/tables/dataset_composition.csv         rows per year, column types, feature groups, train/test
-        reports/tables/population_profile.csv          every category: adults, cases, rates
-        reports/tables/cases_vs_noncases.csv           characteristics of cases vs other adults
-        reports/tables/group_profile.csv               age, sex and smoking inside each sex / race group
-        reports/tables/rate_by_year.csv                cases and rates per survey year
-        reports/tables/smoking_by_age_group.csv        RQ1: smoking odds ratio inside each age group (MH + Breslow-Day)
-        reports/tables/copd_adjusted.csv               RQ2b: COPD odds ratio adjusted for smoking, then smoking x age
-        reports/tables/regional_within_between.csv     RQ3: correlations split into between- and within-region
-        reports/tables/screening_rule_baseline.csv     the USPSTF-style rule as a benchmark
-        reports/tables/mutual_information_checked.csv  RQ3: normalised MI and a permutation null
-        reports/tables/design_based_odds_ratios.csv    survey-weighted, cluster-robust odds ratios
-        reports/supplementary_results.txt              everything above in plain words
+Writes: results/tables/dataset_composition.csv         rows per year, column types, feature groups, train/test
+        results/tables/population_profile.csv          every category: adults, cases, rates
+        results/tables/cases_vs_noncases.csv           characteristics of cases vs other adults
+        results/tables/group_profile.csv               age, sex and smoking inside each sex / race group
+        results/tables/rate_by_year.csv                cases and rates per survey year
+        results/tables/smoking_by_age_group.csv        RQ1: smoking odds ratio inside each age group (MH + Breslow-Day)
+        results/tables/copd_adjusted.csv               RQ2b: COPD odds ratio adjusted for smoking, then smoking x age
+        results/tables/regional_within_between.csv     RQ3: correlations split into between- and within-region
+        results/tables/screening_rule_baseline.csv     the USPSTF-style rule as a benchmark
+        results/tables/mutual_information_checked.csv  RQ3: normalised MI and a permutation null
+        results/tables/design_based_odds_ratios.csv    survey-weighted, cluster-robust odds ratios
+        results/supplementary_results.txt              everything above in plain words
 
 Outcome and research questions: see eda_analysis.py (OUTCOME, RESEARCH_QUESTIONS). This script adds the
 age-adjusted smoking odds ratio (RQ1), the COPD odds ratio adjusted for smoking x age group (RQ2b), the
@@ -29,7 +29,6 @@ Nothing here changes the clean or model-ready files. Descriptive tables use all 
 population and fit nothing); the mutual-information check uses training rows only.
 """
 import zipfile
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -37,35 +36,12 @@ import statsmodels.api as sm
 from scipy import stats
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.preprocessing import StandardScaler
-from statsmodels.stats.contingency_tables import StratifiedTable
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-RAW = ROOT / "data" / "raw" / "nhis"
-TAB = ROOT / "reports" / "tables"
-TAB.mkdir(parents=True, exist_ok=True)
-RANDOM_STATE = 42
-YEARS = [2019, 2020, 2021, 2022, 2023]
+from common import (CLEAN, COLUMN_TYPES, FEATURE_GROUPS, NON_FEATURES, RANDOM_STATE, RAW, REGIONAL, RESULTS,
+                    TAB, YEARS, mantel_haenszel, mi_inputs, odds_ratio_ci, two_by_two, weighted_mean as wmean,
+                    weighted_rate, text_log)
 
-out = []
-def say(msg=""):
-    print(msg)
-    out.append(str(msg))
-
-def header(title):
-    say("\n" + "=" * 70 + f"\n{title}\n" + "=" * 70)
-
-def wmean(x, w):
-    ok = x.notna()
-    return float(np.average(x[ok], weights=w[ok])) if ok.any() else np.nan
-
-def odds_ratio_ci(a, b, c, d):
-    """2x2 table [[a, b], [c, d]] = exposed cases, exposed non-cases, unexposed cases, unexposed non-cases.
-    Same convention as eda_analysis.py: +0.5 in every cell (Haldane-Anscombe), so the numbers match."""
-    a, b, c, d = a + 0.5, b + 0.5, c + 0.5, d + 0.5
-    orr = (a * d) / (b * c)
-    se = np.sqrt(1 / a + 1 / b + 1 / c + 1 / d)
-    return orr, np.exp(np.log(orr) - 1.96 * se), np.exp(np.log(orr) + 1.96 * se)
+out, say, header = text_log()
 
 ORDER = {
     "sex": ["Female", "Male"],
@@ -85,24 +61,6 @@ ORDER = {
 }
 LABEL = {0.0: "No", 1.0: "Yes"}
 
-# Column type of every column of the 26-column clean file (decision D5 of CHANGES_PLAN.md)
-COLUMN_TYPES = {
-    "identifier": ["person_id"], "weight": ["survey_weight"], "target": ["lung_cancer"],
-    "numeric": ["age", "year"],
-    "ordinal": ["education", "income_group", "general_health", "bmi_category"],
-    "nominal": ["race_ethnicity", "region", "smoking_status"],
-    "binary": ["sex", "ever_ecigarette", "copd", "asthma", "hypertension", "heart_disease", "diabetes"],
-    "engineered": ["age_group", "ever_smoker", "screening_age_smoker", "comorbidity_count"],
-    "regional": ["pm25_mean", "smoking_rate", "lung_cancer_incidence"],
-}
-# Group of every final feature, by column-name prefix
-FEATURE_GROUPS = {
-    "demographic": ("age", "sex_", "race_ethnicity_"),
-    "socio-economic": ("education_", "income_group_"),
-    "smoking": ("smoking_status_", "screening_age_smoker", "ever_ecigarette"),
-    "health": ("copd", "asthma", "hypertension", "heart_disease", "diabetes", "general_health_", "bmi_category_"),
-    "regional": ("pm25_mean", "smoking_rate", "lung_cancer_incidence"),
-}
 
 
 # ======================================================================= 0. dataset composition
@@ -125,7 +83,7 @@ def dataset_composition(df, mr):
     for kind, cols in COLUMN_TYPES.items():
         add("2. columns of the clean file", kind, columns=cols)
     add("2. columns of the clean file", "all columns", columns=list(df.columns))
-    feats = [c for c in mr.columns if c not in ("person_id", "split", "survey_weight", "lung_cancer")]
+    feats = [c for c in mr.columns if c not in NON_FEATURES]
     group = {c: next(g for g, pre in FEATURE_GROUPS.items() if c.startswith(pre)) for c in feats}
     for g in FEATURE_GROUPS:
         add("3. final features by group", g, columns=[c for c in feats if group[c] == g])
@@ -168,7 +126,7 @@ def population_profile(df):
                          "cases": cases, "non_cases": n - cases,
                          "pct_of_all_cases": 100 * cases / CASES,
                          "rate_sample_pct": 100 * cases / n if n else np.nan,
-                         "rate_weighted_pct": 100 * wmean(sub["lung_cancer"], sub["survey_weight"]) if n else np.nan,
+                         "rate_weighted_pct": weighted_rate(sub) if n else np.nan,
                          "mean_age": sub["age"].mean()})
     prof = pd.DataFrame(rows)
     prof.round(4).to_csv(TAB / "population_profile.csv", index=False)
@@ -246,7 +204,7 @@ def group_profile(df):
                         "pct_current_smoker": 100 * (s.smoking_status.dropna() == "Current").mean(),
                         "pct_copd": 100 * s.copd.dropna().mean(),
                         "rate_sample_pct": 100 * s.lung_cancer.mean(),
-                        "rate_weighted_pct": 100 * wmean(s.lung_cancer, s.survey_weight)})
+                        "rate_weighted_pct": weighted_rate(s)})
     grp = pd.DataFrame(grp)
     grp.round(4).to_csv(TAB / "group_profile.csv", index=False)
     say(grp.round(1).to_string(index=False))
@@ -265,7 +223,7 @@ def rate_by_year(df):
         s = df[df.year == y]
         yr.append({"year": y, "adults": len(s), "cases": int(s.lung_cancer.sum()),
                    "rate_sample_pct": 100 * s.lung_cancer.mean(),
-                   "rate_weighted_pct": 100 * wmean(s.lung_cancer, s.survey_weight),
+                   "rate_weighted_pct": weighted_rate(s),
                    "mean_age": s.age.mean(), "pct_ever_smoked": 100 * s.ever_smoker.dropna().mean(),
                    "pct_missing_smoking": 100 * s.smoking_status.isna().mean()})
     yr = pd.DataFrame(yr)
@@ -286,26 +244,23 @@ def smoking_by_age(df):
     strata, tabs = [], []
     for g in ORDER["age_group"]:
         t = s5[s5.age_group == g]
-        a = ((t.ever_smoker == 1) & (t.lung_cancer == 1)).sum(); b = ((t.ever_smoker == 1) & (t.lung_cancer == 0)).sum()
-        c = ((t.ever_smoker == 0) & (t.lung_cancer == 1)).sum(); d = ((t.ever_smoker == 0) & (t.lung_cancer == 0)).sum()
-        tabs.append(np.array([[a, b], [c, d]], float))
+        tabs.append(two_by_two(t.ever_smoker == 1, t.lung_cancer == 1))
+        (a, b), (c, d) = tabs[-1]
         orr, lo, hi = odds_ratio_ci(a, b, c, d)
         strata.append({"group": g, "adults": len(t), "cases_ever_smokers": int(a), "cases_never_smokers": int(c),
                        "odds_ratio": orr, "ci_low": lo, "ci_high": hi})
     a, b = sum(t[0, 0] for t in tabs), sum(t[0, 1] for t in tabs)
     c, d = sum(t[1, 0] for t in tabs), sum(t[1, 1] for t in tabs)
     crude = odds_ratio_ci(a, b, c, d)
-    st = StratifiedTable(tabs)
-    mh, (mh_lo, mh_hi) = st.oddsratio_pooled, st.oddsratio_pooled_confint()
-    cmh, bd = st.test_null_odds(), st.test_equal_odds()
+    mh, mh_lo, mh_hi, cmh_stat, cmh_p, bd_p = mantel_haenszel(tabs)
     strata += [{"group": "Crude (age ignored)", "adults": len(s5), "odds_ratio": crude[0], "ci_low": crude[1], "ci_high": crude[2]},
                {"group": "Mantel-Haenszel (adjusted for age group)", "adults": len(s5), "odds_ratio": mh, "ci_low": mh_lo, "ci_high": mh_hi}]
     sa = pd.DataFrame(strata)
     sa.round(4).to_csv(TAB / "smoking_by_age_group.csv", index=False)
     say(sa.round(2).to_string(index=False))
-    say(f"CMH test (H0: no smoking-lung cancer link once age group is fixed): chi2 = {cmh.statistic:.1f}, "
-        f"p = {stats.chi2.sf(cmh.statistic, 1):.1e}")
-    say(f"Breslow-Day test (same odds ratio in every age group?): p = {bd.pvalue:.4f}")
+    say(f"CMH test (H0: no smoking-lung cancer link once age group is fixed): chi2 = {cmh_stat:.1f}, "
+        f"p = {cmh_p:.1e}")
+    say(f"Breslow-Day test (same odds ratio in every age group?): p = {bd_p:.4f}")
     say("Reading: the odds ratio falls from the crude value to the age-adjusted value, so part of the crude smoking")
     say("effect was age, but a strong association remains. Breslow-Day < 0.05 means the size of the effect differs")
     say("between age groups, so the pooled value is an average (the 18-44 stratum has very few cases).")
@@ -319,17 +274,12 @@ def copd_adjusted(df):
     def mh_by(data, keys):
         tb = []
         for _, t in data.groupby(keys):
-            a = ((t.copd == 1) & (t.lung_cancer == 1)).sum(); b = ((t.copd == 1) & (t.lung_cancer == 0)).sum()
-            c = ((t.copd == 0) & (t.lung_cancer == 1)).sum(); d = ((t.copd == 0) & (t.lung_cancer == 0)).sum()
-            if (a + c) > 0 and (b + d) > 0 and (a + b) > 0 and (c + d) > 0:
-                tb.append(np.array([[a, b], [c, d]], float))
-        st = StratifiedTable(tb)
-        lo, hi = st.oddsratio_pooled_confint()
-        stat = st.test_null_odds().statistic
-        return st.oddsratio_pooled, lo, hi, stats.chi2.sf(stat, 1), len(tb), stat
-    a = ((s6.copd == 1) & (s6.lung_cancer == 1)).sum(); b = ((s6.copd == 1) & (s6.lung_cancer == 0)).sum()
-    c = ((s6.copd == 0) & (s6.lung_cancer == 1)).sum(); d = ((s6.copd == 0) & (s6.lung_cancer == 0)).sum()
-    cr = odds_ratio_ci(a, b, c, d)
+            t = two_by_two(t.copd == 1, t.lung_cancer == 1)
+            if (t.sum(axis=0) > 0).all() and (t.sum(axis=1) > 0).all():     # skip strata with an empty margin
+                tb.append(t)
+        orr, lo, hi, stat, p, _ = mantel_haenszel(tb)
+        return orr, lo, hi, p, len(tb), stat
+    cr = odds_ratio_ci(*two_by_two(s6.copd == 1, s6.lung_cancer == 1).ravel())
     r1, r2 = mh_by(s6, ["smoking_status"]), mh_by(s6, ["smoking_status", "age_group"])
     cop = pd.DataFrame([{"adjustment": "none (crude)", "odds_ratio": cr[0], "ci_low": cr[1], "ci_high": cr[2], "strata": 1},
                         {"adjustment": "smoking status", "odds_ratio": r1[0], "ci_low": r1[1], "ci_high": r1[2], "strata": r1[4]},
@@ -346,7 +296,7 @@ def regional_within_between(df):
     header("7. RQ3: BETWEEN-REGION AND WITHIN-REGION CORRELATIONS")
     r = pd.read_csv(TAB / "regional_comparison.csv")
     say("The 20 region-years are 4 regions x 5 years, so they are not 20 independent observations.")
-    reg_w = df.groupby("region").apply(lambda t: 100 * wmean(t.lung_cancer, t.survey_weight), include_groups=False)
+    reg_w = df.groupby("region").apply(weighted_rate, include_groups=False)
     reg_s = df.groupby("region")["lung_cancer"].mean() * 100
     means = r.groupby("region")[["nhis_rate_%", "pm25_mean", "smoking_rate", "lung_cancer_incidence"]].mean()
     means["pooled_weighted_rate_%"] = reg_w
@@ -354,7 +304,7 @@ def regional_within_between(df):
     say("Region means over 2019-2023:")
     say(means.round(3).to_string())
     rw = []
-    for cvar in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for cvar in REGIONAL:
         rho20, p20 = stats.spearmanr(r[cvar], r["nhis_rate_%"])
         rho4, _ = stats.spearmanr(means[cvar], means["nhis_rate_%"])
         x = r[cvar] - r.groupby("region")[cvar].transform("mean")
@@ -370,7 +320,7 @@ def regional_within_between(df):
     ranks = means[["nhis_rate_%", "pm25_mean", "smoking_rate", "lung_cancer_incidence"]].rank().astype(int)
     say("\nRanks of the 4 region means (1 = lowest), used by rho_between_4_regions:")
     say(ranks.to_string())
-    for cvar in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for cvar in REGIONAL:
         d2 = int(((ranks[cvar] - ranks["nhis_rate_%"]) ** 2).sum())
         say(f"  {cvar:<22} sum of squared rank differences = {d2:>2} -> rho = 1 - 6 x {d2} / (4 x 15) = {1 - d2 / 10:.1f}")
     say("With n = 4, Spearman rho can only take the values 0, +-0.2, +-0.4, ..., +-1, so a between-region rho of")
@@ -409,11 +359,7 @@ def mi_checked(mr):
     mi = pd.read_csv(TAB / "feature_relevance_mutual_information.csv", index_col=0)["mutual_information"]
     check = ["age", "copd", "hypertension", "screening_age_smoker", "smoking_status_Former",
              "pm25_mean", "smoking_rate", "lung_cancer_incidence"]
-    X = train[check].copy()
-    discrete = [X[c].nunique() <= 25 for c in check]
-    for c, dsc in zip(check, discrete):
-        if dsc:
-            X[c] = pd.factorize(X[c], sort=True)[0]
+    X, discrete = mi_inputs(train[check])                 # same coding as eda_analysis.feature_relevance
     rng = np.random.default_rng(RANDOM_STATE)
     N_PERM = 100
     null = np.array([mutual_info_classif(X, rng.permutation(y_tr), discrete_features=discrete,
@@ -434,7 +380,7 @@ def mi_checked(mr):
     say(f"into the same groups. pm25_mean has {int(ri.loc['pm25_mean', 'distinct_values'])} values (ties: "
         f"{ri.loc['pm25_mean', 'cells_sharing_a_value']}),")
     say("so its MI is slightly lower. The three regional MI values measure one thing - region-year identity - not")
-    say("three independent signals (reports/tables/regional_mi_identity.csv). They are above the shuffled-target")
+    say("three independent signals (results/tables/regional_mi_identity.csv). They are above the shuffled-target")
     say("null, but tiny next to the personal factors.")
     return mic
 
@@ -444,7 +390,7 @@ def survey_design(df):
     header("10. SURVEY-DESIGN SENSITIVITY: weighted odds ratios with cluster-robust confidence intervals")
     design = []
     for y in YEARS:
-        with zipfile.ZipFile(RAW / f"adult{str(y)[-2:]}csv.zip") as z:
+        with zipfile.ZipFile(RAW / "nhis" / f"adult{str(y)[-2:]}csv.zip") as z:
             member = [n for n in z.namelist() if n.lower().endswith(".csv")][0]
             with z.open(member) as f:
                 dd = pd.read_csv(f, usecols=lambda c: c.upper() in ("HHX", "PSTRAT", "PPSU"), low_memory=False)
@@ -525,8 +471,8 @@ def main():
     mi_checked(mr)
     survey_design(df)
     criterion5(mr)
-    (ROOT / "reports" / "supplementary_results.txt").write_text("\n".join(out), encoding="utf-8")
-    print("\nDone. Results in reports/supplementary_results.txt")
+    (RESULTS / "supplementary_results.txt").write_text("\n".join(out), encoding="utf-8")
+    print("\nDone. Results in results/supplementary_results.txt")
 
 
 if __name__ == "__main__":

@@ -6,9 +6,9 @@ Step 3 - Exploratory Data Analysis (EDA) and hypothesis tests.
 Reads : data/clean/nhis_lung_cancer_clean.csv, data/clean/nhis_lung_cancer_model_ready.csv,
         data/clean/regional_context.csv, data/clean/before_after_summary.csv,
         data/clean/final_features.csv
-Writes: reports/figures/*.png      every chart, numbered like the slides
-        reports/eda_results.txt    every number and test result, in plain words
-        reports/tables/*.csv       the tables behind the charts
+Writes: results/figures/*.png      every chart, numbered as in the report
+        results/eda_results.txt    every number and test result, in plain words
+        results/tables/*.csv       the tables behind the charts
 
 Outcome: having ever been told by a doctor that one had lung cancer, self-reported by US adults in
 NHIS 2019-2023 (149,928 adults, 619 cases).
@@ -38,7 +38,6 @@ Research questions (Phase 1 - Business understanding); the same text is printed 
         factors (mutual information against a permutation null)?
 """
 import textwrap
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")                       # draw charts without opening windows
@@ -50,17 +49,12 @@ import seaborn as sns
 from scipy import stats
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import mutual_info_score
-from statsmodels.stats.contingency_tables import StratifiedTable
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-FIG = ROOT / "reports" / "figures"
-TAB = ROOT / "reports" / "tables"
-FIG.mkdir(parents=True, exist_ok=True)
-TAB.mkdir(parents=True, exist_ok=True)
+from common import (BLUE, CLEAN, FIG, GREY, NON_FEATURES, ORANGE, RANDOM_STATE, REGIONAL, RESULTS, TAB,
+                    mantel_haenszel, mi_inputs, odds_ratio_ci, save_fig as save, set_style, text_log,
+                    two_by_two, weighted_rate as wrate)
 
-sns.set_theme(style="whitegrid", context="talk")
-BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
+set_style()
 SMOKE_ORDER = ["Never", "Former", "Current"]
 AGE_ORDER = ["18-44", "45-54", "55-64", "65-74", "75+"]
 
@@ -81,35 +75,11 @@ LABEL = {
     "general_health": "Self-rated general health", "smoking_status": "Smoking status", "region": "US region",
 }
 
-out = []
-def say(msg=""):
-    print(msg)
-    out.append(str(msg))
-
-def header(title):
-    say("\n" + "=" * 70)
-    say(title)
-    say("=" * 70)
-
-def save(name, dpi=150):
-    plt.tight_layout()
-    plt.savefig(FIG / f"{name}.png", dpi=dpi, bbox_inches="tight")
-    plt.close()
-
-def wrate(d, w="survey_weight"):
-    """Population (weighted) % with lung cancer - corrects for NHIS over-sampling some groups."""
-    return 100 * np.average(d["lung_cancer"], weights=d[w]) if d[w].notna().all() else 100 * d["lung_cancer"].mean()
+out, say, header = text_log()
 
 def cramers_v(t):
     chi2 = stats.chi2_contingency(t, correction=False)[0]
     return np.sqrt(chi2 / (t.values.sum() * (min(t.shape) - 1)))
-
-def odds_ratio_ci(t):
-    """Odds ratio for a 2x2 table [[a, b], [c, d]] (rows: exposed yes/no) with a 95% CI."""
-    a, b, c, d = t.values.ravel() + 0.5                   # +0.5 avoids dividing by zero
-    orr = (a * d) / (b * c)
-    se = np.sqrt(1 / a + 1 / b + 1 / c + 1 / d)
-    return orr, np.exp(np.log(orr) - 1.96 * se), np.exp(np.log(orr) + 1.96 * se)
 
 def fmt_p(p):
     """p-values below about 1e-300 are stored as 0.0 by the computer: print them as '< 1e-300'."""
@@ -133,7 +103,7 @@ def load_data():
 
 
 OUTCOME = ("Having ever been told by a doctor that one had lung cancer, self-reported by US adults in "
-           "NHIS 2019-2023 (149,928 adults, 619 cases).")
+           "NHIS 2019-2023 ({adults:,} adults, {cases} cases).")
 RESEARCH_QUESTIONS = {
     "RQ1": "Smoking. How much higher are the odds of a lung-cancer history among ever-smokers (current or former) "
            "than among never-smokers? How much of that odds ratio remains when ever- and never-smokers are compared "
@@ -160,9 +130,10 @@ RESEARCH_QUESTIONS = {
 }
 
 
-def research_questions():
+def research_questions(df):
     say("OUTCOME")
-    say(textwrap.fill(OUTCOME, 105, initial_indent="  ", subsequent_indent="  ", break_on_hyphens=False))
+    outcome = OUTCOME.format(adults=len(df), cases=int(df.lung_cancer.sum()))
+    say(textwrap.fill(outcome, 105, initial_indent="  ", subsequent_indent="  ", break_on_hyphens=False))
     say("RESEARCH QUESTIONS")
     for rq, text in RESEARCH_QUESTIONS.items():
         say(textwrap.fill(text, 105, initial_indent=f"  {rq:<5} ", subsequent_indent=" " * 8, break_on_hyphens=False))
@@ -252,7 +223,7 @@ def overview(df):
 def univariate(df):
     header("1b. UNIVARIATE ANALYSIS (one variable at a time)")
     a_all = df["age"].dropna()
-    sample = a_all.sample(min(5000, len(a_all)), random_state=42)
+    sample = a_all.sample(min(5000, len(a_all)), random_state=RANDOM_STATE)
     sw = stats.shapiro(sample)
     dag = stats.normaltest(a_all)
     say(f"Age: mean {a_all.mean():.1f}, median {a_all.median():.0f}, SD {a_all.std():.1f}, "
@@ -296,7 +267,7 @@ def univariate(df):
                  f"out of {len(df):,})", y=1.02)
     save("fig05_categorical_distributions")
     pd.DataFrame(uni_rows).to_csv(TAB / "categorical_distributions.csv", index=False)
-    say("\nCategorical distributions saved (reports/tables/categorical_distributions.csv). Largest groups:")
+    say("\nCategorical distributions saved (results/tables/categorical_distributions.csv). Largest groups:")
     for c in ORDER:
         top = df[c].value_counts(normalize=True)
         say(f"  {LABEL[c]:<32} {top.index[0]} ({100 * top.iloc[0]:.1f}%)")
@@ -326,7 +297,7 @@ def smoking(df):
     say(f"  Result: chi2({dof}) = {chi2:.1f}, p = {p:.2e}, Cramer's V = {cramers_v(t):.3f}")
     tests.append(("Smoking status vs lung cancer (chi-square)", "RQ1", p))
     ever = pd.crosstab(df["ever_smoker"].dropna().map({1: "ever", 0: "never"}), df["lung_cancer"]).reindex(["ever", "never"])[[1, 0]]
-    orr, lo, hi = odds_ratio_ci(ever)
+    orr, lo, hi = odds_ratio_ci(*ever.values.ravel())
     say(f"  Odds ratio, ever vs never smokers: {orr:.2f} (95% CI {lo:.2f} - {hi:.2f}); same {len(s):,} adults "
         f"({int(s.lung_cancer.sum())} cases), unweighted")
     say(f"  In words: ever-smokers have about {orr:.1f} times the odds of having had lung cancer.")
@@ -392,7 +363,7 @@ def conditions(df):
             say(f"  {c}: skipped (only one value present, a test is impossible)")
             continue
         chi2, p, _, exp = stats.chi2_contingency(t)
-        orr, lo, hi = odds_ratio_ci(t)
+        orr, lo, hi = odds_ratio_ci(*t.values.ravel())
         cond_rows.append({"condition": c, "adults": len(d), "cases": int(d.lung_cancer.sum()), "rate_if_yes_%": 100 * d.loc[d[c] == 1, "lung_cancer"].mean(),
                           "rate_if_no_%": 100 * d.loc[d[c] == 0, "lung_cancer"].mean(),
                           "odds_ratio": orr, "ci_low": lo, "ci_high": hi, "p": p, "cramers_v": cramers_v(t),
@@ -429,22 +400,13 @@ def copd_confounding(df):
     strata_rows, tables2x2 = [], []
     for g in SMOKE_ORDER:
         d = cs[cs.smoking_status == g]
-        t = pd.crosstab(d["copd"].map({1: "yes", 0: "no"}), d["lung_cancer"]).reindex(index=["yes", "no"], columns=[1, 0]).fillna(0)
-        tables2x2.append(t.values.astype(float))
-        orr, lo, hi = odds_ratio_ci(t)
+        t = two_by_two(d.copd == 1, d.lung_cancer == 1)
+        tables2x2.append(t)
+        orr, lo, hi = odds_ratio_ci(*t.ravel())
         strata_rows.append({"group": f"{g} smokers", "n": len(d), "cases": int(d.lung_cancer.sum()),
                             "odds_ratio": orr, "ci_low": lo, "ci_high": hi})
-    crude_t = pd.crosstab(cs["copd"].map({1: "yes", 0: "no"}), cs["lung_cancer"]).reindex(index=["yes", "no"], columns=[1, 0])
-    c_or, c_lo, c_hi = odds_ratio_ci(crude_t)
-    st = StratifiedTable(tables2x2)
-    mh_or = st.oddsratio_pooled
-    mh_lo, mh_hi = st.oddsratio_pooled_confint()
-    cmh = st.test_null_odds()
-    # statsmodels returns p = 1 - cdf, which rounds to 0 for very large statistics; the survival function keeps
-    # the real value (chi-square with 1 degree of freedom)
-    cmh_p = stats.chi2.sf(cmh.statistic, 1)
-    bd = st.test_equal_odds()
-    bd_p = stats.chi2.sf(bd.statistic, len(tables2x2) - 1)
+    c_or, c_lo, c_hi = odds_ratio_ci(*two_by_two(cs.copd == 1, cs.lung_cancer == 1).ravel())
+    mh_or, mh_lo, mh_hi, cmh_stat, cmh_p, bd_p = mantel_haenszel(tables2x2)
     strata = pd.DataFrame(strata_rows + [
         {"group": "Crude (smoking ignored)", "n": len(cs), "cases": int(cs.lung_cancer.sum()),
          "odds_ratio": c_or, "ci_low": c_lo, "ci_high": c_hi},
@@ -454,7 +416,7 @@ def copd_confounding(df):
     say(f"Subset: adults with known COPD and smoking status, n = {len(cs):,} ({int(cs.lung_cancer.sum())} cases), unweighted.")
     say(strata.round(2).to_string(index=False))
     say("CMH test  H0: no COPD-lung cancer link once smoking is held fixed")
-    say(f"  Result: chi2 = {cmh.statistic:.1f}, p {fmt_p(cmh_p) if cmh_p == 0 else '= ' + fmt_p(cmh_p)}")
+    say(f"  Result: chi2 = {cmh_stat:.1f}, p {fmt_p(cmh_p) if cmh_p == 0 else '= ' + fmt_p(cmh_p)}")
     say(f"Breslow-Day test (is the odds ratio the same in every smoking group?): p = {bd_p:.3f}")
     say(f"Reading: the crude odds ratio {c_or:.1f} falls to {mh_or:.1f} after adjusting for smoking -> part of the")
     say("crude link was due to smoking, but COPD stays strongly associated with lung cancer in never, former")
@@ -679,7 +641,7 @@ def feature_correlations(mr):
     """Fig 12c - feature-level Spearman matrix of all final model features + the target, training rows only."""
     header("6c. CORRELATIONS BETWEEN THE FINAL MODEL FEATURES (Fig 12c, training rows)")
     train = mr[mr["split"] == "train"]
-    feats = [c for c in mr.columns if c not in ("person_id", "split", "survey_weight", "lung_cancer")]
+    feats = [c for c in mr.columns if c not in NON_FEATURES]
     corr = train[feats + ["lung_cancer"]].corr(method="spearman")
     corr.round(3).to_csv(TAB / "correlation_matrix_features.csv")
     # ".36" not "0.36": at 5 pt a 39-column matrix at text width has cells only ~7.6 pt wide
@@ -736,7 +698,7 @@ def high_correlation_pairs(var_pairs, feat_corr, n_train):
     hp["type"] = [k[0] for k in kind]
     hp["explanation"] = [k[1] for k in kind]
     hp.round({"value": 3}).to_csv(TAB / "high_correlation_pairs.csv", index=False)
-    say("\nPairs above 0.5 (reports/tables/high_correlation_pairs.csv):")
+    say("\nPairs above 0.5 (results/tables/high_correlation_pairs.csv):")
     say(hp.assign(value=hp.value.round(2)).drop(columns=["n", "explanation"]).to_string(index=False))
     genuine = hp[hp.type == "genuine association"]
     say("Reading - redundancy:")
@@ -750,7 +712,7 @@ def high_correlation_pairs(var_pairs, feat_corr, n_train):
     say("  model features (rules 1 and 4). The two high pairs left among the final features are kept on purpose:")
     say("  the two 'unknown' flags (both mark adults who skipped the smoking questions) and screening_age_smoker vs")
     say("  former smoking (the rule needs smoking status and age together); their VIFs are below 10")
-    say("  (reports/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1")
+    say("  (results/tables/vif_after.csv). Fig 12 alone could not show this: it holds only the numeric and 0/1")
     say("  columns, so dependencies spread over several columns (a one-hot group, or region vs the regional")
     say("  columns) were invisible to a pairwise check; the VIF step catches them.")
     return hp
@@ -771,7 +733,7 @@ def target_correlation_bound(df):
         t = pd.crosstab(d[c], d.lung_cancer).reindex(index=[1, 0], columns=[1, 0])
         rows.append({"feature": c, "adults": len(d), "cases": int(d.lung_cancer.sum()), "prevalence_%": 100 * q,
                      "phi": phi, "phi_max": np.sqrt(lo * (1 - hi) / (hi * (1 - lo))),
-                     "odds_ratio": odds_ratio_ci(t)[0]})
+                     "odds_ratio": odds_ratio_ci(*t.values.ravel())[0]})
     b = pd.DataFrame(rows)
     b["phi_share_of_max_%"] = 100 * b.phi / b.phi_max
     b.round(4).to_csv(TAB / "target_correlation_bound.csv", index=False)
@@ -803,7 +765,7 @@ def regional(df, ctx):
         f"{int(df.lung_cancer.sum())} cases in total).")
     say(f"  Spearman rho (20 region-years) = {rho:.2f}, p = {p:.2g}")
     say("  (Not the same measure: NHIS = people EVER diagnosed; registry = NEW cases per year.)")
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         rr, pp = stats.spearmanr(reg[c], reg["nhis_rate_%"])
         say(f"  {c:<22} vs NHIS rate: rho = {rr:.2f}, p = {pp:.2g}")
         tests.append((f"{c} vs NHIS regional rate (Spearman, 20 region-years)", "RQ3", pp))
@@ -813,7 +775,7 @@ def regional(df, ctx):
     say("Limits: registry rates are crude (not age-adjusted), state values are averaged without population")
     say("weights, and 2019-2023 pollution cannot explain cancers diagnosed many years earlier.")
     fig, axes = plt.subplots(1, 3, figsize=(15, 4.8))
-    for ax, c, lab in zip(axes, ["pm25_mean", "smoking_rate", "lung_cancer_incidence"],
+    for ax, c, lab in zip(axes, REGIONAL,
                           ["PM2.5 (µg/m³)", "Adult smoking rate (%)", "Registry incidence /100k"]):
         sns.scatterplot(data=reg, x=c, y="nhis_rate_%", hue="region", s=120, ax=ax, legend=(c == "lung_cancer_incidence"))
         if ax.get_legend():
@@ -846,16 +808,10 @@ def multiple_testing():
 def feature_relevance(mr):
     header("9. FEATURE RELEVANCE (training rows only - no leakage; RQ3: regional vs personal)")
     train = mr[mr["split"] == "train"]
-    X = train.drop(columns=["person_id", "split", "survey_weight", "lung_cancer"])
-    # A column with few distinct values must be treated as DISCRETE: the continuous (k-nearest-neighbour)
-    # estimator is biased upwards on heavily tied values. Regional columns have only 20 values, so they
-    # are discrete; only age (68 values) is treated as continuous.
-    discrete = [X[c].nunique() <= 25 for c in X.columns]
-    X_mi = X.copy()
-    for c, d in zip(X.columns, discrete):
-        if d:                                    # give discrete values integer codes (MI does not depend on the labels)
-            X_mi[c] = pd.factorize(X[c], sort=True)[0]
-    mi = mutual_info_classif(X_mi, train["lung_cancer"], discrete_features=discrete, random_state=42)
+    X = train.drop(columns=list(NON_FEATURES))
+    # Regional columns have only 20 values, so they are discrete; only age (68 values) is continuous
+    X_mi, discrete = mi_inputs(X)
+    mi = mutual_info_classif(X_mi, train["lung_cancer"], discrete_features=discrete, random_state=RANDOM_STATE)
     rank = pd.Series(mi, index=X.columns).sort_values(ascending=False)
     rank.round(5).to_csv(TAB / "feature_relevance_mutual_information.csv", header=["mutual_information"])
     say(f"Training rows only: n = {len(train):,} adults ({int(train.lung_cancer.sum())} cases), unweighted; "
@@ -870,7 +826,7 @@ def feature_relevance(mr):
     say("and the three values measure the same thing (see below).")
     fig, ax = plt.subplots(figsize=(9, 7))
     top = rank.head(15)[::-1]
-    colors = [ORANGE if c in ("pm25_mean", "smoking_rate", "lung_cancer_incidence") else BLUE for c in top.index]
+    colors = [ORANGE if c in REGIONAL else BLUE for c in top.index]
     ax.barh(top.index, top.values, color=colors)
     ax.set_xlabel("Mutual information with lung cancer (nats)")
     ax.set_title(f"Fig 14. Most informative of the {X.shape[1]} final features\n(training rows: n = {len(train):,}, "
@@ -878,8 +834,6 @@ def feature_relevance(mr):
     save("fig14_feature_relevance")
     return rank
 
-
-REGIONAL = ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]
 
 
 def regional_mi_identity(mr, df):
@@ -954,7 +908,7 @@ def main():
     out.clear()
     tests.clear()
     df, mr, ctx = load_data()
-    research_questions()
+    research_questions(df)
     overview(df)
     sw = univariate(df)
     smoking(df)
@@ -973,8 +927,8 @@ def main():
     feature_relevance(mr)
     regional_mi_identity(mr, df)
     success_criteria(df, mr, tt)
-    (ROOT / "reports" / "eda_results.txt").write_text("\n".join(out), encoding="utf-8")
-    print(f"\nDone. {len(list(FIG.glob('*.png')))} figures in reports/figures, results in reports/eda_results.txt")
+    (RESULTS / "eda_results.txt").write_text("\n".join(out), encoding="utf-8")
+    print(f"\nDone. {len(list(FIG.glob('*.png')))} figures in results/figures, results in results/eda_results.txt")
 
 
 if __name__ == "__main__":

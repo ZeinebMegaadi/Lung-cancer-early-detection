@@ -43,12 +43,12 @@ The analysis is unchanged: the same 18 tests and the same results. Only the ques
 ### Opening paragraph (whole paragraph)
 
 **Current:**
-> We fixed these questions at the start of the analysis, so it could not drift toward whatever happened to look significant. They are the same three questions that label every test in the code (reports/tables/all_ tests_holm.csv).
+> We fixed these questions at the start of the analysis, so it could not drift toward whatever happened to look significant. They are the same three questions that label every test in the code (results/tables/all_ tests_holm.csv).
 
 **Replace with:**
 > **Outcome.** Having ever been told by a doctor that one had lung cancer, self-reported by US adults in NHIS 2019–2023 (149,928 adults, 619 cases).
 >
-> We fixed these questions at the start of the analysis, so it could not drift toward whatever happened to look significant, and made each one name the comparison, the measure and the adjustment it relies on. The second question is split into three (RQ2a–c), one per family of factors. The same five labels mark every test in the code (reports/tables/all_tests_holm.csv): RQ1 has 1 test, RQ2a 1, RQ2b 7, RQ2c 6 and RQ3 3, for 18 in total.
+> We fixed these questions at the start of the analysis, so it could not drift toward whatever happened to look significant, and made each one name the comparison, the measure and the adjustment it relies on. The second question is split into three (RQ2a–c), one per family of factors. The same five labels mark every test in the code (results/tables/all_tests_holm.csv): RQ1 has 1 test, RQ2a 1, RQ2b 7, RQ2c 6 and RQ3 3, for 18 in total.
 
 ### Table 1 (whole table; caption unchanged)
 
@@ -70,7 +70,7 @@ The analysis is unchanged: the same 18 tests and the same results. Only the ques
 
 > **Dataset composition at a glance**
 >
-> Every rate, odds ratio and correlation in this report is computed on a stated subset of the adults below, so we first show what the data are made of (Tables 2a–2c; source: `reports/tables/dataset_composition.csv`, produced by `supplementary_analysis.py`). Each survey year contributes between 27,594 and 31,925 adults and between 112 and 145 cases, so no single year dominates (Table 2a). The 26 columns of the clean file are of nine kinds (Table 2b): one identifier, one survey weight and the target, which are never features; two numeric columns, four ordinal, three nominal and seven binary survey variables; four engineered columns; and three regional columns joined on region and year. The model-ready file keeps 38 of the 67 candidate features (Section 5.4), grouped in Table 2c. Finally, the stratified 80/20 split keeps the same 0.41% case rate in the 119,942 training rows and the 29,986 test rows (Table 2a, lower part). Unless stated otherwise, descriptive numbers use all 149,928 adults with the variable known, and anything that ranks or fits features uses the training rows only.
+> Every rate, odds ratio and correlation in this report is computed on a stated subset of the adults below, so we first show what the data are made of (Tables 2a–2c; source: `results/tables/dataset_composition.csv`, produced by `supplementary_analysis.py`). Each survey year contributes between 27,594 and 31,925 adults and between 112 and 145 cases, so no single year dominates (Table 2a). The 26 columns of the clean file are of nine kinds (Table 2b): one identifier, one survey weight and the target, which are never features; two numeric columns, four ordinal, three nominal and seven binary survey variables; four engineered columns; and three regional columns joined on region and year. The model-ready file keeps 38 of the 67 candidate features (Section 5.4), grouped in Table 2c. Finally, the stratified 80/20 split keeps the same 0.41% case rate in the 119,942 training rows and the 29,986 test rows (Table 2a, lower part). Unless stated otherwise, descriptive numbers use all 149,928 adults with the variable known, and anything that ranks or fits features uses the training rows only.
 >
 > **Table 2a.** Adults and lung-cancer cases per survey year, and in the train / test split (unweighted).
 >
@@ -229,7 +229,7 @@ Change each heading in the body and in the table of contents:
 >
 > **Figure 12c.** Spearman correlation of the 38 final model features and the target, on the training rows only (n = 119,942 adults, 495 cases; unweighted; lower triangle; values printed where |r| ≥ 0.3). *(file: `fig12c_feature_correlation.png`)*
 >
-> Fig. 12 only holds the numeric and 0/1 columns, so it cannot show how the categorical variables relate to each other or to the target. Fig. 12b therefore covers **all** 24 analysis variables, with the measure that suits each pair of types, and Fig. 12c covers **all** 38 features handed to the modelling phase. Every pair above 0.5 in either matrix is listed in Table 23a with the reason it is high (`reports/tables/high_correlation_pairs.csv`).
+> Fig. 12 only holds the numeric and 0/1 columns, so it cannot show how the categorical variables relate to each other or to the target. Fig. 12b therefore covers **all** 24 analysis variables, with the measure that suits each pair of types, and Fig. 12c covers **all** 38 features handed to the modelling phase. Every pair above 0.5 in either matrix is listed in Table 23a with the reason it is high (`results/tables/high_correlation_pairs.csv`).
 >
 > **Table 23a.** Every pair of variables (Fig. 12b) or features (Fig. 12c) with an association above 0.5.
 >
@@ -436,7 +436,7 @@ Rows 1, 2, 2b, 3 and "Never candidates" are unchanged. **Insert after row 3:**
 
 ### New paragraph after the existing one ("The near-constant rule removes …")
 
-> **Rule 4: dependencies spread over several columns (VIF).** Rules 1–3 compare columns one pair at a time, so they cannot see a column that is a combination of *several* others. The variance inflation factor can: VIF_j = 1 / (1 − R²_j), where R²_j comes from regressing feature j on all the other features (with an intercept) on the training rows. VIF = 1 means feature j is unrelated to the others, VIF > 10 is the usual alarm level, and VIF = ∞ means an exact linear dependency. After rules 1–3, 28 of the 48 features had an infinite VIF and 42 a VIF above 10 (Table 29a; `reports/tables/vif_before.csv`). The causes were the comorbidity count (the sum of five flags) and the four complete one-hot groups (race, education, income, BMI), each of which summed to 1. General health and smoking status almost did (VIF 100–643, because only their small Unknown dummies had been removed), and the region dummies almost determined the registry incidence (VIF 24–39). Rule 4 removes these dependencies (comorbidity_count, one reference category per group, the three region dummies). After it, the largest VIF is 7.5, nothing exceeds 10, and the PCA has no near-zero component left (§5.6; `vif_after.csv`). The two features closest to the limit are screening_age_smoker_unknown (7.49) and ever_ecigarette_unknown (7.45). They overlap because both flag the adults who skipped the smoking questions, and they are kept because the first is the only marker of an unknown smoking status. The screening_age_smoker flag, built from age and smoking, has a VIF of only 2.2. None of these drops removes information: an exact dependency is a direction with zero variance, and the region dummies added almost nothing beyond the 20 region-year values of the regional columns.
+> **Rule 4: dependencies spread over several columns (VIF).** Rules 1–3 compare columns one pair at a time, so they cannot see a column that is a combination of *several* others. The variance inflation factor can: VIF_j = 1 / (1 − R²_j), where R²_j comes from regressing feature j on all the other features (with an intercept) on the training rows. VIF = 1 means feature j is unrelated to the others, VIF > 10 is the usual alarm level, and VIF = ∞ means an exact linear dependency. After rules 1–3, 28 of the 48 features had an infinite VIF and 42 a VIF above 10 (Table 29a; `results/tables/vif_before.csv`). The causes were the comorbidity count (the sum of five flags) and the four complete one-hot groups (race, education, income, BMI), each of which summed to 1. General health and smoking status almost did (VIF 100–643, because only their small Unknown dummies had been removed), and the region dummies almost determined the registry incidence (VIF 24–39). Rule 4 removes these dependencies (comorbidity_count, one reference category per group, the three region dummies). After it, the largest VIF is 7.5, nothing exceeds 10, and the PCA has no near-zero component left (§5.6; `vif_after.csv`). The two features closest to the limit are screening_age_smoker_unknown (7.49) and ever_ecigarette_unknown (7.45). They overlap because both flag the adults who skipped the smoking questions, and they are kept because the first is the only marker of an unknown smoking status. The screening_age_smoker flag, built from age and smoking, has a VIF of only 2.2. None of these drops removes information: an exact dependency is a direction with zero variance, and the region dummies added almost nothing beyond the 20 region-year values of the regional columns.
 >
 > **Table 29a.** Variance inflation factor of every feature after rules 1–3 (48 features) and after rule 4 (38 features), on training rows. ∞ = exact linear dependency.
 >
@@ -654,18 +654,18 @@ Row 7, "Observed": **unchanged, "67 of 67 candidates".** The success-criteria ch
 | 0 | download_data.py | raw NHIS, EPA, BRFSS and USCS files in data/raw/ (skipped when already present) |
 | 1 | build_regional_data.py | data/clean/regional_context.csv (20 region-years) and regional_report.txt |
 | 2 | build_clean_dataset.py | clean, model-ready and scaled datasets; data dictionary; feature decisions; VIF tables (vif_before.csv, vif_after.csv); outlier table; before/after summary; cleaning report; Fig. 3 |
-| 3 | eda_analysis.py | Figures 1–2, 4–14, 12b and 12c; test, correlation and association tables in reports/tables/; reports/eda_results.txt with every test (with its denominator) and the success-criteria check |
-| 4 | feature_extraction_pca.py | Figures 15–16; reports/pca_results.txt; PCA tables |
-| 5 | supplementary_analysis.py | dataset composition (Tables 2a–2c), population profile (Tables 5–10), per-year rates, age-adjusted odds ratios, regional within/between check, screening-rule baseline, mutual-information check, survey-design check and the criterion-5 assertion; reports/supplementary_results.txt |
+| 3 | eda_analysis.py | Figures 1–2, 4–14, 12b and 12c; test, correlation and association tables in results/tables/; results/eda_results.txt with every test (with its denominator) and the success-criteria check |
+| 4 | feature_extraction_pca.py | Figures 15–16; results/pca_results.txt; PCA tables |
+| 5 | supplementary_analysis.py | dataset composition (Tables 2a–2c), population profile (Tables 5–10), per-year rates, age-adjusted odds ratios, regional within/between check, screening-rule baseline, mutual-information check, survey-design check and the criterion-5 assertion; results/supplementary_results.txt |
 | – | notebooks/lung_cancer_project.ipynb | the whole project section by section; every code cell calls a function of the scripts above (not run by run_all.py) |
 
 ### Paragraph after Table 36 (whole paragraph) [A3: hash]
 
 **Current:**
-> We tested this on a fresh run: the full pipeline takes about 105 seconds, finishes without errors or warnings, and the regenerated results match the committed ones. The cleaned file data/clean/nhis_lung_ cancer_clean.csv (149,928 × 26) has the SHA-256 prefix 5daf9b80b848efe9, so anyone can check they have the same data. All numbers in this report come from reports/eda_results.txt, reports/ pca_results.txt, reports/supplementary_results.txt, reports/tables/ and data/clean/ cleaning_report.txt; Figure N of this report is the file reports/figures/figNN_*.png with the same number.
+> We tested this on a fresh run: the full pipeline takes about 105 seconds, finishes without errors or warnings, and the regenerated results match the committed ones. The cleaned file data/clean/nhis_lung_ cancer_clean.csv (149,928 × 26) has the SHA-256 prefix 5daf9b80b848efe9, so anyone can check they have the same data. All numbers in this report come from results/eda_results.txt, results/ pca_results.txt, results/supplementary_results.txt, results/tables/ and data/clean/ cleaning_report.txt; Figure N of this report is the file results/figures/figNN_*.png with the same number.
 
 **Replace with:**
-> We tested this on a fresh run: the full pipeline takes about 100 seconds, finishes without errors or warnings, and the regenerated results match the committed ones. The cleaned file data/clean/nhis_lung_cancer_clean.csv (149,928 × 26) has the SHA-256 prefix 5daf9b80b848efe9 with Unix (LF) line endings, as stored in git; pandas on Windows writes Windows (CRLF) line endings, which give the prefix 2b25cb8142487dd4 for the same data. Every script can also be imported: its steps are functions, and `main()` runs them in order. The notebook notebooks/lung_cancer_project.ipynb uses this to walk through the six CRISP-DM sections by calling those functions, with its outputs saved. By default (REBUILD = False) it reuses the built files; two consecutive runs were checked to leave every output byte-identical to run_all.py's. All numbers in this report come from reports/eda_results.txt, reports/pca_results.txt, reports/supplementary_results.txt, reports/tables/ and data/clean/cleaning_report.txt; Figure N of this report is the file reports/figures/figNN_*.png with the same number (Figures 12b and 12c are fig12b_*.png and fig12c_*.png).
+> We tested this on a fresh run: the full pipeline takes about 100 seconds, finishes without errors or warnings, and the regenerated results match the committed ones. The cleaned file data/clean/nhis_lung_cancer_clean.csv (149,928 × 26) has the SHA-256 prefix 5daf9b80b848efe9 with Unix (LF) line endings, as stored in git; pandas on Windows writes Windows (CRLF) line endings, which give the prefix 2b25cb8142487dd4 for the same data. Every script can also be imported: its steps are functions, and `main()` runs them in order. The notebook notebooks/lung_cancer_project.ipynb uses this to walk through the six CRISP-DM sections by calling those functions, with its outputs saved. By default (REBUILD = False) it reuses the built files; two consecutive runs were checked to leave every output byte-identical to run_all.py's. All numbers in this report come from results/eda_results.txt, results/pca_results.txt, results/supplementary_results.txt, results/tables/ and data/clean/cleaning_report.txt; Figure N of this report is the file results/figures/figNN_*.png with the same number (Figures 12b and 12c are fig12b_*.png and fig12c_*.png).
 
 ---
 
@@ -709,7 +709,7 @@ Removed from the previous Table 37: comorbidity_count, race_ethnicity_White, reg
 
 ## Pre-existing inconsistencies (A3)
 
-We compared every number in the report with `eda_results.txt`, `pca_results.txt`, `supplementary_results.txt`, `reports/tables/*.csv` and `data/clean/*` as they stood before these changes. The list below gives every mismatch beyond rounding. Each one is fixed in place above. Everything else checked matched, including Tables 3–10, 13–26, 33–35, the §2.5 counts, the e-cigarette power figure (OR ≈ 1.34, recomputed) and the smallest expected count of 4.0 before the race groups were merged (3.97, recomputed).
+We compared every number in the report with `eda_results.txt`, `pca_results.txt`, `supplementary_results.txt`, `results/tables/*.csv` and `data/clean/*` as they stood before these changes. The list below gives every mismatch beyond rounding. Each one is fixed in place above. Everything else checked matched, including Tables 3–10, 13–26, 33–35, the §2.5 counts, the e-cigarette power figure (OR ≈ 1.34, recomputed) and the smallest expected count of 4.0 before the race groups were merged (3.97, recomputed).
 
 | # | Where | Report says | Correct | Source |
 |---|---|---|---|---|
@@ -728,7 +728,7 @@ Not a report error but corrected in the repository: README section 7 said "only 
 
 ## Figures regenerated
 
-All PNGs below were regenerated (the report reads them from `reports/figures/`). Fig 12b and 12c are new; the others have n (and weighting) added to the title, or a layout fix.
+All PNGs below were regenerated (the report reads them from `results/figures/`). Fig 12b and 12c are new; the others have n (and weighting) added to the title, or a layout fix.
 
 | Figure | What changed |
 |---|---|

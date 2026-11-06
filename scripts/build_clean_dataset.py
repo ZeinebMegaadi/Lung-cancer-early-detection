@@ -10,6 +10,9 @@ Output: data/clean/nhis_lung_cancer_clean.csv               readable, one row pe
         data/clean/outlier_check.csv                        IQR outlier check and the decision for each column
         data/clean/before_after_summary.csv                 one table: what each step changed
         data/clean/data_dictionary.csv                      what every column means
+        data/clean/scaler_parameters.csv                    training means / SDs of the scaled columns
+        results/tables/vif_before.csv, vif_after.csv        variance inflation factors before / after Rule 4
+        results/figures/fig03_outlier_boxplots.png          outlier box plots
         data/clean/cleaning_report.txt                      every cleaning step with before/after counts
 
 Run from the repository root (after download_data.py and build_regional_data.py):
@@ -17,7 +20,6 @@ Run from the repository root (after download_data.py and build_regional_data.py)
 """
 import warnings
 import zipfile
-from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -28,33 +30,16 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 from statsmodels.stats.outliers_influence import variance_inflation_factor
 
-ROOT = Path(__file__).resolve().parents[1]
-RAW = ROOT / "data" / "raw" / "nhis"
-CLEAN = ROOT / "data" / "clean"
-CLEAN.mkdir(parents=True, exist_ok=True)
-YEARS = [2019, 2020, 2021, 2022, 2023]
-RANDOM_STATE = 42
+from common import CLEAN, RANDOM_STATE, RAW, REFERENCE, REGIONAL, TAB, YEARS, save_fig, text_log
+
 COMORB = ["copd", "asthma", "hypertension", "heart_disease", "diabetes"]
-TAB = ROOT / "reports" / "tables"
-TAB.mkdir(parents=True, exist_ok=True)
-# Reference category of every one-hot group: dropped from the model-ready file (Rule 4), so the other
-# dummies of the group are read relative to it and the group no longer sums to 1 (no exact collinearity)
-REFERENCE = {"race_ethnicity": "White", "education": "High school / GED", "income_group": "High",
-             "bmi_category": "Healthy", "general_health": "Excellent", "smoking_status": "Never",
-             "sex": "Male", "region": "West"}
 
 # Raw NHIS columns we need (same names in all 2019-2023 adult files)
 RAW_COLS = ["SRVY_YR", "HHX", "WTFA_A", "AGEP_A", "SEX_A", "HISPALLP_A", "REGION", "EDUC_A",
             "RATCAT_A", "PHSTAT_A", "BMICAT_A", "SMKCIGST_A", "ECIGEV_A", "COPDEV_A", "ASEV_A",
             "HYPEV_A", "CHDEV_A", "DIBEV_A", "CANEV_A", "LUNGCAN_A"]
 
-FIG = ROOT / "reports" / "figures"
-FIG.mkdir(parents=True, exist_ok=True)
-
-report = []
-def log(msg=""):
-    print(msg)
-    report.append(str(msg))
+report, log, _ = text_log()
 
 summary = []        # before/after table: one row per step
 def track(step, df, change):
@@ -85,7 +70,7 @@ def near_zero_eigenvalues(X, limit=0.01):
 
 # ---------------------------------------------------------------- 1. load and stack
 def load_year(year):
-    path = RAW / f"adult{str(year)[-2:]}csv.zip"
+    path = RAW / "nhis" / f"adult{str(year)[-2:]}csv.zip"
     with zipfile.ZipFile(path) as z:
         member = [n for n in z.namelist() if n.lower().endswith(".csv")][0]
         with z.open(member) as f:
@@ -216,7 +201,7 @@ def join_regional(clean):
     clean = clean.merge(ctx, on=["region", "year"], how="left", validate="many_to_one")
     assert len(clean) == n_before, "The join must add columns, never rows"
     log(f"  Rows before / after join: {n_before:,} / {len(clean):,}  (join key: region + year)")
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         log(f"  {c}: {clean[c].isna().sum()} rows without a match (only if region is unknown)")
     track("5b. Join regional table", clean, "3 columns added (pm25_mean, smoking_rate, lung_cancer_incidence); 0 rows added")
     return clean
@@ -256,8 +241,8 @@ def outlier_check(clean):
             n_out = int(pd.DataFrame(rows).set_index("column").loc[c, "n_outliers"])
             ax.set_title(f"{c}\n{n_out:,} beyond 1.5 x IQR", fontsize=13); ax.set_xticks([]); ax.set_ylabel(UNITS[c], fontsize=12)
         fig.suptitle("Fig 3. Outlier check (IQR rule): every flagged value is plausible, so all values are kept", y=1.01, fontsize=14)
-        plt.tight_layout(); plt.savefig(FIG / "fig03_outlier_boxplots.png", dpi=150, bbox_inches="tight"); plt.close()
-    log("  Box plots saved to reports/figures/fig03_outlier_boxplots.png")
+        save_fig("fig03_outlier_boxplots")
+    log("  Box plots saved to results/figures/fig03_outlier_boxplots.png")
     track("5c. Outlier check", clean, "IQR check on 6 numeric columns; all values plausible -> kept")
     return pd.DataFrame(rows)
 
@@ -304,7 +289,7 @@ def encode_and_fill(clean):
     m["comorbidity_count"] = clean["comorbidity_count"].fillna(0).astype(int)
 
     # Regional columns: filled with the training median if a person's region is unknown
-    for c in ["pm25_mean", "smoking_rate", "lung_cancer_incidence"]:
+    for c in REGIONAL:
         m[c] = clean[c].fillna(clean.loc[train_idx, c].median())
 
     # Categorical columns: one-hot encoding, missing becomes its own 'Unknown' category
@@ -395,7 +380,7 @@ def select_features(m, split):
         else:
             decisions[c] = ("DROP", why + "; dropping one dummy per group removes the exact sum-to-1 dependency "
                                           "(infinite VIF)" + NOTE.get(group, ""))
-    # 4c. region dummies vs the 3 regional columns (decision D3 of CHANGES_PLAN.md)
+    # 4c. region dummies vs the 3 regional columns
     mid = [c for c in candidates if c not in decisions]
     vif_mid = vif_table(tr[mid]).set_index("feature")["vif"]
     REGION = [c for c in mid if c.startswith("region_")]
@@ -437,7 +422,7 @@ def select_features(m, split):
             decisions[c] = ("KEEP", decisions[c][1] + f"; VIF {v:.1f} (below 10)")
     log(f"    VIF of the {len(after)} final features: max {vif_after.vif.max():.2f} ({vif_after.feature[0]}), "
         f"{int((vif_after.vif > 10).sum())} above 10; near-zero eigenvalues: {near_zero_eigenvalues(tr[after])}")
-    log("    Saved reports/tables/vif_before.csv and vif_after.csv")
+    log("    Saved results/tables/vif_before.csv and vif_after.csv")
 
     ff = pd.DataFrame([(c, *decisions[c]) for c in candidates] + [(c, "NOT A FEATURE", r) for c, r in NOT_FEATURES.items()],
                       columns=["column", "decision", "reason"])

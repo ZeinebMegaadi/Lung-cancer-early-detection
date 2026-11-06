@@ -20,7 +20,7 @@ Using five years of nationally representative survey data, joined with regional 
 
 \textbf{Outcome.} Having ever been told by a doctor that one had lung cancer, self-reported by US adults in NHIS 2019--2023 (\nAdults adults, \nCases cases).
 
-We fixed these questions (Table~\ref{tab:rq}) at the start of the analysis, so it could not drift toward whatever happened to look significant, and made each one name the comparison, the measure and the adjustment it relies on. The second question is split into three (RQ2a--c), one per family of factors. The same five labels mark every test in the code (\file{reports/tables/all_tests_holm.csv}): RQ1 has 1 test, RQ2a 1, RQ2b 7, RQ2c 6 and RQ3 3, for \nTests in total.
+We fixed these questions (Table~\ref{tab:rq}) at the start of the analysis, so it could not drift toward whatever happened to look significant, and made each one name the comparison, the measure and the adjustment it relies on. The second question is split into three (RQ2a--c), one per family of factors. The same five labels mark every test in the code (\file{results/tables/all_tests_holm.csv}): RQ1 has 1 test, RQ2a 1, RQ2b 7, RQ2c 6 and RQ3 3, for \nTests in total.
 
 \begin{table}[htbp]
 \centering\small
@@ -54,7 +54,7 @@ RQ3 & \textbf{Regional context.} Across the 20 region-years (4 US Census regions
 
 \subsection{Measurable success criteria}\label{sec:criteria}
 
-We wrote these the way we would write acceptance criteria for software: each one is a pass/fail check fixed before the analysis (Table~\ref{tab:criteria-def}). All eight are verified by the code: criteria 1--4 and 6--8 in \file{eda_results.txt} (section 10) and \file{reports/tables/success_criteria_check.csv}, and criterion 5 by an assertion in \file{supplementary_analysis.py} (section 11), which refits the scaler on training rows and fails the run if the saved parameters differ.
+We wrote these the way we would write acceptance criteria for software: each one is a pass/fail check fixed before the analysis (Table~\ref{tab:criteria-def}). All eight are verified by the code: criteria 1--4 and 6--8 in \file{eda_results.txt} (section 10) and \file{results/tables/success_criteria_check.csv}, and criterion 5 by an assertion in \file{supplementary_analysis.py} (section 11), which refits the scaler on training rows and fails the run if the saved parameters differ.
 
 Two further rules apply to the modelling phase and are carried into Section~\ref{sec:next}: the pipeline must rebuild everything from raw files in under five minutes on a fresh clone, and the future model will be judged on recall, precision and PR-AUC, never on accuracy, against the benchmark set by the USPSTF-style rule (recall 63\%, precision 1.2\%; Table~\ref{tab:screening}).
 

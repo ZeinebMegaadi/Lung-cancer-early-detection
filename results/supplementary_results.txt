@@ -326,7 +326,7 @@ Regional rows: smoking_rate and lung_cancer_incidence have identical MI and null
 takes one value per region-year cell (20 and 20 values for 20 cells): as discrete columns they split the adults
 into the same groups. pm25_mean has 18 values (ties: 6.31 = West 2019 & West 2023; 7.43 = South 2022 & West 2021),
 so its MI is slightly lower. The three regional MI values measure one thing - region-year identity - not
-three independent signals (reports/tables/regional_mi_identity.csv). They are above the shuffled-target
+three independent signals (results/tables/regional_mi_identity.csv). They are above the shuffled-target
 null, but tiny next to the personal factors.
 
 ======================================================================

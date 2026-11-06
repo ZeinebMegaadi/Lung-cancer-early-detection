@@ -4,11 +4,11 @@ Step 4 - Feature extraction with Principal Component Analysis (PCA).
     python scripts/feature_extraction_pca.py
 
 Reads : data/clean/nhis_lung_cancer_model_ready.csv   (final selected features, train/test split)
-Writes: reports/figures/fig15_pca_scree.png             explained variance per component
-        reports/figures/fig16_pca_projection.png        adults projected on the first 2 components
-        reports/tables/pca_explained_variance.csv
-        reports/tables/pca_loadings.csv                 weight of every feature in PC1-PC3
-        reports/pca_results.txt                         results and decision in plain words
+Writes: results/figures/fig15_pca_scree.png             explained variance per component
+        results/figures/fig16_pca_projection.png        adults projected on the first 2 components
+        results/tables/pca_explained_variance.csv
+        results/tables/pca_loadings.csv                 weight of every feature in PC1-PC3
+        results/pca_results.txt                         results and decision in plain words
 
 Question: can the selected features be compressed into a few components without losing much
 information? If yes, PCA would be a useful extraction step; if not, we keep the original
@@ -18,42 +18,29 @@ Leakage: the scaler and the PCA are fitted on TRAINING rows only; test rows are 
 Scale: features have different units (years, %, µg/m³, 0/1), so every feature is standardised first.
 This is the same as running PCA on the correlation matrix (course, Chapter 5).
 """
-from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-import seaborn as sns
 from sklearn.decomposition import PCA
 from sklearn.preprocessing import StandardScaler
 
-ROOT = Path(__file__).resolve().parents[1]
-CLEAN = ROOT / "data" / "clean"
-FIG = ROOT / "reports" / "figures"
-TAB = ROOT / "reports" / "tables"
-FIG.mkdir(parents=True, exist_ok=True)
-TAB.mkdir(parents=True, exist_ok=True)
-RANDOM_STATE = 42
+from common import BLUE, CLEAN, GREY, NON_FEATURES, ORANGE, RANDOM_STATE, RESULTS, TAB, save_fig, set_style, text_log
+
 LOADING_THRESHOLD = 0.40          # course rule: a loading above 0.40 (absolute) is a meaningful contribution
 
-sns.set_theme(style="whitegrid", context="talk")
-BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
+set_style()
 
-out = []
-def say(msg=""):
-    print(msg)
-    out.append(str(msg))
-
-FEATURE_EXCLUDE = ("person_id", "split", "survey_weight", "lung_cancer")
+out, say, _ = text_log()
 
 
 def pca_analysis(m):
     """Steps 1-4: standardise + PCA on training rows, loadings, test-set check, decision.
     Returns the explained-variance table, the loadings, the fitted PCA, the scaled training matrix
     and the number of components for 80/90/95% of the variance."""
-    features = [c for c in m.columns if c not in FEATURE_EXCLUDE]
+    features = [c for c in m.columns if c not in NON_FEATURES]
     train, test = m[m.split == "train"], m[m.split == "test"]
 
     say("=" * 70)
@@ -93,7 +80,7 @@ def pca_analysis(m):
     say("  each complete one-hot group (race, education, income, BMI) summed to 1, general health and smoking")
     say("  status almost did, comorbidity_count was the sum of the 5 condition flags, and the region dummies almost")
     say("  determined lung_cancer_incidence. Rule 4 removed comorbidity_count, one reference category per group and")
-    say("  the region dummies, so no dependency is left (reports/tables/vif_after.csv). An exact dependency is a")
+    say("  the region dummies, so no dependency is left (results/tables/vif_after.csv). An exact dependency is a")
     say("  zero-variance direction that carries no information, so removing it loses nothing; the region dummies")
     say("  added almost nothing beyond the 3 regional columns, which take 20 region-year values.")
 
@@ -143,7 +130,7 @@ def pca_analysis(m):
 # 5. Figures
 def pca_figures(m, pca, Z_train, k):
     """Step 5: scree plot (Fig 15) and projection on PC1-PC2 (Fig 16)."""
-    features = [c for c in m.columns if c not in FEATURE_EXCLUDE]
+    features = [c for c in m.columns if c not in NON_FEATURES]
     train = m[m.split == "train"]
     ratio = pca.explained_variance_ratio_
     cum = np.cumsum(ratio)
@@ -161,7 +148,7 @@ def pca_figures(m, pca, Z_train, k):
                  f"(fitted on the {len(train):,} training rows)", fontsize=16)
     h1, l1 = ax.get_legend_handles_labels(); h2, l2 = ax2.get_legend_handles_labels()
     ax.legend(h1 + h2, l1 + l2, loc="center right", fontsize=12)
-    plt.tight_layout(); plt.savefig(FIG / "fig15_pca_scree.png", dpi=150, bbox_inches="tight"); plt.close()
+    save_fig("fig15_pca_scree")
 
     P = pca.transform(Z_train)[:, :2]
     proj = pd.DataFrame({"PC1": P[:, 0], "PC2": P[:, 1], "lung_cancer": train["lung_cancer"].values})
@@ -174,7 +161,7 @@ def pca_figures(m, pca, Z_train, k):
     ax.set_title(f"Fig 16. Training adults on the first two principal components\n"
                  f"(n = {len(train):,} training rows; all {len(pos)} cases and a random 8,000 non-cases shown)", fontsize=16)
     ax.legend(fontsize=12, loc="center right")
-    plt.tight_layout(); plt.savefig(FIG / "fig16_pca_projection.png", dpi=150, bbox_inches="tight"); plt.close()
+    save_fig("fig16_pca_projection")
     m_pos, m_neg = proj.loc[proj.lung_cancer == 1, "PC1"].mean(), proj.loc[proj.lung_cancer == 0, "PC1"].mean()
     say(f"\nFig 16 reading: mean PC1 score = {m_pos:+.2f} for lung cancer cases vs {m_neg:+.2f} for the other adults.")
     say("PC1 is the 'age and chronic-disease burden' axis (see loadings), so cases sit on its high side,")
@@ -186,8 +173,8 @@ def main():
     m = pd.read_csv(CLEAN / "nhis_lung_cancer_model_ready.csv")
     ev, loadings, pca, Z_train, k = pca_analysis(m)
     pca_figures(m, pca, Z_train, k)
-    (ROOT / "reports" / "pca_results.txt").write_text("\n".join(out), encoding="utf-8")
-    print("\nDone. Results in reports/pca_results.txt")
+    (RESULTS / "pca_results.txt").write_text("\n".join(out), encoding="utf-8")
+    print("\nDone. Results in results/pca_results.txt")
 
 
 if __name__ == "__main__":
