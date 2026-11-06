@@ -49,9 +49,9 @@ import seaborn as sns
 from scipy import stats
 from sklearn.feature_selection import mutual_info_classif
 from sklearn.metrics import mutual_info_score
-from statsmodels.stats.contingency_tables import StratifiedTable
 
-from common import CLEAN, FIG, NON_FEATURES, RANDOM_STATE, REGIONAL, RESULTS, TAB
+from common import (CLEAN, FIG, NON_FEATURES, RANDOM_STATE, REGIONAL, RESULTS, TAB, mantel_haenszel, mi_inputs,
+                    odds_ratio_ci, two_by_two, weighted_rate as wrate)
 
 sns.set_theme(style="whitegrid", context="talk")
 BLUE, ORANGE, GREY = "#2F6690", "#D1603D", "#B8B8B8"
@@ -90,20 +90,9 @@ def save(name, dpi=150):
     plt.savefig(FIG / f"{name}.png", dpi=dpi, bbox_inches="tight")
     plt.close()
 
-def wrate(d, w="survey_weight"):
-    """Population (weighted) % with lung cancer - corrects for NHIS over-sampling some groups."""
-    return 100 * np.average(d["lung_cancer"], weights=d[w]) if d[w].notna().all() else 100 * d["lung_cancer"].mean()
-
 def cramers_v(t):
     chi2 = stats.chi2_contingency(t, correction=False)[0]
     return np.sqrt(chi2 / (t.values.sum() * (min(t.shape) - 1)))
-
-def odds_ratio_ci(t):
-    """Odds ratio for a 2x2 table [[a, b], [c, d]] (rows: exposed yes/no) with a 95% CI."""
-    a, b, c, d = t.values.ravel() + 0.5                   # +0.5 avoids dividing by zero
-    orr = (a * d) / (b * c)
-    se = np.sqrt(1 / a + 1 / b + 1 / c + 1 / d)
-    return orr, np.exp(np.log(orr) - 1.96 * se), np.exp(np.log(orr) + 1.96 * se)
 
 def fmt_p(p):
     """p-values below about 1e-300 are stored as 0.0 by the computer: print them as '< 1e-300'."""
@@ -321,7 +310,7 @@ def smoking(df):
     say(f"  Result: chi2({dof}) = {chi2:.1f}, p = {p:.2e}, Cramer's V = {cramers_v(t):.3f}")
     tests.append(("Smoking status vs lung cancer (chi-square)", "RQ1", p))
     ever = pd.crosstab(df["ever_smoker"].dropna().map({1: "ever", 0: "never"}), df["lung_cancer"]).reindex(["ever", "never"])[[1, 0]]
-    orr, lo, hi = odds_ratio_ci(ever)
+    orr, lo, hi = odds_ratio_ci(*ever.values.ravel())
     say(f"  Odds ratio, ever vs never smokers: {orr:.2f} (95% CI {lo:.2f} - {hi:.2f}); same {len(s):,} adults "
         f"({int(s.lung_cancer.sum())} cases), unweighted")
     say(f"  In words: ever-smokers have about {orr:.1f} times the odds of having had lung cancer.")
@@ -387,7 +376,7 @@ def conditions(df):
             say(f"  {c}: skipped (only one value present, a test is impossible)")
             continue
         chi2, p, _, exp = stats.chi2_contingency(t)
-        orr, lo, hi = odds_ratio_ci(t)
+        orr, lo, hi = odds_ratio_ci(*t.values.ravel())
         cond_rows.append({"condition": c, "adults": len(d), "cases": int(d.lung_cancer.sum()), "rate_if_yes_%": 100 * d.loc[d[c] == 1, "lung_cancer"].mean(),
                           "rate_if_no_%": 100 * d.loc[d[c] == 0, "lung_cancer"].mean(),
                           "odds_ratio": orr, "ci_low": lo, "ci_high": hi, "p": p, "cramers_v": cramers_v(t),
@@ -424,22 +413,13 @@ def copd_confounding(df):
     strata_rows, tables2x2 = [], []
     for g in SMOKE_ORDER:
         d = cs[cs.smoking_status == g]
-        t = pd.crosstab(d["copd"].map({1: "yes", 0: "no"}), d["lung_cancer"]).reindex(index=["yes", "no"], columns=[1, 0]).fillna(0)
-        tables2x2.append(t.values.astype(float))
-        orr, lo, hi = odds_ratio_ci(t)
+        t = two_by_two(d.copd == 1, d.lung_cancer == 1)
+        tables2x2.append(t)
+        orr, lo, hi = odds_ratio_ci(*t.ravel())
         strata_rows.append({"group": f"{g} smokers", "n": len(d), "cases": int(d.lung_cancer.sum()),
                             "odds_ratio": orr, "ci_low": lo, "ci_high": hi})
-    crude_t = pd.crosstab(cs["copd"].map({1: "yes", 0: "no"}), cs["lung_cancer"]).reindex(index=["yes", "no"], columns=[1, 0])
-    c_or, c_lo, c_hi = odds_ratio_ci(crude_t)
-    st = StratifiedTable(tables2x2)
-    mh_or = st.oddsratio_pooled
-    mh_lo, mh_hi = st.oddsratio_pooled_confint()
-    cmh = st.test_null_odds()
-    # statsmodels returns p = 1 - cdf, which rounds to 0 for very large statistics; the survival function keeps
-    # the real value (chi-square with 1 degree of freedom)
-    cmh_p = stats.chi2.sf(cmh.statistic, 1)
-    bd = st.test_equal_odds()
-    bd_p = stats.chi2.sf(bd.statistic, len(tables2x2) - 1)
+    c_or, c_lo, c_hi = odds_ratio_ci(*two_by_two(cs.copd == 1, cs.lung_cancer == 1).ravel())
+    mh_or, mh_lo, mh_hi, cmh_stat, cmh_p, bd_p = mantel_haenszel(tables2x2)
     strata = pd.DataFrame(strata_rows + [
         {"group": "Crude (smoking ignored)", "n": len(cs), "cases": int(cs.lung_cancer.sum()),
          "odds_ratio": c_or, "ci_low": c_lo, "ci_high": c_hi},
@@ -449,7 +429,7 @@ def copd_confounding(df):
     say(f"Subset: adults with known COPD and smoking status, n = {len(cs):,} ({int(cs.lung_cancer.sum())} cases), unweighted.")
     say(strata.round(2).to_string(index=False))
     say("CMH test  H0: no COPD-lung cancer link once smoking is held fixed")
-    say(f"  Result: chi2 = {cmh.statistic:.1f}, p {fmt_p(cmh_p) if cmh_p == 0 else '= ' + fmt_p(cmh_p)}")
+    say(f"  Result: chi2 = {cmh_stat:.1f}, p {fmt_p(cmh_p) if cmh_p == 0 else '= ' + fmt_p(cmh_p)}")
     say(f"Breslow-Day test (is the odds ratio the same in every smoking group?): p = {bd_p:.3f}")
     say(f"Reading: the crude odds ratio {c_or:.1f} falls to {mh_or:.1f} after adjusting for smoking -> part of the")
     say("crude link was due to smoking, but COPD stays strongly associated with lung cancer in never, former")
@@ -766,7 +746,7 @@ def target_correlation_bound(df):
         t = pd.crosstab(d[c], d.lung_cancer).reindex(index=[1, 0], columns=[1, 0])
         rows.append({"feature": c, "adults": len(d), "cases": int(d.lung_cancer.sum()), "prevalence_%": 100 * q,
                      "phi": phi, "phi_max": np.sqrt(lo * (1 - hi) / (hi * (1 - lo))),
-                     "odds_ratio": odds_ratio_ci(t)[0]})
+                     "odds_ratio": odds_ratio_ci(*t.values.ravel())[0]})
     b = pd.DataFrame(rows)
     b["phi_share_of_max_%"] = 100 * b.phi / b.phi_max
     b.round(4).to_csv(TAB / "target_correlation_bound.csv", index=False)
@@ -842,14 +822,8 @@ def feature_relevance(mr):
     header("9. FEATURE RELEVANCE (training rows only - no leakage; RQ3: regional vs personal)")
     train = mr[mr["split"] == "train"]
     X = train.drop(columns=list(NON_FEATURES))
-    # A column with few distinct values must be treated as DISCRETE: the continuous (k-nearest-neighbour)
-    # estimator is biased upwards on heavily tied values. Regional columns have only 20 values, so they
-    # are discrete; only age (68 values) is treated as continuous.
-    discrete = [X[c].nunique() <= 25 for c in X.columns]
-    X_mi = X.copy()
-    for c, d in zip(X.columns, discrete):
-        if d:                                    # give discrete values integer codes (MI does not depend on the labels)
-            X_mi[c] = pd.factorize(X[c], sort=True)[0]
+    # Regional columns have only 20 values, so they are discrete; only age (68 values) is continuous
+    X_mi, discrete = mi_inputs(X)
     mi = mutual_info_classif(X_mi, train["lung_cancer"], discrete_features=discrete, random_state=RANDOM_STATE)
     rank = pd.Series(mi, index=X.columns).sort_values(ascending=False)
     rank.round(5).to_csv(TAB / "feature_relevance_mutual_information.csv", header=["mutual_information"])

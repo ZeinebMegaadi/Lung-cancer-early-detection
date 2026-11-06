@@ -5,6 +5,11 @@ Shared paths and constants used by every pipeline script, build_report.py and th
 """
 from pathlib import Path
 
+import numpy as np
+import pandas as pd
+from scipy import stats
+from statsmodels.stats.contingency_tables import StratifiedTable
+
 ROOT = Path(__file__).resolve().parents[1]
 RAW = ROOT / "data" / "raw"                 # original files: nhis/, epa/, brfss/, uscs/, other/
 CLEAN = ROOT / "data" / "clean"             # clean and model-ready datasets, cleaning logs
@@ -46,3 +51,53 @@ FEATURE_GROUPS = {
     "health": ("copd", "asthma", "hypertension", "heart_disease", "diabetes", "general_health_", "bmi_category_"),
     "regional": tuple(REGIONAL),
 }
+
+
+# ---------------------------------------------------------------- statistics shared by the EDA scripts
+def weighted_mean(x, w):
+    """Weighted mean of x, ignoring missing x (NaN if nothing is left)."""
+    ok = x.notna()
+    return float(np.average(x[ok], weights=w[ok])) if ok.any() else np.nan
+
+
+def weighted_rate(d):
+    """Population (survey-weighted) % with lung cancer - corrects for NHIS over-sampling some groups."""
+    return 100 * weighted_mean(d["lung_cancer"], d["survey_weight"])
+
+
+def two_by_two(exposed, case):
+    """2x2 table [[a, b], [c, d]] = exposed cases, exposed non-cases, unexposed cases, unexposed non-cases.
+    exposed and case are boolean Series over the same rows."""
+    return np.array([[(exposed & case).sum(), (exposed & ~case).sum()],
+                     [(~exposed & case).sum(), (~exposed & ~case).sum()]], float)
+
+
+def odds_ratio_ci(a, b, c, d):
+    """Odds ratio of a 2x2 table [[a, b], [c, d]] with a 95% CI; +0.5 in every cell (Haldane-Anscombe)
+    avoids dividing by zero."""
+    a, b, c, d = a + 0.5, b + 0.5, c + 0.5, d + 0.5
+    orr = (a * d) / (b * c)
+    se = np.sqrt(1 / a + 1 / b + 1 / c + 1 / d)
+    return orr, np.exp(np.log(orr) - 1.96 * se), np.exp(np.log(orr) + 1.96 * se)
+
+
+def mantel_haenszel(tables):
+    """Pooled odds ratio over 2x2 strata: (OR, CI low, CI high, CMH statistic, CMH p, Breslow-Day p).
+    p-values use the chi-square survival function: statsmodels returns 1 - cdf, which rounds to 0 for
+    very large statistics."""
+    st = StratifiedTable(tables)
+    lo, hi = st.oddsratio_pooled_confint()
+    cmh, bd = st.test_null_odds().statistic, st.test_equal_odds().statistic
+    return st.oddsratio_pooled, lo, hi, cmh, stats.chi2.sf(cmh, 1), stats.chi2.sf(bd, len(tables) - 1)
+
+
+def mi_inputs(X):
+    """Prepare X for mutual_info_classif: a column with 25 or fewer distinct values is DISCRETE (the
+    continuous k-nearest-neighbour estimator is biased upwards on heavily tied values) and gets integer
+    codes (MI does not depend on the labels). Returns (coded X, discrete mask)."""
+    discrete = [X[c].nunique() <= 25 for c in X.columns]
+    X = X.copy()
+    for c, d in zip(X.columns, discrete):
+        if d:
+            X[c] = pd.factorize(X[c], sort=True)[0]
+    return X, discrete
